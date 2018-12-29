@@ -2,8 +2,8 @@
 
 set -o errexit
 
-rm -rf TestData
-mkdir -p TestData
+rm -rfv TestData
+mkdir -pv TestData
 
 function buildTestFile {
   numContinuous=$1
@@ -30,6 +30,7 @@ function buildTestFiles {
 
 buildTestFiles 90 11 1000
 buildTestFiles 9000 1000 100000
+exit
 
 function runQuery {
   numContinuous=$1

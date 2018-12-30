@@ -2,8 +2,8 @@
 
 set -o errexit
 
-rm -rfv TestData
-mkdir -pv TestData
+#rm -rfv TestData
+#mkdir -pv TestData
 
 function buildTestFile {
   numContinuous=$1
@@ -22,13 +22,15 @@ function buildTestFiles {
   numDiscrete=$2
   numRows=$3
 
-  buildTestFile $numContinuous $numDiscrete $numRows BuildTsvFile.py tsv &
-  buildTestFile $numContinuous $numDiscrete $numRows BuildMsgPackFile.py msgpack &
-  buildTestFile $numContinuous $numDiscrete $numRows BuildFlagFile.py flag &
-  wait
+#  buildTestFile $numContinuous $numDiscrete $numRows BuildTsvFile.py tsv &
+#  buildTestFile $numContinuous $numDiscrete $numRows BuildMsgPackFile.py msgpack &
+#  buildTestFile $numContinuous $numDiscrete $numRows BuildFlagFile.py flag &
+#  wait
+
+  python3 ConvertTsvToFixedWidthFile.py TestData/${numContinuous}_${numDiscrete}_${numRows}.tsv TestData/${numContinuous}_${numDiscrete}_${numRows}.fwf
 }
 
-buildTestFiles 90 11 1000
+#buildTestFiles 90 11 1000
 buildTestFiles 9000 1000 100000
 exit
 

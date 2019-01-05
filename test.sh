@@ -22,17 +22,16 @@ function buildTestFiles {
   numDiscrete=$2
   numRows=$3
 
-#  buildTestFile $numContinuous $numDiscrete $numRows BuildTsvFile.py tsv &
-#  buildTestFile $numContinuous $numDiscrete $numRows BuildMsgPackFile.py msgpack &
-#  buildTestFile $numContinuous $numDiscrete $numRows BuildFlagFile.py flag &
-#  wait
+  buildTestFile $numContinuous $numDiscrete $numRows BuildTsvFile.py tsv &
+  buildTestFile $numContinuous $numDiscrete $numRows BuildMsgPackFile.py msgpack &
+  buildTestFile $numContinuous $numDiscrete $numRows BuildFlagFile.py flag &
+  wait
 
   python3 ConvertTsvToFixedWidthFile.py TestData/${numContinuous}_${numDiscrete}_${numRows}.tsv TestData/${numContinuous}_${numDiscrete}_${numRows}.fwf
 }
 
 #buildTestFiles 90 11 1000
-buildTestFiles 9000 1000 100000
-exit
+#buildTestFiles 9000 1000 100000
 
 function runQuery {
   numContinuous=$1
@@ -40,62 +39,72 @@ function runQuery {
   numRows=$3
   scriptFile=$4
   dataFileExtension=$5
+  memMap=$6
 
   echo Testing $scriptFile
   dataFile=TestData/${numContinuous}_${numDiscrete}_${numRows}.$dataFileExtension
-  outFile=/tmp/$scriptFile.out
+  outFile=/tmp/${numContinuous}_${numDiscrete}_${numRows}_${dataFileExtension}_${memMap}.$dataFileExtension.out
 
-  ####echo -e "$scriptFile\t$numContinuous\t$numDiscrete\t$numRows\t$( { /usr/bin/time -f %e python3 $scriptFile $dataFile $outFile > /dev/null; } 2>&1 )" >> Query_Results.tsv
-  time python3 $scriptFile $dataFile $outFile
+  #echo -e "$scriptFile\t$numContinuous\t$numDiscrete\t$numRows\t$memMap\t$( { /usr/bin/time -f %e python3 $scriptFile $dataFile $outFile $memMap > /dev/null; } 2>&1 )" >> Query_Results.tsv
+  time python3 $scriptFile $dataFile $outFile $memMap
 
-  if [[ "$scriptFile" != "TestParseSplit.py" ]]
+  masterOutFile=/tmp/master.out
+
+  # This compares against the output using the "ParseSplit" method
+  if [[ "$scriptFile" == "TestSplit.py" ]]
   then
-    masterOutFile=/tmp/TestParseSplit.py.out
+    cp $outFile $masterOutFile
+  else
     python3 CheckOutput.py $outFile $masterOutFile
   fi
 }
 
 rm -f Query_Results.tsv
-echo -e "Script\tNumContinuous\tNumDiscrete\tNumRows\tSeconds" > Query_Results.tsv
+echo -e "Script\tNumContinuous\tNumDiscrete\tNumRows\tMemMap\tSeconds" > Query_Results.tsv
 
-#numContinuous=90
-#numDiscrete=11
-#numRows=1000
-numContinuous=9000
-numDiscrete=1000
-numRows=100000
+numContinuous=90
+numDiscrete=11
+numRows=1000
+#numContinuous=9000
+#numDiscrete=1000
+#numRows=100000
 
-#runQuery $numContinuous $numDiscrete $numRows TestParseSplit.py tsv
-#runQuery $numContinuous $numDiscrete $numRows TestParseRegEx.py tsv
-#runQuery $numContinuous $numDiscrete $numRows TestParseRegEx2.py tsv
-#runQuery $numContinuous $numDiscrete $numRows TestParseRegExMemMap.py tsv
-#runQuery $numContinuous $numDiscrete $numRows TestParseMsgPack.py msgpack
-##runQuery $numContinuous $numDiscrete $numRows TestMileposts.py mileposts # This is extremely slow
-##runQuery $numContinuous $numDiscrete $numRows TestMileposts2.py mileposts # This is moderately slow
-#runQuery $numContinuous $numDiscrete $numRows TestMileposts3.py mileposts # find_nths, reasonably fast
-#runQuery $numContinuous $numDiscrete $numRows TestAwk.py tsv
-#runQuery $numContinuous $numDiscrete $numRows TestMawk.py tsv
-#runQuery $numContinuous $numDiscrete $numRows TestGawk.py tsv
-#runQuery $numContinuous $numDiscrete $numRows TestNawk.py tsv
-#runQuery $numContinuous $numDiscrete $numRows TestFixedWidth.py fixed
-#runQuery $numContinuous $numDiscrete $numRows TestFixedWidthMemMap.py fixed
+runQuery $numContinuous $numDiscrete $numRows TestSplit.py tsv False
+#runQuery $numContinuous $numDiscrete $numRows TestSplit.py tsv True
+#runQuery $numContinuous $numDiscrete $numRows TestRegExQuantifiers.py tsv False
+#runQuery $numContinuous $numDiscrete $numRows TestRegExQuantifiers.py tsv True
+#runQuery $numContinuous $numDiscrete $numRows TestRegExTabs.py tsv False
+#runQuery $numContinuous $numDiscrete $numRows TestRegExTabs.py tsv True
+#runQuery $numContinuous $numDiscrete $numRows TestMsgPack.py msgpack False
+#runQuery $numContinuous $numDiscrete $numRows TestMsgPack.py msgpack True
+#runQuery $numContinuous $numDiscrete $numRows TestFlags.py flag False
+#runQuery $numContinuous $numDiscrete $numRows TestFlags.py flag True
+#runQuery $numContinuous $numDiscrete $numRows TestAwk.py tsv False
+#runQuery $numContinuous $numDiscrete $numRows TestMawk.py tsv False
+#runQuery $numContinuous $numDiscrete $numRows TestGawk.py tsv False
+#runQuery $numContinuous $numDiscrete $numRows TestNawk.py tsv False
+runQuery $numContinuous $numDiscrete $numRows TestFixedWidth.py fwf False
+#runQuery $numContinuous $numDiscrete $numRows TestFixedWidth.py fwf True
 
+tail -n 5 Query_Results.tsv
+
+#TODO for Geney:
+#  Apply mmap to all methods possible
+#  Build file line map for the test files and incorporate this logic into each method so comparisons are similar
+#  Run tests on a really wide file
+#  Incorporate into WishBuilder
+#    Exclude sample and feature names
+#    Store dictionaries in sqlitedict?
+
+#TODO for paper:
+#  Store file sizes in TSV file
+#  Compression: snappy, gzip, bz2, lzma
 
 #for f in TestData/*.fixed
 #do
 #  echo "Compressing $f"
 #  python3 CompressLinesSnappy.py $f $f.snappy
 #done
-
-
-
-#TODO:
-#  Clean up
-#  Apply mmap to all methods possible (and simplify some things?)
-#  Compression
-#  Run tests on a really wide file.
-#  Store file sizes in TSV file
-#  Fine tune for Geney
 
 #BACKBURNER:
 #  Write tests that pick 1000 noncontiguous rows from the file
@@ -112,6 +121,8 @@ numRows=100000
 #    Cython
 
 #NOTES:
+##runQuery $numContinuous $numDiscrete $numRows TestMileposts.py mileposts # This is extremely slow
+##runQuery $numContinuous $numDiscrete $numRows TestMileposts2.py mileposts # This is moderately slow
 ##buildTestFile $numContinuous $numDiscrete $numRows BuildMsgPackFileSnappy.py msgpack.snappy
 ##buildTestFile $numContinuous $numDiscrete $numRows BuildMsgPackFileGzip.py msgpack.gz
 ##buildTestFile $numContinuous $numDiscrete $numRows BuildMsgPackFileBz2.py msgpack.bz2

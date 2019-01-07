@@ -93,10 +93,19 @@ function runQueries {
 #runQueries Query_Results.tsv 9000 1000 100000
 #runQueries Query_Results.tsv 90000 10000 10000
 
+#rm -f Query_Results_fwf.tsv
+#echo -e "Description\tNumContinuous\tNumDiscrete\tNumRows\tMemMap\tSeconds" > Query_Results_fwf.tsv
+
+numContinuous=90
+numDiscrete=11
+numRows=1000
+python3 ConvertTsvToFixedWidthFile2.py TestData/${numContinuous}_${numDiscrete}_${numRows}.tsv TestData/${numContinuous}_${numDiscrete}_${numRows}.fwf2
+
 #TODO for Geney:
 #  Optimize fixed width more
 #    Remove extra space between columns
 #    Save column location dict when building the file
+#      Test whether it's faster to store as msgpack or in key/value database
 #    Build file line map - scan to position of each value rather than reading full line
 #    Test speed of transpose (informally)
 #  Incorporate into WishBuilder

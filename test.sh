@@ -30,23 +30,25 @@ function buildTestFiles {
   python3 ConvertTsvToFixedWidthFile.py TestData/${numContinuous}_${numDiscrete}_${numRows}.tsv TestData/${numContinuous}_${numDiscrete}_${numRows}.fwf
 }
 
-#buildTestFiles 90 11 1000
-#buildTestFiles 9000 1000 100000
+#time buildTestFiles 90 11 1000
+#time buildTestFiles 9000 1000 100000
+#time buildTestFiles 90000 10000 10000
 
 function runQuery {
-  numContinuous=$1
-  numDiscrete=$2
-  numRows=$3
-  scriptFile=$4
-  dataFileExtension=$5
-  memMap=$6
+  resultFile=$1
+  numContinuous=$2
+  numDiscrete=$3
+  numRows=$4
+  scriptFile=$5
+  dataFileExtension=$6
+  memMap=$7
 
   echo Testing $scriptFile
   dataFile=TestData/${numContinuous}_${numDiscrete}_${numRows}.$dataFileExtension
   outFile=/tmp/${numContinuous}_${numDiscrete}_${numRows}_${dataFileExtension}_${memMap}.$dataFileExtension.out
 
-  #echo -e "$scriptFile\t$numContinuous\t$numDiscrete\t$numRows\t$memMap\t$( { /usr/bin/time -f %e python3 $scriptFile $dataFile $outFile $memMap > /dev/null; } 2>&1 )" >> Query_Results.tsv
-  time python3 $scriptFile $dataFile $outFile $memMap
+  echo -e "$scriptFile\t$numContinuous\t$numDiscrete\t$numRows\t$memMap\t$( { /usr/bin/time -f %e python3 $scriptFile $dataFile $outFile $memMap > /dev/null; } 2>&1 )" >> $resultFile
+  #time python3 $scriptFile $dataFile $outFile $memMap
 
   masterOutFile=/tmp/master.out
 
@@ -59,45 +61,51 @@ function runQuery {
   fi
 }
 
-rm -f Query_Results.tsv
-echo -e "Script\tNumContinuous\tNumDiscrete\tNumRows\tMemMap\tSeconds" > Query_Results.tsv
+function runQueries {
+  resultFile=$1
+  numContinuous=$2
+  numDiscrete=$3
+  numRows=$4
 
-numContinuous=90
-numDiscrete=11
-numRows=1000
-#numContinuous=9000
-#numDiscrete=1000
-#numRows=100000
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestSplit.py tsv False
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestSplit.py tsv True
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestRegExQuantifiers.py tsv False
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestRegExQuantifiers.py tsv True
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestRegExTabs.py tsv False
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestRegExTabs.py tsv True
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestMsgPack.py msgpack False
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestMsgPack.py msgpack True
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestFlags.py flag False
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestFlags.py flag True
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestAwk.py tsv False
+##  On wide file, mawk gave this type of error so I excluded it: "$32801 exceeds maximum field(32767)"
+##  runQuery $resultFile $numContinuous $numDiscrete $numRows TestMawk.py tsv False
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestGawk.py tsv False
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestNawk.py tsv False
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestFixedWidth.py fwf False
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestFixedWidth.py fwf True
+}
 
-runQuery $numContinuous $numDiscrete $numRows TestSplit.py tsv False
-#runQuery $numContinuous $numDiscrete $numRows TestSplit.py tsv True
-#runQuery $numContinuous $numDiscrete $numRows TestRegExQuantifiers.py tsv False
-#runQuery $numContinuous $numDiscrete $numRows TestRegExQuantifiers.py tsv True
-#runQuery $numContinuous $numDiscrete $numRows TestRegExTabs.py tsv False
-#runQuery $numContinuous $numDiscrete $numRows TestRegExTabs.py tsv True
-#runQuery $numContinuous $numDiscrete $numRows TestMsgPack.py msgpack False
-#runQuery $numContinuous $numDiscrete $numRows TestMsgPack.py msgpack True
-#runQuery $numContinuous $numDiscrete $numRows TestFlags.py flag False
-#runQuery $numContinuous $numDiscrete $numRows TestFlags.py flag True
-#runQuery $numContinuous $numDiscrete $numRows TestAwk.py tsv False
-#runQuery $numContinuous $numDiscrete $numRows TestMawk.py tsv False
-#runQuery $numContinuous $numDiscrete $numRows TestGawk.py tsv False
-#runQuery $numContinuous $numDiscrete $numRows TestNawk.py tsv False
-runQuery $numContinuous $numDiscrete $numRows TestFixedWidth.py fwf False
-#runQuery $numContinuous $numDiscrete $numRows TestFixedWidth.py fwf True
+#rm -f Query_Results.tsv
+#echo -e "Description\tNumContinuous\tNumDiscrete\tNumRows\tMemMap\tSeconds" > Query_Results.tsv
 
-tail -n 5 Query_Results.tsv
+#runQueries Query_Results.tsv 90 11 1000
+#runQueries Query_Results.tsv 9000 1000 100000
+#runQueries Query_Results.tsv 90000 10000 10000
 
 #TODO for Geney:
-#  Apply mmap to all methods possible
-#  Build file line map for the test files and incorporate this logic into each method so comparisons are similar
-#  Run tests on a really wide file
+#  Optimize fixed width more
+#    Remove extra space between columns
+#    Save column location dict when building the file
+#    Build file line map - scan to position of each value rather than reading full line
+#    Test speed of transpose (informally)
 #  Incorporate into WishBuilder
 #    Exclude sample and feature names
+#    Transpose
 #    Store dictionaries in sqlitedict?
 
 #TODO for paper:
-#  Store file sizes in TSV file
+#  File sizes (store in TSV file)
 #  Compression: snappy, gzip, bz2, lzma
 
 #for f in TestData/*.fixed

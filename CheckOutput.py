@@ -15,7 +15,9 @@ with open(expectedOutputFilePath) as expectedOutputFile:
         expectedOutput += line
     expectedOutput = expectedOutput.rstrip()
 
-if output != expectedOutput:
+if output == expectedOutput:
+    print("Passed")
+else:
     print("{} and {} are not equal.".format(outputFilePath, expectedOutputFilePath))
     sys.exit(1)
 

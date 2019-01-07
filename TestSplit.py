@@ -11,10 +11,10 @@ with open(file_path, 'rb') as my_file:
         my_file = mmap.mmap(my_file.fileno(), 0, prot=mmap.PROT_READ)
 
     with open(out_file_path, 'wb') as out_file:
-        header_line = my_file.readline().rstrip(b"\n").split(b"\t")
+        header_items = my_file.readline().rstrip(b"\n").split(b"\t")
 
-        index_range = range(0, len(header_line), 100)
-        out_file.write(b"\t".join([header_line[i] for i in index_range]) + b"\n")
+        index_range = range(0, len(header_items), 100)
+        out_file.write(b"\t".join([header_items[i] for i in index_range]) + b"\n")
 
         #for line in my_file:
         for line in iter(my_file.readline, b""):

@@ -43,20 +43,22 @@ function runQuery {
   dataFileExtension=$6
   memMap=$7
 
+  scriptName=$(basename $scriptFile)
+  scriptName=${scriptName/\.py/}
+
   echo Testing $scriptFile
   dataFile=TestData/${numContinuous}_${numDiscrete}_${numRows}.$dataFileExtension
-  outFile=/tmp/${numContinuous}_${numDiscrete}_${numRows}_${dataFileExtension}_${memMap}.$dataFileExtension.out
+  outFile=/tmp/${scriptName}_${numContinuous}_${numDiscrete}_${numRows}_${dataFileExtension}_${memMap}.$dataFileExtension.out
 
-  echo -e "$scriptFile\t$numContinuous\t$numDiscrete\t$numRows\t$memMap\t$( { /usr/bin/time -f %e python3 $scriptFile $dataFile $outFile $memMap > /dev/null; } 2>&1 )" >> $resultFile
-  #time python3 $scriptFile $dataFile $outFile $memMap
+  #echo -e "$scriptFile\t$numContinuous\t$numDiscrete\t$numRows\t$memMap\t$( { /usr/bin/time -f %e python3 $scriptFile $dataFile $outFile $memMap > /dev/null; } 2>&1 )" >> $resultFile
+  time python3 $scriptFile $dataFile $outFile $memMap
+  return
 
-  masterOutFile=/tmp/master.out
+  masterOutFile=/tmp/TestSplit_${numContinuous}_${numDiscrete}_${numRows}_tsv_False.tsv.out
 
   # This compares against the output using the "ParseSplit" method
-  if [[ "$scriptFile" == "TestSplit.py" ]]
+  if [[ "$scriptFile" != "TestSplit.py" ]]
   then
-    cp $outFile $masterOutFile
-  else
     python3 CheckOutput.py $outFile $masterOutFile
   fi
 }
@@ -93,29 +95,57 @@ function runQueries {
 #runQueries Query_Results.tsv 9000 1000 100000
 #runQueries Query_Results.tsv 90000 10000 10000
 
-#rm -f Query_Results_fwf.tsv
-#echo -e "Description\tNumContinuous\tNumDiscrete\tNumRows\tMemMap\tSeconds" > Query_Results_fwf.tsv
+function buildTestFiles2 {
+  numContinuous=$1
+  numDiscrete=$2
+  numRows=$3
 
-numContinuous=90
-numDiscrete=11
-numRows=1000
-python3 ConvertTsvToFixedWidthFile2.py TestData/${numContinuous}_${numDiscrete}_${numRows}.tsv TestData/${numContinuous}_${numDiscrete}_${numRows}.fwf2
+  python3 ConvertTsvToFixedWidthFile2.py TestData/${numContinuous}_${numDiscrete}_${numRows}.tsv TestData/${numContinuous}_${numDiscrete}_${numRows}.fwf2
+}
+
+#buildTestFiles2 90 11 1000
+#buildTestFiles2 9000 1000 100000
+#buildTestFiles2 90000 10000 10000
+
+function runQueries2 {
+  resultFile=$1
+  numContinuous=$2
+  numDiscrete=$3
+  numRows=$4
+
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestFixedWidth2.py fwf2 True
+}
+
+rm -f Query_Results_fwf.tsv
+echo -e "Description\tNumContinuous\tNumDiscrete\tNumRows\tMemMap\tSeconds" > Query_Results_fwf.tsv
+
+#runQueries2 Query_Results_fwf.tsv 90 11 1000
+runQueries2 Query_Results_fwf.tsv 9000 1000 100000
+#TODO: After tweaking things, remove return statement from the runQuery function.
+#runQueries2 Query_Results_fwf.tsv 90000 10000 10000
 
 #TODO for Geney:
 #  Optimize fixed width more
-#    Remove extra space between columns
-#    Save column location dict when building the file
-#      Test whether it's faster to store as msgpack or in key/value database
-#    Build file line map - scan to position of each value rather than reading full line
-#    Test speed of transpose (informally)
+#    * Remove extra space between columns
+#    * Save column location dict when building the file
+#    * Build file line map
+#    Modify query code to scan to position of each value rather than reading full line
+#    Write rows in chunks to output file
+#    Test on large files
+#      Do some quick tests to see how long it takes to load the msgpack files.
+#        Consider key/value database if it's long enough.
+#  Test speed of transpose (informally)
 #  Incorporate into WishBuilder
 #    Exclude sample and feature names
-#    Transpose
+#    Transpose?
 #    Store dictionaries in sqlitedict?
+#      Test whether it's faster to store as msgpack or in key/value database
 
 #TODO for paper:
 #  File sizes (store in TSV file)
 #  Compression: snappy, gzip, bz2, lzma
+#  Transpose demo/testing
+#  Test on even larger files?
 
 #for f in TestData/*.fixed
 #do

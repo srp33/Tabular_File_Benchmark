@@ -50,9 +50,8 @@ function runQuery {
   dataFile=TestData/${numContinuous}_${numDiscrete}_${numRows}.$dataFileExtension
   outFile=/tmp/${scriptName}_${numContinuous}_${numDiscrete}_${numRows}_${dataFileExtension}_${memMap}.$dataFileExtension.out
 
-  #echo -e "$scriptFile\t$numContinuous\t$numDiscrete\t$numRows\t$memMap\t$( { /usr/bin/time -f %e python3 $scriptFile $dataFile $outFile $memMap > /dev/null; } 2>&1 )" >> $resultFile
-  time python3 $scriptFile $dataFile $outFile $memMap
-  return
+  echo -e "$scriptFile\t$numContinuous\t$numDiscrete\t$numRows\t$memMap\t$( { /usr/bin/time -f %e python3 $scriptFile $dataFile $outFile $memMap > /dev/null; } 2>&1 )" >> $resultFile
+  #time python3 $scriptFile $dataFile $outFile $memMap
 
   masterOutFile=/tmp/TestSplit_${numContinuous}_${numDiscrete}_${numRows}_tsv_False.tsv.out
 
@@ -113,81 +112,97 @@ function runQueries2 {
   numDiscrete=$3
   numRows=$4
 
+  ####runQuery $resultFile $numContinuous $numDiscrete $numRows TestSplit.py tsv True
   runQuery $resultFile $numContinuous $numDiscrete $numRows TestFixedWidth2.py fwf2 True
 }
 
-rm -f Query_Results_fwf.tsv
-echo -e "Description\tNumContinuous\tNumDiscrete\tNumRows\tMemMap\tSeconds" > Query_Results_fwf.tsv
+#rm -f Query_Results_fwf.tsv
+#echo -e "Description\tNumContinuous\tNumDiscrete\tNumRows\tMemMap\tSeconds" > Query_Results_fwf.tsv
 
 #runQueries2 Query_Results_fwf.tsv 90 11 1000
-runQueries2 Query_Results_fwf.tsv 9000 1000 100000
-#TODO: After tweaking things, remove return statement from the runQuery function.
+#runQueries2 Query_Results_fwf.tsv 9000 1000 100000
 #runQueries2 Query_Results_fwf.tsv 90000 10000 10000
 
-#TODO for Geney:
-#  Optimize fixed width more
-#    * Remove extra space between columns
-#    * Save column location dict when building the file
-#    * Build file line map
-#    Modify query code to scan to position of each value rather than reading full line
-#    Write rows in chunks to output file
-#    Test on large files
-#      Do some quick tests to see how long it takes to load the msgpack files.
-#        Consider key/value database if it's long enough.
-#  Test speed of transpose (informally)
-#  Incorporate into WishBuilder
-#    Exclude sample and feature names
-#    Transpose?
-#    Store dictionaries in sqlitedict?
-#      Test whether it's faster to store as msgpack or in key/value database
+function runTransposeQuery {
+  resultFile=$1
+  numContinuous=$2
+  numDiscrete=$3
+  numRows=$4
+  scriptFile=$5
+  dataFileExtension=$6
 
-#TODO for paper:
-#  File sizes (store in TSV file)
-#  Compression: snappy, gzip, bz2, lzma
-#  Transpose demo/testing
-#  Test on even larger files?
+  scriptName=$(basename $scriptFile)
+  scriptName=${scriptName/\.py/}
 
-#for f in TestData/*.fixed
+  echo Testing $scriptFile
+  dataFile=TestData/${numContinuous}_${numDiscrete}_${numRows}.$dataFileExtension
+  outFile=/tmp/${scriptName}_${numContinuous}_${numDiscrete}_${numRows}_${dataFileExtension}_Transpose.$dataFileExtension.out
+
+  echo -e "$scriptFile\t$numContinuous\t$numDiscrete\t$numRows\t$( { /usr/bin/time -f %e python3 $scriptFile $dataFile $outFile > /dev/null; } 2>&1 )" >> $resultFile
+  #time python3 $scriptFile $dataFile $outFile
+
+  masterOutFile=/tmp/TestSplitTranspose_${numContinuous}_${numDiscrete}_${numRows}_tsv_False.tsv.out
+
+  # This compares against the output using the "ParseSplit" method
+  if [[ "$scriptFile" != "TestSplitTranspose.py" ]]
+  then
+    python3 CheckOutput.py $outFile $masterOutFile
+  fi
+}
+
+function runTransposeQueries {
+  resultFile=$1
+  numContinuous=$2
+  numDiscrete=$3
+  numRows=$4
+
+  runTransposeQuery $resultFile $numContinuous $numDiscrete $numRows TestSplitTranspose.py tsv
+  #runTransposeQuery $resultFile $numContinuous $numDiscrete $numRows TestFixedWidthTranspose.py fwf2
+}
+
+rm -f Query_Results_transpose.tsv
+echo -e "Description\tNumContinuous\tNumDiscrete\tNumRows\tSeconds" > Query_Results_transpose.tsv
+
+runTransposeQueries Query_Results_transpose.tsv 90 11 1000
+runTransposeQueries Query_Results_transpose.tsv 9000 1000 100000
+runTransposeQueries Query_Results_transpose.tsv 90000 10000 10000
+
+#time python3 TransposeTSV.py TestData/9000_1000_100000.tsv TestData/9000_1000_100000.tsv.transposed
+#time python3 TransposeTSV.py TestData/90000_10000_10000.tsv TestData/90000_10000_10000.tsv.transposed
+
+
+
+#rm -f Compression_Times.tsv
+#echo -e "File\tMethod\tSeconds" > Compression_Times.tsv
+
+#for f in TestData/*.fwf2
 #do
-#  echo "Compressing $f"
-#  python3 CompressLinesSnappy.py $f $f.snappy
+#  for method in bz2 gz lzma snappy
+#  do
+#    echo "Compressing $f with $method"
+#    echo -e "$f\t$method\t$( { /usr/bin/time -f %e python3 CompressLines.py $f $method > /dev/null; } 2>&1 )" >> Compression_Times.tsv
+#  done
 #done
 
-#BACKBURNER:
-#  Write tests that pick 1000 noncontiguous rows from the file
-#    Write a Python script that seeks to lines and pipes it to stdout
-#    line by line generators: https://docs.python.org/3/library/itertools.html
-#    awk?
-#  Parallelize?
-#  newlines approach + consume()?
-#  sqlitedict?
-#  LevelDB?
-#  Vedis?
-#  C++ string splitting: https://github.com/tobbez/string-splitting
-#    http://book.pythontips.com/en/latest/python_c_extension.html
-#    Cython
+#TODO for paper:
+#  Pick half rows at random
+#  Pick half rows at random, then transpose
+#  Test on even larger file(s):
+#    1 character per cell
+#    Pick 50 random rows and 50 random columns from:
+#      10x10
+#      100*100
+#      1000*1000
+#      ...
+#      1000000*1000000 
+#    Transpose each file without reading more than a line into memory
+#  Compression: snappy, gzip, bz2, lzma
+#    Test compresslevel=1 and compresslevel=5 for gzip, bz2
+#    File sizes (store in TSV file)
 
-#NOTES:
-##runQuery $numContinuous $numDiscrete $numRows TestMileposts.py mileposts # This is extremely slow
-##runQuery $numContinuous $numDiscrete $numRows TestMileposts2.py mileposts # This is moderately slow
-##buildTestFile $numContinuous $numDiscrete $numRows BuildMsgPackFileSnappy.py msgpack.snappy
-##buildTestFile $numContinuous $numDiscrete $numRows BuildMsgPackFileGzip.py msgpack.gz
-##buildTestFile $numContinuous $numDiscrete $numRows BuildMsgPackFileBz2.py msgpack.bz2
-##buildTestFile $numContinuous $numDiscrete $numRows BuildMsgPackFileLzma.py msgpack.lzma
-#awkQuery='{out=""; for(i=0;i<10000;i+=100){out=out$i"\t"}; print out}'
-#sedFilter='s/^[ \t]*//;s/[ \t]*$//'
-#time awk -v OFS='\t' '{out=""; for(i=10;i<=1000;i+=10){out=out" "$i}; print out}' TestFile_10000_100_200000_tabs.tsv > /dev/null #31 seconds
-#time mawk -v OFS='\t' '{out=""; for(i=10;i<=1000;i+=10){out=out" "$i}; print out}' TestFile_10000_100_200000_tabs.tsv > /dev/null #31 seconds
-#time gawk -v OFS='\t' '{out=""; for(i=10;i<=1000;i+=10){out=out" "$i}; print out}' TestFile_10000_100_200000_tabs.tsv > /dev/null #13 seconds
-#time nawk -v OFS='\t' "$awkQuery" TestData/9000_1000_100000.tsv | sed "$sedFilter" > /dev/null
-##time awk ' {print $1, $9;}' TestFile_10000_100_200000_tabs.tsv | wc -l
-##time awk 'NR>=150001&&NR<=151000 {print $1, $9;}' TestFile_10000_100_200000_tabs.tsv | wc -l
-##time awk '(NR>=150001&&NR<=151000)||(NR>=160001&&NR<=161000) {print $1, $9;}' TestFile_10000_100_200000_tabs.tsv | wc -l
-##time awk -v OFS='\t' '(NR>=150001&&NR<=151000)||(NR>=160001&&NR<=161000) {print $9500, $9800;}' TestFile_10000_100_200000_tabs.tsv | wc -l
-##time awk -v OFS='\t' '(NR>=1&&NR<=151000)||(NR>=160001&&NR<=161000) {print $9500, $9800;}' TestFile_10000_100_200000_tabs.tsv | wc -l
-##time awk -v OFS='\t' ' {print $9500, $9800;}' TestFile_10000_100_200000_tabs.tsv | wc -l
-##time awk -v OFS='\t' ' {print $5, $15;}' TestFile_10000_100_200000_tabs.tsv | wc -l
-##time mawk -v OFS='\t' ' {print $5, $15;}' TestFile_10000_100_200000_tabs.tsv | wc -l
-##time gawk -v OFS='\t' ' {print $5, $15;}' TestFile_10000_100_200000_tabs.tsv | wc -l
-##time nawk -v OFS='\t' ' {print $5, $15;}' TestFile_10000_100_200000_tabs.tsv | wc -l
-##time python3 TestParsePickle.py TestFile_10000_100_200000_tabs.pkl # Can't get it to work because pickled objects have newline characters
+#TODO for Geney and WishBuilder:
+#    Exclude sample and feature names?
+#    Support filtering and building pandas dataframe
+#    Need transposed files?
+#    Store dictionaries in sqlitedict?
+#      Test whether it's faster to store as msgpack or in key/value database

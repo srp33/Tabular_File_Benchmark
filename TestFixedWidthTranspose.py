@@ -34,15 +34,19 @@ with open(file_path, 'rb') as my_file:
         out_lines = []
         chunk_size = 100
 
-        for row_index in row_indices:
-            row_start = row_start_dict[row_index]
-            out_lines.append(b"\t".join(parse_row_values(row_start)).rstrip())
+        for col_index in col_indices:
+            coords = col_coord_dict[col_index]
+
+            out_items = []
+            for row_index in row_indices:
+                row_start = row_start_dict[row_index]
+                out_items.append(mmap_file[(row_start + coords[0]):(row_start + coords[1])].rstrip())
+
+            out_lines.append(b"\t".join(out_items).rstrip())
 
             if len(out_lines) % chunk_size == 0:
                 out_file.write(b"\n".join(out_lines) + b"\n")
                 out_lines = []
-
-#            out_file.write(b"\t".join(parse_row_values(row_start)).rstrip() + b"\n")
 
         if len(out_lines) > 0:
             out_file.write(b"\n".join(out_lines) + b"\n")

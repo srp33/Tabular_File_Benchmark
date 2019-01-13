@@ -2,9 +2,6 @@
 
 set -o errexit
 
-#rm -rfv TestData
-#mkdir -pv TestData
-
 function buildTestFile {
   numContinuous=$1
   numDiscrete=$2
@@ -30,9 +27,12 @@ function buildTestFiles {
   python3 ConvertTsvToFixedWidthFile.py TestData/${numContinuous}_${numDiscrete}_${numRows}.tsv TestData/${numContinuous}_${numDiscrete}_${numRows}.fwf
 }
 
-#time buildTestFiles 90 11 1000
-#time buildTestFiles 9000 1000 100000
-#time buildTestFiles 90000 10000 10000
+#rm -rfv TestData
+#mkdir -pv TestData
+
+#time buildTestFiles 10 90 1000
+#time buildTestFiles 100 900 1000000
+#time buildTestFiles 100000 900000 1000
 
 function runQuery {
   resultFile=$1
@@ -90,9 +90,9 @@ function runQueries {
 #rm -f Query_Results.tsv
 #echo -e "Description\tNumContinuous\tNumDiscrete\tNumRows\tMemMap\tSeconds" > Query_Results.tsv
 
-#runQueries Query_Results.tsv 90 11 1000
-#runQueries Query_Results.tsv 9000 1000 100000
-#runQueries Query_Results.tsv 90000 10000 10000
+#runQueries Query_Results.tsv 10 90 1000
+#runQueries Query_Results.tsv 100 900 1000000
+#runQueries Query_Results.tsv 100000 900000 1000
 
 function buildTestFiles2 {
   numContinuous=$1
@@ -102,9 +102,9 @@ function buildTestFiles2 {
   python3 ConvertTsvToFixedWidthFile2.py TestData/${numContinuous}_${numDiscrete}_${numRows}.tsv TestData/${numContinuous}_${numDiscrete}_${numRows}.fwf2
 }
 
-#buildTestFiles2 90 11 1000
-#buildTestFiles2 9000 1000 100000
-#buildTestFiles2 90000 10000 10000
+#buildTestFiles2 10 90 1000
+#buildTestFiles2 100 900 1000000
+#buildTestFiles2 100000 900000 1000
 
 function runQueries2 {
   resultFile=$1
@@ -112,97 +112,98 @@ function runQueries2 {
   numDiscrete=$3
   numRows=$4
 
-  ####runQuery $resultFile $numContinuous $numDiscrete $numRows TestSplit.py tsv True
+  ###runQuery $resultFile $numContinuous $numDiscrete $numRows TestSplit.py tsv True
   runQuery $resultFile $numContinuous $numDiscrete $numRows TestFixedWidth2.py fwf2 True
 }
 
-#rm -f Query_Results_fwf.tsv
-#echo -e "Description\tNumContinuous\tNumDiscrete\tNumRows\tMemMap\tSeconds" > Query_Results_fwf.tsv
+#rm -f Query_Results_fwf2.tsv
+#echo -e "Description\tNumContinuous\tNumDiscrete\tNumRows\tMemMap\tSeconds" > Query_Results_fwf2.tsv
 
-#runQueries2 Query_Results_fwf.tsv 90 11 1000
-#runQueries2 Query_Results_fwf.tsv 9000 1000 100000
-#runQueries2 Query_Results_fwf.tsv 90000 10000 10000
+#runQueries2 Query_Results_fwf2.tsv 10 90 1000
+#runQueries2 Query_Results_fwf2.tsv 100 900 1000000
+#runQueries2 Query_Results_fwf2.tsv 100000 900000 1000
 
-function runTransposeQuery {
-  resultFile=$1
-  numContinuous=$2
-  numDiscrete=$3
-  numRows=$4
-  scriptFile=$5
-  dataFileExtension=$6
-
-  scriptName=$(basename $scriptFile)
-  scriptName=${scriptName/\.py/}
-
-  echo Testing $scriptFile
-  dataFile=TestData/${numContinuous}_${numDiscrete}_${numRows}.$dataFileExtension
-  outFile=/tmp/${scriptName}_${numContinuous}_${numDiscrete}_${numRows}_${dataFileExtension}_Transpose.$dataFileExtension.out
-
-  echo -e "$scriptFile\t$numContinuous\t$numDiscrete\t$numRows\t$( { /usr/bin/time -f %e python3 $scriptFile $dataFile $outFile > /dev/null; } 2>&1 )" >> $resultFile
-  #time python3 $scriptFile $dataFile $outFile
-
-  masterOutFile=/tmp/TestSplitTranspose_${numContinuous}_${numDiscrete}_${numRows}_tsv_False.tsv.out
-
-  # This compares against the output using the "ParseSplit" method
-  if [[ "$scriptFile" != "TestSplitTranspose.py" ]]
-  then
-    python3 CheckOutput.py $outFile $masterOutFile
-  fi
-}
-
-function runTransposeQueries {
+function runQueries3 {
   resultFile=$1
   numContinuous=$2
   numDiscrete=$3
   numRows=$4
 
-  runTransposeQuery $resultFile $numContinuous $numDiscrete $numRows TestSplitTranspose.py tsv
-  #runTransposeQuery $resultFile $numContinuous $numDiscrete $numRows TestFixedWidthTranspose.py fwf2
+  ###runQuery $resultFile $numContinuous $numDiscrete $numRows TestSplit.py tsv True
+  runQuery $resultFile $numContinuous $numDiscrete $numRows TestFixedWidth3.py fwf2 True
 }
 
-rm -f Query_Results_transpose.tsv
-echo -e "Description\tNumContinuous\tNumDiscrete\tNumRows\tSeconds" > Query_Results_transpose.tsv
+##TODO: Incorporate this into runQueries3
+#python3 TestFixedWidth3.py TestData/100_900_1000000.fwf2 /tmp/1 100 1000
+#python3 TestFixedWidth3.py TestData/100000_900000_1000.fwf2 /tmp/1 100000 1000000
+#runQueries3 Query_Results_fwf2.tsv 10 90 1000
+#runQueries3 Query_Results_fwf2.tsv 100 900 1000000
+#runQueries3 Query_Results_fwf2.tsv 100000 900000 1000
 
-runTransposeQueries Query_Results_transpose.tsv 90 11 1000
-runTransposeQueries Query_Results_transpose.tsv 9000 1000 100000
-runTransposeQueries Query_Results_transpose.tsv 90000 10000 10000
-
-#time python3 TransposeTSV.py TestData/9000_1000_100000.tsv TestData/9000_1000_100000.tsv.transposed
-#time python3 TransposeTSV.py TestData/90000_10000_10000.tsv TestData/90000_10000_10000.tsv.transposed
 
 
 
 #rm -f Compression_Times.tsv
 #echo -e "File\tMethod\tSeconds" > Compression_Times.tsv
 
+function compressFile {
+  f=$1
+  method=$2
+  level=$3
+
+  #echo -e "$f\t$method\t$level\t$( { /usr/bin/time -f %e python3 CompressLines.py $f $method $level > /dev/null; } 2>&1 )" >> Compression_Times.tsv
+  python3 CompressLines.py $f $method $level
+}
+
 #for f in TestData/*.fwf2
+#for f in TestData/10_*.fwf2
 #do
-#  for method in bz2 gz lzma snappy
-#  do
-#    echo "Compressing $f with $method"
-#    echo -e "$f\t$method\t$( { /usr/bin/time -f %e python3 CompressLines.py $f $method > /dev/null; } 2>&1 )" >> Compression_Times.tsv
-#  done
+#  compressFile $f bz2 1
+#  compressFile $f bz2 9
+#  compressFile $f gz 1
+#  compressFile $f gz 9
+#  compressFile $f lzma NA
+#  compressFile $f snappy NA
 #done
 
+function buildTestFiles3 {
+  dim=$1
+
+  python3 BuildTsvFileGenotypes.py $dim TestData/$dim.tmp
+  #python3 ConvertTsvToFixedWidthFile.py TestData/${numContinuous}_${numDiscrete}_${numRows}.tsv TestData/${numContinuous}_${numDiscrete}_${numRows}.fwf
+}
+
+#buildTestFiles3 10
+#buildTestFiles3 100
+#buildTestFiles3 1000
+#buildTestFiles3 10000
+#buildTestFiles3 100000
+#buildTestFiles3 1000000
+
 #TODO for paper:
-#  Pick half rows at random
-#  Pick half rows at random, then transpose
+#  Filter on 1 discrete column and 1 numeric column for the 3 initial file sizes
+#  Compression: snappy, gzip, bz2, lzma
+#    Use the same filtering process (create TestFixedWidth4.py)
+#    In CompressLines.py, save rowdict and coldict
 #  Test on even larger file(s):
-#    1 character per cell
+#    Variant as row, sample as column initially
+#    Genotype in each cell
 #    Pick 50 random rows and 50 random columns from:
 #      10x10
 #      100*100
 #      1000*1000
 #      ...
 #      1000000*1000000 
-#    Transpose each file without reading more than a line into memory
-#  Compression: snappy, gzip, bz2, lzma
-#    Test compresslevel=1 and compresslevel=5 for gzip, bz2
-#    File sizes (store in TSV file)
+#    Filter to 10 randomly selected rows and columns
+#    Transpose entire file without reading more than a line into memory (see Archive/TestFixedWidthTranspose.py)
+#      Monitor memory usage: https://stackoverflow.com/questions/774556/peak-memory-usage-of-a-linux-unix-process
+#  Save file sizes (in a TSV file):
+#    For each initial file format
+#    After each type of compression
 
 #TODO for Geney and WishBuilder:
 #    Exclude sample and feature names?
 #    Support filtering and building pandas dataframe
-#    Need transposed files?
+#    Need/want transposed files?
 #    Store dictionaries in sqlitedict?
 #      Test whether it's faster to store as msgpack or in key/value database

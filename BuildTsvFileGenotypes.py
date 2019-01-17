@@ -1,35 +1,38 @@
 import os
 import random
-import string
 import sys
 
-num_discrete_vars = int(sys.argv[1])
-num_continuous_vars = int(sys.argv[2])
-num_rows = int(sys.argv[3])
-out_file_path = sys.argv[4]
+dimensions = int(sys.argv[1])
+out_file_path = sys.argv[2]
 
 random.seed(0)
 
-#random_numbers = [random.random() for i in range(1000000)]
-#random_numbers = [random.random() for i in range(10000)]
-letters = string.ascii_letters[26:]
+acgt = ["A", "C", "G", "T"]
 
 with open(out_file_path, 'wb') as out_file:
-    discrete_col_names = ["Discrete{}".format(i+1) for i in range(num_discrete_vars)]
-    number_col_names = ["Numeric{}".format(i+1) for i in range(num_continuous_vars)]
-    out_file.write(("\t".join(["ID"] + discrete_col_names + number_col_names) + "\n").encode())
+    col_names = ["C{}".format(i+1) for i in range(dimensions)]
+    out_file.write(("\t".join(["Genotype"] + col_names) + "\n").encode())
 
     output = ""
 
-    for row_num in range(num_rows):
-        discrete = [random.choice(letters) + random.choice(letters) for i in range(num_discrete_vars)]
-        numbers = ["{:.8f}".format(random.random()) for i in range(num_continuous_vars)]
+    for row_num in range(dimensions):
+        ref_allele = random.choice(acgt)
+        alt_allele = random.choice([x for x in acgt if x != ref_allele])
 
-        output += "\t".join(["Row" + str(row_num + 1)] + discrete + numbers) + "\n"
+        genotypes = []
+        for i in range(int(float(dimensions) * 0.5)):
+            genotypes.append(ref_allele + ref_allele)
+        for i in range(int(float(dimensions) * 0.3)):
+            genotypes.append(ref_allele + alt_allele)
+        for i in range(int(float(dimensions) * 0.2)):
+            genotypes.append(alt_allele + alt_allele)
 
-        if row_num > 0 and row_num % 100 == 0:
-            #print(row_num)
-            #sys.stdout.flush()
+        random.shuffle(genotypes)
+
+        output += "\t".join(["R{}".format(row_num + 1)] + genotypes) + "\n"
+
+        if row_num > 0 and row_num % 10000 == 0:
+            print(row_num, flush=True)
             out_file.write(output.encode())
             output = ""
 

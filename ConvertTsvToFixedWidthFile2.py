@@ -49,7 +49,9 @@ with open(file_path, 'rb') as my_file:
                 column_value = format_string.format(line_items[i].decode())
                 line_out += column_value
 
-            line_out = line_out.encode()
+            # This newline character is unnecessary, so it adds a bit of disk space.
+            # However, it makes the files much more readable to humans.
+            line_out = (line_out + "\n").encode()
             out_file.write(line_out)
 
             row_start_dict[line_number] = cumulative_position

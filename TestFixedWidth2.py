@@ -20,11 +20,6 @@ col_indices = range(0, len(col_coord_dict), 100)
 def parse_row_values(row_start):
     for col_index in col_indices:
         coords = col_coord_dict[col_index]
-        #pos_start = row_start + coords[0]
-        #pos_end = row_start + coords[1]
-        #col_values.append(mmap_file[(row_start + col_coord_dict[col_index][0]):(row_start + col_coord_dict[col_index][1])].rstrip())
-        #col_values.append(mmap_file[pos_start:pos_end].rstrip())
-        #col_values.append(mmap_file[(row_start + coords[0]):(row_start + coords[1])].rstrip())
         yield mmap_file[(row_start + coords[0]):(row_start + coords[1])].rstrip()
 
 with open(file_path, 'rb') as my_file:

@@ -39,11 +39,11 @@ function buildTestFiles {
 }
 
 ## A small file
-#time buildTestFiles 10 90 1000
+time buildTestFiles 10 90 1000
 ## A tall, narrow file
-#time buildTestFiles 100 900 1000000
+time buildTestFiles 100 900 1000000
 ## A short, wide file
-#time buildTestFiles 100000 900000 1000
+time buildTestFiles 100000 900000 1000
 
 ############################################################
 # Query every 100th column from first round of test files
@@ -103,11 +103,11 @@ function runQueries {
   runQuery $resultFile $numDiscrete $numContinuous $numRows TestFixedWidth.py fwf True
 }
 
-#echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tMemMap\tSeconds" > Query_Results.tsv
+echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tMemMap\tSeconds" > Query_Results.tsv
 
-#runQueries Query_Results.tsv 10 90 1000
-#runQueries Query_Results.tsv 100 900 1000000
-#runQueries Query_Results.tsv 100000 900000 1000
+runQueries Query_Results.tsv 10 90 1000
+runQueries Query_Results.tsv 100 900 1000000
+runQueries Query_Results.tsv 100000 900000 1000
 
 ############################################################
 # Build second version of fixed-width files that are more
@@ -122,9 +122,9 @@ function buildTestFiles2 {
   python3 ConvertTsvToFixedWidthFile2.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2
 }
 
-#buildTestFiles2 10 90 1000
-#buildTestFiles2 100 900 1000000
-#buildTestFiles2 100000 900000 1000
+buildTestFiles2 10 90 1000
+buildTestFiles2 100 900 1000000
+buildTestFiles2 100000 900000 1000
 
 ############################################################
 # Query every 100th column from second version of 
@@ -141,11 +141,11 @@ function runQueries2 {
   runQuery $resultFile $numDiscrete $numContinuous $numRows TestFixedWidth2.py fwf2 True
 }
 
-#echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tMemMap\tSeconds" > Query_Results_fwf2.tsv
+echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tMemMap\tSeconds" > Query_Results_fwf2.tsv
 
-#runQueries2 Query_Results_fwf2.tsv 10 90 1000
-#runQueries2 Query_Results_fwf2.tsv 100 900 1000000
-#runQueries2 Query_Results_fwf2.tsv 100000 900000 1000
+runQueries2 Query_Results_fwf2.tsv 10 90 1000
+runQueries2 Query_Results_fwf2.tsv 100 900 1000000
+runQueries2 Query_Results_fwf2.tsv 100000 900000 1000
 
 ############################################################
 # Query second version of fixed-width files. This time 
@@ -165,9 +165,9 @@ function runQueries3 {
   echo -e "Filter\t$numDiscrete\t$numContinuous\t$numRows\tTrue\t$( { /usr/bin/time -f %e python3 TestFixedWidth3.py $dataFile /tmp/1 $numDiscrete $numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
 }
 
-#runQueries3 Query_Results_fwf2.tsv 10 90 1000
-#runQueries3 Query_Results_fwf2.tsv 100 900 1000000
-#runQueries3 Query_Results_fwf2.tsv 100000 900000 1000
+runQueries3 Query_Results_fwf2.tsv 10 90 1000
+runQueries3 Query_Results_fwf2.tsv 100 900 1000000
+runQueries3 Query_Results_fwf2.tsv 100000 900000 1000
 
 ############################################################
 # Build compressed versions of the second version of fixed-
@@ -186,17 +186,17 @@ function compressFile {
   ####python3 CompressLines.py $f $method $level
 }
 
-#echo -e "File\tMethod\tSeconds" > Compression_Times.tsv
+echo -e "File\tMethod\tSeconds" > Compression_Times.tsv
 
-#for f in TestData/10*.fwf2
-#do
-#  compressFile $f bz2 1
-#  compressFile $f bz2 9
-#  compressFile $f gz 1
-#  compressFile $f gz 9
-#  compressFile $f lzma NA
-#  compressFile $f snappy NA
-#done
+for f in TestData/10*.fwf2
+do
+  compressFile $f bz2 1
+  compressFile $f bz2 9
+  compressFile $f gz 1
+  compressFile $f gz 9
+  compressFile $f lzma NA
+  compressFile $f snappy NA
+done
 
 ############################################################
 # Calculate file sizes before and after compression.
@@ -214,15 +214,15 @@ function calcFileSizes {
   echo -e "$extension\t$numDiscrete\t$numContinuous\t$numRows\t$(python3 PrintFileSize.py $dataFile)" >> $resultFile
 }
 
-#sizeFile=File_Sizes.tsv
-#echo -e "Extension\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
+sizeFile=File_Sizes.tsv
+echo -e "Extension\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
 
-#for extension in tsv flag msgpack fwf fwf2
-#do
-#  calcFileSizes $sizeFile 10 90 1000 $extension
-#  calcFileSizes $sizeFile 100 900 1000000 $extension
-#  calcFileSizes $sizeFile 100000 900000 1000 $extension
-#done
+for extension in tsv flag msgpack fwf fwf2
+do
+  calcFileSizes $sizeFile 10 90 1000 $extension
+  calcFileSizes $sizeFile 100 900 1000000 $extension
+  calcFileSizes $sizeFile 100000 900000 1000 $extension
+done
 
 function calcFileSizes2 {
   resultFile=$1
@@ -242,29 +242,29 @@ function calcFileSizes2 {
   echo -e "$method\t$level\t$numDiscrete\t$numContinuous\t$numRows\t$(python3 PrintFileSize.py $dataFile)" >> $resultFile
 }
 
-#sizeFile=Compressed_File_Sizes.tsv
-#echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
+sizeFile=Compressed_File_Sizes.tsv
+echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
 
-#calcFileSizes2 $sizeFile 10 90 1000 bz2 1
-#calcFileSizes2 $sizeFile 10 90 1000 bz2 9
-#calcFileSizes2 $sizeFile 10 90 1000 gz 1
-#calcFileSizes2 $sizeFile 10 90 1000 gz 9
-#calcFileSizes2 $sizeFile 10 90 1000 lzma NA
-#calcFileSizes2 $sizeFile 10 90 1000 snappy NA
-#calcFileSizes2 $sizeFile 100 900 1000000 bz2 1
-#calcFileSizes2 $sizeFile 100 900 1000000 bz2 9
-#calcFileSizes2 $sizeFile 100 900 1000000 gz 1
-#calcFileSizes2 $sizeFile 100 900 1000000 gz 9
-#calcFileSizes2 $sizeFile 100 900 1000000 lzma NA
-#calcFileSizes2 $sizeFile 100 900 1000000 snappy NA
-#calcFileSizes2 $sizeFile 100000 900000 1000 bz2 1
-#calcFileSizes2 $sizeFile 100000 900000 1000 bz2 9
-#calcFileSizes2 $sizeFile 100000 900000 1000 gz 1
-#calcFileSizes2 $sizeFile 100000 900000 1000 gz 9
-#calcFileSizes2 $sizeFile 100000 900000 1000 lzma NA
-#calcFileSizes2 $sizeFile 100000 900000 1000 snappy NA
+calcFileSizes2 $sizeFile 10 90 1000 bz2 1
+calcFileSizes2 $sizeFile 10 90 1000 bz2 9
+calcFileSizes2 $sizeFile 10 90 1000 gz 1
+calcFileSizes2 $sizeFile 10 90 1000 gz 9
+calcFileSizes2 $sizeFile 10 90 1000 lzma NA
+calcFileSizes2 $sizeFile 10 90 1000 snappy NA
+calcFileSizes2 $sizeFile 100 900 1000000 bz2 1
+calcFileSizes2 $sizeFile 100 900 1000000 bz2 9
+calcFileSizes2 $sizeFile 100 900 1000000 gz 1
+calcFileSizes2 $sizeFile 100 900 1000000 gz 9
+calcFileSizes2 $sizeFile 100 900 1000000 lzma NA
+calcFileSizes2 $sizeFile 100 900 1000000 snappy NA
+calcFileSizes2 $sizeFile 100000 900000 1000 bz2 1
+calcFileSizes2 $sizeFile 100000 900000 1000 bz2 9
+calcFileSizes2 $sizeFile 100000 900000 1000 gz 1
+calcFileSizes2 $sizeFile 100000 900000 1000 gz 9
+calcFileSizes2 $sizeFile 100000 900000 1000 lzma NA
+calcFileSizes2 $sizeFile 100000 900000 1000 snappy NA
 
-#echo -e "ExtensionMethod\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > Query_Results_fwf2_compressed.tsv
+echo -e "ExtensionMethod\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > Query_Results_fwf2_compressed.tsv
 
 ############################################################
 # Measure how quickly we can query from each type of
@@ -301,18 +301,22 @@ function runAllQueries4 {
   runQueries4 $resultFile $numDiscrete $numContinuous $numRows snappy NA snappy
 }
 
-#rm -f Query_Results_fwf2_compressed.tsv
-#echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > Query_Results_fwf2_compressed.tsv
+rm -f Query_Results_fwf2_compressed.tsv
+echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > Query_Results_fwf2_compressed.tsv
 
-#runAllQueries4 Query_Results_fwf2_compressed.tsv 10 90 1000
-#runAllQueries4 Query_Results_fwf2_compressed.tsv 100 900 1000000
-#runAllQueries4 Query_Results_fwf2_compressed.tsv 100000 900000 1000
+runAllQueries4 Query_Results_fwf2_compressed.tsv 10 90 1000
+runAllQueries4 Query_Results_fwf2_compressed.tsv 100 900 1000000
+runAllQueries4 Query_Results_fwf2_compressed.tsv 100000 900000 1000
+
+######
+exit
+######
 
 ############################################################
 # Clean up the test files created so far to save disk space.
 ############################################################
 
-#rm -rfv TestData
+rm -rfv TestData
 
 ############################################################
 # Build pseudo-genotype files. Measure how long it takes to
@@ -347,28 +351,21 @@ function runGenotypeTests {
   rm -f $dataFile ${dataFile}* /tmp/1
 }
 
-#resultFile=Results_Genotypes.tsv
-#echo -e "Description\tDimensions\tSeconds" > $resultFile
-#metricFile=Metrics_Genotypes.tsv
-#echo -e "Description\tDimensions\tMetric\tValue" > $metricFile
+resultFile=Results_Genotypes.tsv
+echo -e "Description\tDimensions\tSeconds" > $resultFile
+metricFile=Metrics_Genotypes.tsv
+echo -e "Description\tDimensions\tMetric\tValue" > $metricFile
 
-#runGenotypeTests $resultFile $metricFile 10
-#runGenotypeTests $resultFile $metricFile 50
-#runGenotypeTests $resultFile $metricFile 100
-#runGenotypeTests $resultFile $metricFile 500
-#runGenotypeTests $resultFile $metricFile 1000
-#runGenotypeTests $resultFile $metricFile 5000
-#runGenotypeTests $resultFile $metricFile 10000
-#runGenotypeTests $resultFile $metricFile 50000
-#runGenotypeTests $resultFile $metricFile 100000
-#runGenotypeTests $resultFile $metricFile 500000
-##runGenotypeTests $resultFile $metricFile 1000000
-
-#TODO for paper:
-#  Save file sizes for TestData:
-#    For each initial file format (in the compression part of the code)
-#    For each type of compression
-#  Add newline characters back in (for readability)??
+runGenotypeTests $resultFile $metricFile 10
+runGenotypeTests $resultFile $metricFile 50
+runGenotypeTests $resultFile $metricFile 100
+runGenotypeTests $resultFile $metricFile 500
+runGenotypeTests $resultFile $metricFile 1000
+runGenotypeTests $resultFile $metricFile 5000
+runGenotypeTests $resultFile $metricFile 10000
+runGenotypeTests $resultFile $metricFile 50000
+runGenotypeTests $resultFile $metricFile 100000
+runGenotypeTests $resultFile $metricFile 500000
 
 #TODO for Geney and WishBuilder:
 #    Store transposed version of *compressed* data for filtering and see how much faster it is
@@ -376,4 +373,5 @@ function runGenotypeTests {
 #    Support filtering and building pandas dataframe
 #    Need/want transposed files?
 #    Store dictionaries in sqlitedict?
+#      The files are pretty small, so maybe unnecessary?
 #      Test whether it's faster to store as msgpack or in key/value database

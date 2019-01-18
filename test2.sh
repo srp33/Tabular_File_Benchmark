@@ -38,6 +38,7 @@ function buildTestFiles {
   python3 ConvertTsvToFixedWidthFile.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf
 }
 
+## A small file
 #time buildTestFiles 10 90 1000
 ## A tall, narrow file
 #time buildTestFiles 100 900 1000000
@@ -187,7 +188,7 @@ function compressFile {
 
 #echo -e "File\tMethod\tSeconds" > Compression_Times.tsv
 
-#for f in TestData/*.fwf2
+#for f in TestData/10*.fwf2
 #do
 #  compressFile $f bz2 1
 #  compressFile $f bz2 9
@@ -196,6 +197,74 @@ function compressFile {
 #  compressFile $f lzma NA
 #  compressFile $f snappy NA
 #done
+
+############################################################
+# Calculate file sizes before and after compression.
+############################################################
+
+function calcFileSizes {
+  resultFile=$1
+  numDiscrete=$2
+  numContinuous=$3
+  numRows=$4
+  extension=$5
+
+  dataFile=TestData/${numDiscrete}_${numContinuous}_$numRows.$extension
+
+  echo -e "$extension\t$numDiscrete\t$numContinuous\t$numRows\t$(python3 PrintFileSize.py $dataFile)" >> $resultFile
+}
+
+#sizeFile=File_Sizes.tsv
+#echo -e "Extension\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
+
+#for extension in tsv flag msgpack fwf fwf2
+#do
+#  calcFileSizes $sizeFile 10 90 1000 $extension
+#  calcFileSizes $sizeFile 100 900 1000000 $extension
+#  calcFileSizes $sizeFile 100000 900000 1000 $extension
+#done
+
+function calcFileSizes2 {
+  resultFile=$1
+  numDiscrete=$2
+  numContinuous=$3
+  numRows=$4
+  method=$5
+  level=$6
+
+  dataFile=TestData/${numDiscrete}_${numContinuous}_$numRows.fwf2.$method
+
+  if [[ "$level" != "NA" ]]
+  then
+    dataFile=${dataFile}_${level}
+  fi
+
+  echo -e "$method\t$level\t$numDiscrete\t$numContinuous\t$numRows\t$(python3 PrintFileSize.py $dataFile)" >> $resultFile
+}
+
+#sizeFile=Compressed_File_Sizes.tsv
+#echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
+
+#calcFileSizes2 $sizeFile 10 90 1000 bz2 1
+#calcFileSizes2 $sizeFile 10 90 1000 bz2 9
+#calcFileSizes2 $sizeFile 10 90 1000 gz 1
+#calcFileSizes2 $sizeFile 10 90 1000 gz 9
+#calcFileSizes2 $sizeFile 10 90 1000 lzma NA
+#calcFileSizes2 $sizeFile 10 90 1000 snappy NA
+#calcFileSizes2 $sizeFile 100 900 1000000 bz2 1
+#calcFileSizes2 $sizeFile 100 900 1000000 bz2 9
+#calcFileSizes2 $sizeFile 100 900 1000000 gz 1
+#calcFileSizes2 $sizeFile 100 900 1000000 gz 9
+#calcFileSizes2 $sizeFile 100 900 1000000 lzma NA
+#calcFileSizes2 $sizeFile 100 900 1000000 snappy NA
+#calcFileSizes2 $sizeFile 100000 900000 1000 bz2 1
+#calcFileSizes2 $sizeFile 100000 900000 1000 bz2 9
+#calcFileSizes2 $sizeFile 100000 900000 1000 gz 1
+#calcFileSizes2 $sizeFile 100000 900000 1000 gz 9
+#calcFileSizes2 $sizeFile 100000 900000 1000 lzma NA
+#calcFileSizes2 $sizeFile 100000 900000 1000 snappy NA
+
+#echo -e "ExtensionMethod\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > Query_Results_fwf2_compressed.tsv
 
 ############################################################
 # Measure how quickly we can query from each type of
@@ -278,21 +347,21 @@ function runGenotypeTests {
   rm -f $dataFile ${dataFile}* /tmp/1
 }
 
-resultFile=Results_Genotypes.tsv
-echo -e "Description\tDimensions\tSeconds" > $resultFile
-metricFile=Metrics_Genotypes.tsv
-echo -e "Description\tDimensions\tMetric\tValue" > $metricFile
+#resultFile=Results_Genotypes.tsv
+#echo -e "Description\tDimensions\tSeconds" > $resultFile
+#metricFile=Metrics_Genotypes.tsv
+#echo -e "Description\tDimensions\tMetric\tValue" > $metricFile
 
-runGenotypeTests $resultFile $metricFile 10
-runGenotypeTests $resultFile $metricFile 50
-runGenotypeTests $resultFile $metricFile 100
-runGenotypeTests $resultFile $metricFile 500
-runGenotypeTests $resultFile $metricFile 1000
-runGenotypeTests $resultFile $metricFile 5000
-runGenotypeTests $resultFile $metricFile 10000
-runGenotypeTests $resultFile $metricFile 50000
-runGenotypeTests $resultFile $metricFile 100000
-runGenotypeTests $resultFile $metricFile 500000
+#runGenotypeTests $resultFile $metricFile 10
+#runGenotypeTests $resultFile $metricFile 50
+#runGenotypeTests $resultFile $metricFile 100
+#runGenotypeTests $resultFile $metricFile 500
+#runGenotypeTests $resultFile $metricFile 1000
+#runGenotypeTests $resultFile $metricFile 5000
+#runGenotypeTests $resultFile $metricFile 10000
+#runGenotypeTests $resultFile $metricFile 50000
+#runGenotypeTests $resultFile $metricFile 100000
+#runGenotypeTests $resultFile $metricFile 500000
 ##runGenotypeTests $resultFile $metricFile 1000000
 
 #TODO for paper:

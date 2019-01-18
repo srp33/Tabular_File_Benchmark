@@ -30,7 +30,7 @@ with open(file_path, 'rb') as my_file:
                 row_start = row_start_dict[row_index]
                 out_items.append(mmap_file[(row_start + coords[0]):(row_start + coords[1])].rstrip())
 
-            out_lines.append(b"\t".join(out_items).rstrip())
+            out_lines.append(b"".join(out_items).rstrip())
 
             if len(out_lines) % chunk_size == 0:
                 out_file.write(b"\n".join(out_lines) + b"\n")
@@ -40,3 +40,7 @@ with open(file_path, 'rb') as my_file:
             out_file.write(b"\n".join(out_lines) + b"\n")
 
     mmap_file.close()
+
+# I am not creating rowdict and coldict output files,
+# but I don't think that's necessary for this benchmark.
+# But in a real-world implementation, it would be.

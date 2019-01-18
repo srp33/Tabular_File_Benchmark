@@ -172,30 +172,47 @@ runQueries3 Query_Results_fwf2.tsv 100000 900000 1000
 ############################################################
 # Build compressed versions of the second version of fixed-
 # width files using a variety of compression algorithms.
-# each row in the data is compressed individually.
+# Each line in the data is compressed individually.
 ############################################################
 
-function compressFile {
+function compressLines {
   f=$1
   method=$2
   level=$3
 
   echo "Compressing $f with method $method and level $level."
 
-  echo -e "$f\t$method\t$level\t$( { /usr/bin/time -f %e python3 CompressLines.py $f $method $level > /dev/null; } 2>&1 )" >> Compression_Times.tsv
+  echo -e "$f\t$method\t$level\t$( { /usr/bin/time -f %e python3 CompressLines.py $f $method $level > /dev/null; } 2>&1 )" >> LineCompression_Times.tsv
   ####python3 CompressLines.py $f $method $level
 }
 
-echo -e "File\tMethod\tSeconds" > Compression_Times.tsv
+echo -e "File\tMethod\tSeconds" > LineCompression_Times.tsv
 
 for f in TestData/10*.fwf2
 do
-  compressFile $f bz2 1
-  compressFile $f bz2 9
-  compressFile $f gz 1
-  compressFile $f gz 9
-  compressFile $f lzma NA
-  compressFile $f snappy NA
+  compressLines $f bz2 1
+  compressLines $f bz2 9
+  compressLines $f gz 1
+  compressLines $f gz 9
+  compressLines $f lzma NA
+  compressLines $f snappy NA
+done
+
+############################################################
+# Now create compressed versions where we compress the
+# entire file (not line by line).
+############################################################
+
+function compressFile {
+  f=$1
+
+  echo -e "$f\tgz\t$( { /usr/bin/time -f %e gzip $f > /dev/null; } 2>&1 )" >> File_Compression_Times.tsv
+}
+
+echo -e "File\tMethod\tSeconds" > File_Compression_Times.tsv
+for f in TestData/10*.fwf2
+do
+  compressFile $f
 done
 
 ############################################################
@@ -242,7 +259,7 @@ function calcFileSizes2 {
   echo -e "$method\t$level\t$numDiscrete\t$numContinuous\t$numRows\t$(python3 PrintFileSize.py $dataFile)" >> $resultFile
 }
 
-sizeFile=Compressed_File_Sizes.tsv
+sizeFile=Line_Compressed_File_Sizes.tsv
 echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
 
 calcFileSizes2 $sizeFile 10 90 1000 bz2 1
@@ -264,11 +281,28 @@ calcFileSizes2 $sizeFile 100000 900000 1000 gz 9
 calcFileSizes2 $sizeFile 100000 900000 1000 lzma NA
 calcFileSizes2 $sizeFile 100000 900000 1000 snappy NA
 
-echo -e "ExtensionMethod\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > Query_Results_fwf2_compressed.tsv
+function calcFileSizes3 {
+  resultFile=$1
+  numDiscrete=$2
+  numContinuous=$3
+  numRows=$4
+  method=$5
+
+  dataFile=TestData/${numDiscrete}_${numContinuous}_$numRows.fwf2.$method
+
+  echo -e "$method\t$numDiscrete\t$numContinuous\t$numRows\t$(python3 PrintFileSize.py $dataFile)" >> $resultFile
+}
+
+sizeFile=Compressed_File_Sizes.tsv
+echo -e "Method\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
+
+calcFileSizes3 $sizeFile 10 90 1000 gz
+calcFileSizes3 $sizeFile 100 900 1000000 gz
+calcFileSizes3 $sizeFile 100000 900000 1000 gz
 
 ############################################################
-# Measure how quickly we can query from each type of
-# compressed file.
+# Measure how quickly we can query the files that have
+# been compressed line-by-line.
 ############################################################
 
 function runQueries4 {

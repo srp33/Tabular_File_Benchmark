@@ -257,60 +257,47 @@ function runGenotypeTests {
 
   dataFile=TestData/Genotypes_${dimensions}.fwf2
 
-  echo -e "Build\t$dimensions\t$( { /usr/bin/time -f %e python3 BuildTsvFileGenotypes.py $dimensions $dataFile.tmp > /dev/null; } 2>&1 )" >> $resultFile
-  #python3 BuildTsvFileGenotypes.py $dimensions $dataFile.tmp
-
-  echo -e "Convert\t$dimensions\t$( { /usr/bin/time -f %e python3 ConvertTsvToFixedWidthFile2.py $dataFile.tmp $dataFile > /dev/null; } 2>&1 )" >> $resultFile
-  #python3 ConvertTsvToFixedWidthFile2.py $dataFile.tmp $dataFile
+  echo -e "Build\t$dimensions\t$( { /usr/bin/time -f %e python3 BuildGenotypes.py $dimensions $dataFile > /dev/null; } 2>&1 )" >> $resultFile
+  #time python3 BuildGenotypes.py $dimensions $dataFile
 
   echo -e "Size\t$dimensions\t$(python3 PrintFileSize.py $dataFile)" >> $resultFile
   #python3 PrintFileSize.py $dataFile
 
   echo -e "Query\t$dimensions\t$( { /usr/bin/time -f %e python3 TestFixedWidth5.py $dataFile $dataFile.tmp > /dev/null; } 2>&1 )" >> $resultFile
-  #python3 TestFixedWidth5.py $dataFile $dataFile.tmp
+  #time python3 TestFixedWidth5.py $dataFile $dataFile.tmp
 
   echo -e "Transpose\t$dimensions\t$( { /usr/bin/time -f %e python3 TransposeFixedWidth.py $dataFile $dataFile.tmp > /dev/null; } 2>&1 )" >> $resultFile
-  #python3 TransposeFixedWidth.py $dataFile $dataFile.tmp
+  #time python3 TransposeFixedWidth.py $dataFile $dataFile.tmp
 
   echo -e "Transposed Size\t$dimensions\t$(python3 PrintFileSize.py $dataFile.tmp)" >> $resultFile
 
   rm -f $dataFile ${dataFile}*
 }
 
-#echo -e "Description\tDimensions\tSeconds" > Results_Genotypes.tsv
+echo -e "Description\tDimensions\tSeconds" > Results_Genotypes.tsv
 
 runGenotypeTests Results_Genotypes.tsv 10
-#runGenotypeTests Results_Genotypes.tsv 50
-#runGenotypeTests Results_Genotypes.tsv 100
-#runGenotypeTests Results_Genotypes.tsv 500
-#runGenotypeTests Results_Genotypes.tsv 1000
-#runGenotypeTests Results_Genotypes.tsv 5000
-#runGenotypeTests Results_Genotypes.tsv 10000
-#runGenotypeTests Results_Genotypes.tsv 50000
-#runGenotypeTests Results_Genotypes.tsv 100000
+runGenotypeTests Results_Genotypes.tsv 50
+runGenotypeTests Results_Genotypes.tsv 100
+runGenotypeTests Results_Genotypes.tsv 500
+runGenotypeTests Results_Genotypes.tsv 1000
+runGenotypeTests Results_Genotypes.tsv 5000
+runGenotypeTests Results_Genotypes.tsv 10000
+runGenotypeTests Results_Genotypes.tsv 50000
+runGenotypeTests Results_Genotypes.tsv 100000
 #runGenotypeTests Results_Genotypes.tsv 500000
 #runGenotypeTests Results_Genotypes.tsv 1000000
-##################################################
-# Change column and row names to be (up to) 4-character alphanumeric IDs.
-# Can we optimize the script to create genotypes file?
-#   Chunking
-#   Test on 5000 or 10000 dimensions file.
-# Can we optimize the script to build fwf2?
-#   Chunking
-#   Test on 5000 or 10000 dimensions file.
-##################################################
 
 
 #TODO for paper:
 #  Save file sizes (in a TSV file):
 #    For each initial file format
 #    After each type of compression
-#  Compression:
-#    Store transposed version of *compressed* data for filtering and see how much faster it is
 #  GCTX?
 #    https://github.com/cmap/cmapPy/blob/master/tutorials/cmapPy_pandasGEXpress_tutorial.ipynb
 
 #TODO for Geney and WishBuilder:
+#    Store transposed version of *compressed* data for filtering and see how much faster it is
 #    Exclude sample and feature names?
 #    Support filtering and building pandas dataframe
 #    Need/want transposed files?

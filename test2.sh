@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#TODO:
+#  Remove rowdict from everything.
+#  Go away from msgpack for coldict and put it in header.
+#  Change TransposeFixedWidth.py to TransposeFixedWidth2.py
+
 set -o errexit
 
 ############################################################
@@ -39,11 +44,11 @@ function buildTestFiles {
 }
 
 ## A small file
-time buildTestFiles 10 90 1000
+#time buildTestFiles 10 90 1000
 ## A tall, narrow file
-time buildTestFiles 100 900 1000000
+#time buildTestFiles 100 900 1000000
 ## A short, wide file
-time buildTestFiles 100000 900000 1000
+#time buildTestFiles 100000 900000 1000
 
 ############################################################
 # Query every 100th column from first round of test files
@@ -103,11 +108,11 @@ function runQueries {
   runQuery $resultFile $numDiscrete $numContinuous $numRows TestFixedWidth.py fwf True
 }
 
-echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tMemMap\tSeconds" > Query_Results.tsv
+#echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tMemMap\tSeconds" > Query_Results.tsv
 
-runQueries Query_Results.tsv 10 90 1000
-runQueries Query_Results.tsv 100 900 1000000
-runQueries Query_Results.tsv 100000 900000 1000
+#runQueries Query_Results.tsv 10 90 1000
+#runQueries Query_Results.tsv 100 900 1000000
+#runQueries Query_Results.tsv 100000 900000 1000
 
 ############################################################
 # Build second version of fixed-width files that are more
@@ -123,6 +128,7 @@ function buildTestFiles2 {
 }
 
 buildTestFiles2 10 90 1000
+exit
 buildTestFiles2 100 900 1000000
 buildTestFiles2 100000 900000 1000
 

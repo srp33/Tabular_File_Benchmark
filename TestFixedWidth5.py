@@ -27,6 +27,8 @@ random.shuffle(select_col_indices)
 select_row_indices = sorted(select_row_indices[:10])
 select_col_indices = sorted(select_col_indices[:10])
 
+#NOTE: On the 500000x500000 file, 98.5% of the execution time occurred before this point.
+
 with open(file_path, 'rb') as my_file:
     mmap_file = mmap.mmap(my_file.fileno(), 0, prot=mmap.PROT_READ)
 

@@ -7,9 +7,8 @@ out_file_path = sys.argv[2]
 
 column_size_dict = {}
 column_coord_dict = {}
-row_start_dict = {}
 
-# Build a dictionary with the column index as key and width of the column as value
+# Initialize a dictionary with the column index as key and width of the column as value
 with open(file_path, 'rb') as my_file:
     header_items = my_file.readline().rstrip(b"\n").split(b"\t")
 
@@ -24,15 +23,31 @@ with open(file_path, 'rb') as my_file:
         for i in range(len(line_items)):
             column_size_dict[i] = max([column_size_dict[i], len(line_items[i])])
 
-# Serialize and save dictionary that indicates where each column starts and ends
-with open(out_file_path + ".coldict", 'wb') as coldict_file:
-    cumulative_position = 0
-    for i in range(len(header_items)):
-        value = header_items[i]
-        column_coord_dict[i] = (cumulative_position, cumulative_position + column_size_dict[i])
-        cumulative_position += column_size_dict[i]
+# Calculate the length of the first line (and thus all the other lines)
+line_length = sum([column_size_dict[i] for i in range(len(header_items))])
 
-    coldict_file.write(msgpack.packb(column_coord_dict, use_bin_type=True))
+# Save value that indicates line length
+with open(out_file_path + ".ll", 'wb') as ll_file:
+    ll_file.write(str(line_length + 1).encode())
+
+# Calculate the positions where each column starts and its length
+cumulative_position = 0
+for i in range(len(header_items)):
+    column_size = column_size_dict[i]
+    column_coord_dict[i] = "{},{}".format(cumulative_position, column_size)
+    cumulative_position += column_size
+
+# Save value that indicates maximum length of column coords string
+max_column_coord_length = max([len(x) for x in set(column_coord_dict.values())])
+with open(out_file_path + ".mccl", 'wb') as mccl_file:
+    # Add one to account for newline character
+    mccl_file.write(str(max_column_coord_length + 1).encode())
+
+# Save column coords
+with open(out_file_path + ".cc", 'wb') as cc_file:
+    formatter = "{:<" + str(max_column_coord_length) + "}\n"
+    for i, length in sorted(column_coord_dict.items()):
+        cc_file.write(formatter.format(length).encode())
 
 # Save the data to output file
 with open(file_path, 'rb') as my_file:
@@ -54,11 +69,5 @@ with open(file_path, 'rb') as my_file:
             line_out = (line_out + "\n").encode()
             out_file.write(line_out)
 
-            row_start_dict[line_number] = cumulative_position
-
             line_number += 1
             cumulative_position += len(line_out)
-
-# Serialize and save dictionary that indicates where each row starts
-with open(out_file_path + ".rowdict", 'wb') as rowdict_file:
-    rowdict_file.write(msgpack.packb(row_start_dict, use_bin_type=True))

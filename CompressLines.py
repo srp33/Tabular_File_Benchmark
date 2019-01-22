@@ -1,12 +1,13 @@
-import mmap
 import msgpack
+import mmap
 import os
 import shutil
 import sys
 
 file_path = sys.argv[1]
-compression_method = sys.argv[2]
-compression_level = sys.argv[3]
+num_rows = int(sys.argv[2])
+compression_method = sys.argv[3]
+compression_level = sys.argv[4]
 
 if compression_method == "bz2":
     import bz2 as cmpr
@@ -28,10 +29,10 @@ else:
     print("No matching compression method")
     sys.exit(1)
 
-with open(file_path + ".rowdict", 'rb') as rowdict_file:
-    in_row_start_dict = msgpack.unpackb(rowdict_file.read(), raw=False)
+with open(file_path + ".ll", 'rb') as ll_file:
+    line_length = int(ll_file.read().rstrip())
 
-in_row_indices = sorted(in_row_start_dict.keys())
+in_row_indices = list(range(num_rows))
 
 out_row_start_dict = {}
 cumulative_position = 0
@@ -41,12 +42,12 @@ with open(file_path, 'rb') as my_file:
 
     with open(out_file_path, 'wb') as out_file:
         for row_index in in_row_indices:
-            row_start = in_row_start_dict[row_index]
+            row_start = row_index * line_length
 
             if row_index == in_row_indices[-1]:
                 line = mmap_file[row_start:len(mmap_file)]
             else:
-                row_end = in_row_start_dict[row_index + 1]
+                row_end = (row_index + 1) * line_length
                 line = mmap_file[row_start:row_end]
 
             compressed_line = eval(compression_code)
@@ -59,4 +60,5 @@ with open(file_path, 'rb') as my_file:
 with open(out_file_path + ".rowdict", 'wb') as rowdict_file:
     rowdict_file.write(msgpack.packb(out_row_start_dict, use_bin_type=True))
 
-shutil.copyfile(file_path + ".coldict", out_file_path + ".coldict")
+for file_extension in [".ll", ".mccl", ".cc"]:
+    shutil.copyfile(file_path + file_extension, out_file_path + file_extension)

@@ -3,52 +3,26 @@ import sys, difflib
 outputFilePath = sys.argv[1]
 expectedOutputFilePath = sys.argv[2]
 
-output = ""
+passed = True
+
 with open(outputFilePath) as outputFile:
-    for line in outputFile:
-        output += line
-    output = output.rstrip()
+    with open(expectedOutputFilePath) as expectedOutputFile:
+        line_count = 0
 
-expectedOutput = ""
-with open(expectedOutputFilePath) as expectedOutputFile:
-    for line in expectedOutputFile:
-        expectedOutput += line
-    expectedOutput = expectedOutput.rstrip()
+        for line in outputFile:
+            line_count += 1
+            line = line.rstrip("\n")
+            expected_line = next(expectedOutputFile).rstrip("\n")
 
-if output == expectedOutput:
+            line = "\t".join([x.rstrip("0") for x in line.split("\t")])
+            expected_line = "\t".join([x.rstrip("0") for x in expected_line.split("\t")])
+
+            if line != expected_line:
+                print("{} and {} are not equal.".format(outputFilePath, expectedOutputFilePath))
+                print("  Line {} of {}: {}".format(line_count, outputFilePath, line))
+                print("  Line {} of {}: {}".format(line_count, expectedOutputFilePath, expected_line))
+                passed = False
+                break
+
+if passed:
     print("Passed")
-else:
-    print("{} and {} are not equal.".format(outputFilePath, expectedOutputFilePath))
-    sys.exit(1)
-
-
-
-
-sys.exit(0)
-
-diff = difflib.ndiff(output, expectedOutput)
-
-numChars = 0.0
-numDifferences = 0.0
-
-for x in diff:
-    print("got here")
-    sys.exit(0)
-    sign = x[0]
-    character = x[2]
-
-    numChars += 1
-
-    if sign != " ":
-        numDifferences += 1
-        print(numDifferences)
-
-if numDifferences > 0:
-    print("\n#######################################################")
-    print("# Output:")
-    print("#######################################################\n")
-    print(output)
-    print("\n#######################################################")
-    print("# Expected output:")
-    print("#######################################################\n")
-    print(expectedOutput)

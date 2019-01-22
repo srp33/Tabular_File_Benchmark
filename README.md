@@ -1,8 +1,8 @@
 # Tabular File Benchmark
 
-The file called `test.sh` contains all the commands to execute these benchmarks.
+The file called `test.sh` is a (Linux) `bash` script that contains all the commands to execute these benchmarks.
 
-You will need to have the following Python modules installed:
+You will need to have Python (>=3.6) and the following Python modules installed:
 
 * msgpack (>=0.5.6)
 * numpy (>=1.15.2)

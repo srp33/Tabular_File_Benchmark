@@ -6,8 +6,8 @@ set -o errexit
 # Prep and clean before beginning analysis.
 ############################################################
 
-rm -rfv TestData
-mkdir -pv TestData
+#rm -rfv TestData
+#mkdir -pv TestData
 
 ############################################################
 # Build first round of test files.
@@ -39,11 +39,11 @@ function buildTestFiles {
 }
 
 ## Small files
-time buildTestFiles 10 90 1000
+#time buildTestFiles 10 90 1000
 ## Tall, narrow files
-time buildTestFiles 100 900 1000000
+#time buildTestFiles 100 900 1000000
 ## Short, wide files
-time buildTestFiles 100000 900000 1000
+#time buildTestFiles 100000 900000 1000
 
 ############################################################
 # Query every 100th column from first round of test files
@@ -105,12 +105,11 @@ function runQueries {
   runQuery $resultFile $numDiscrete $numContinuous $numRows TestFixedWidth.py fwf True
 }
 
-echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tMemMap\tSeconds" > Query_Results.tsv
+#echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tMemMap\tSeconds" > Query_Results.tsv
 
-runQueries Query_Results.tsv 10 90 1000
-runQueries Query_Results.tsv 100 900 1000000
-runQueries Query_Results.tsv 100000 900000 1000
-exit
+#runQueries Query_Results.tsv 10 90 1000
+#runQueries Query_Results.tsv 100 900 1000000
+#runQueries Query_Results.tsv 100000 900000 1000
 
 ############################################################
 # Build second version of fixed-width files that are more
@@ -125,9 +124,11 @@ function buildTestFiles2 {
   python3 ConvertTsvToFixedWidthFile2.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2
 }
 
-#buildTestFiles2 10 90 1000
-#buildTestFiles2 100 900 1000000
-#buildTestFiles2 100000 900000 1000
+buildTestFiles2 10 90 1000 &
+buildTestFiles2 100 900 1000000 &
+buildTestFiles2 100000 900000 1000 &
+wait
+exit
 
 ############################################################
 # Query every 100th column from second version of 

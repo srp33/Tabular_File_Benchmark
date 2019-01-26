@@ -52,6 +52,7 @@ ggplot(data, aes(x=Technique, y=Seconds, fill=`Memory mapped`)) +
   facet_wrap(~`File shape`, ncol = 2) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
   xlab("") +
+  ylab("Seconds (smaller is better)") +
   scale_fill_manual("Memory mapped", values = c("No" = "#2c7bb6", "Yes" = "#d7191c")) +
   guides(fill=guide_legend(reverse=T)) +
   coord_flip()
@@ -76,7 +77,7 @@ ggplot(data, aes(x=Extension, y=Size, fill=`File shape`)) +
   theme_bw(base_size = 14) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
   xlab("File format") +
-  ylab("File size (GB)") +
+  ylab("File size (GB, smaller is better)") +
   scale_fill_manual("File shape", values = c("Tall" = "#a6611a", "Wide" = "#018571")) +
   guides(fill=guide_legend(reverse=T)) +
   coord_flip()
@@ -170,7 +171,7 @@ ggplot(data, aes(x=`Compression method`, y=Value, fill=`File shape`)) +
   guides(fill=guide_legend(reverse=T)) +
   coord_flip()
 
-ggsave("Figures/Compression.pdf", width = 6.5, height=4)
+ggsave("Figures/Compression.pdf", width = 6.5, height=3.7)
 ```
 
 ## Query and transpose pseudo-genotype files

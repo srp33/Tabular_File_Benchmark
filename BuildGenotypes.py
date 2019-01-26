@@ -37,7 +37,6 @@ def buildRows():
         yield "".join(genotypes) + "\n"
 
 column_coord_dict = {}
-row_start_dict = {}
 
 cum_column_start = 0
 
@@ -56,7 +55,6 @@ with open(out_file_path, 'wb') as out_file:
     for row in buildRows():
         output += row
 
-        row_start_dict[row_count] = cum_position
         cum_position += len(row)
 
         if row_count % chunk_size == 0:

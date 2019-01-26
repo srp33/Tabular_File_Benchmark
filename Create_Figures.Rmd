@@ -1,0 +1,256 @@
+---
+title: "Tabular File Benchmarks"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Install libraries
+
+This part of the code is commented because it only needs to be executed once.
+
+```{r}
+#install.packages(c("readr", "ggplot2", "dplyr"))
+```
+
+## Load libraries
+
+```{r}
+library(ggplot2)
+library(readr)
+library(dplyr)
+```
+
+## Initial slicing benchmark
+
+```{r}
+data = suppressMessages(read_tsv("Results/Query_Results.tsv")) %>%
+  filter(NumDiscrete!=10) %>%
+  mutate(`File shape`=factor(ifelse(NumDiscrete==100, "Tall", "Wide"))) %>%
+  select(-NumDiscrete, -NumContinuous, -NumRows) %>%
+  mutate(Description=replace(Description, Description=="TestSplit.py", "delimiter-split")) %>%
+  mutate(Description=replace(Description, Description=="TestPandas.py", "pandas")) %>%
+  mutate(Description=replace(Description, Description=="TestRegExQuantifiers.py", "reg-ex-quant")) %>%
+  mutate(Description=replace(Description, Description=="TestRegExTabs.py", "reg-ex-tab")) %>%
+  mutate(Description=replace(Description, Description=="TestMsgPack.py", "msgpack")) %>%
+  mutate(Description=replace(Description, Description=="TestFlags.py", "flags")) %>%
+  mutate(Description=replace(Description, Description=="TestAwk.py", "awk")) %>%
+  mutate(Description=replace(Description, Description=="TestGawk.py", "gawk")) %>%
+  mutate(Description=replace(Description, Description=="TestNawk.py", "nawk")) %>%
+  mutate(Description=replace(Description, Description=="TestFixedWidth.py", "fixed-width")) %>%
+  mutate(Description=factor(Description, levels=rev(unique(Description)))) %>%
+  mutate(MemMap=replace(MemMap, MemMap==TRUE, "Yes")) %>%
+  mutate(MemMap=replace(MemMap, MemMap==FALSE, "No")) %>%
+  mutate(MemMap=factor(MemMap, levels=c("Yes", "No"))) %>%
+  rename(Technique=Description, `Memory mapped`=MemMap)
+
+ggplot(data, aes(x=Technique, y=Seconds, fill=`Memory mapped`)) +
+  geom_bar(stat="identity", width=0.7, position = position_dodge(width=0.75)) +
+  theme_bw(base_size = 14) +
+  facet_wrap(~`File shape`, ncol = 2) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  xlab("") +
+  scale_fill_manual("Memory mapped", values = c("No" = "#2c7bb6", "Yes" = "#d7191c")) +
+  guides(fill=guide_legend(reverse=T)) +
+  coord_flip()
+
+ggsave("Figures/Slice.pdf", width = 6.5, height=2.5)
+```
+
+# Uncompressed file sizes
+
+```{r}
+data = suppressMessages(read_tsv("Results/Uncompressed_File_Sizes.tsv")) %>%
+  filter(NumDiscrete!=10) %>%
+  mutate(`File shape`=factor(ifelse(NumDiscrete==100, "Tall", "Wide"))) %>%
+  select(-NumDiscrete, -NumContinuous, -NumRows) %>%
+  mutate(Extension=replace(Extension, Extension=="flag", "flags")) %>%
+  mutate(Size=Size / 1024 / 1024 / 1024) %>%
+  mutate(Extension=factor(Extension, levels=rev(unique(Extension)))) %>%
+  mutate(`File shape`=factor(`File shape`, levels=rev(unique(`File shape`))))
+
+ggplot(data, aes(x=Extension, y=Size, fill=`File shape`)) +
+  geom_bar(stat="identity", width=0.7, position = position_dodge(width=0.75)) +
+  theme_bw(base_size = 14) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  xlab("File format") +
+  ylab("File size (GB)") +
+  scale_fill_manual("File shape", values = c("Tall" = "#a6611a", "Wide" = "#018571")) +
+  guides(fill=guide_legend(reverse=T)) +
+  coord_flip()
+
+ggsave("Figures/Sizes.pdf", width = 6.25, height=2)
+```
+
+## Slicing and filtering results for fwf2 format
+
+```{r}
+data = suppressMessages(read_tsv("Results/Query_Results_fwf2.tsv")) %>%
+  arrange(Description) %>%
+  filter(NumDiscrete!=10) %>%
+  mutate(`File shape`=factor(ifelse(NumDiscrete==100, "Tall", "Wide"))) %>%
+  select(-NumDiscrete, -NumContinuous, -NumRows)
+```
+
+## Compression statistics
+
+```{r}
+compPaste = function(method, level)
+{
+  result = NULL
+  
+  for (i in 1:length(method))
+  {
+    if (method[i] == "lzma" || method[i] == "snappy") {
+      result = c(result, method[i])
+    } else {
+      if (method[i] == "gz")
+        method[i] = "gzip"
+      if (method[i] == "bz2")
+        method[i] = "bzip2"
+      
+      result = c(result, paste0(method[i], "(", level[i], ")"))
+    }
+  }
+  
+  return(result)
+}
+
+time_data = suppressMessages(read_tsv("Results/LineCompression_Times.tsv")) %>%
+  mutate(File=basename(File)) %>%
+  mutate(File=sub(".fwf2", "", File)) %>%
+  filter(File != "10_90_1000") %>%
+  mutate(File=replace(File, File=="100_900_1000000", "Tall")) %>%
+  mutate(File=replace(File, File=="100000_900000_1000", "Wide")) %>%
+  mutate(Method=compPaste(Method, Level)) %>%
+  select(-Level) %>%
+  rename(`File shape`=File, `Compression method`=Method) %>%
+  mutate(Seconds=Seconds / 60) %>%
+  rename(Value=Seconds) %>%
+  mutate(Benchmark="Compression time\n(minutes)") %>%
+  select(Benchmark, `Compression method`, `File shape`, Value)
+
+size_data = suppressMessages(read_tsv("Results/Line_Compressed_File_Sizes.tsv")) %>%
+  mutate(Method=compPaste(Method, Level)) %>%
+  select(-Level) %>%
+  filter(NumDiscrete != 10) %>%
+  mutate(`File shape`=factor(ifelse(NumDiscrete==100, "Tall", "Wide"))) %>%
+  select(-NumDiscrete, -NumContinuous, -NumRows) %>%
+  mutate(Size=Size / 1024 / 1024 / 1024) %>%
+  rename(`Compression method`=Method) %>%
+  rename(Value=Size) %>%
+  mutate(Benchmark="File size (GB)") %>%
+  select(Benchmark, `Compression method`, `File shape`, Value)
+
+query_data = suppressMessages(read_tsv("Results/Query_Results_fwf2_compressed.tsv")) %>%
+  mutate(Method=compPaste(Method, Level)) %>%
+  select(-Level) %>%
+  filter(NumDiscrete != 10) %>%
+  mutate(`File shape`=factor(ifelse(NumDiscrete==100, "Tall", "Wide"))) %>%
+  select(-NumDiscrete, -NumContinuous, -NumRows) %>%
+  rename(`Compression method`=Method) %>%
+  rename(Value=Seconds) %>%
+  mutate(Benchmark="Query time\n(seconds)") %>%
+  select(Benchmark, `Compression method`, `File shape`, Value)
+
+data = suppressWarnings(bind_rows(time_data, size_data, query_data)) %>%
+  mutate(Benchmark=factor(Benchmark, levels=unique(Benchmark))) %>%
+  mutate(`Compression method`=factor(`Compression method`, levels=rev(unique(`Compression method` )))) %>%
+  mutate(`File shape`=factor(`File shape`, levels=rev(unique(`File shape`))))
+
+ggplot(data, aes(x=`Compression method`, y=Value, fill=`File shape`)) +
+  geom_bar(stat="identity", width=0.7, position = position_dodge(width=0.75)) +
+  theme_bw(base_size = 14) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  ylab("") +
+  scale_fill_manual("File shape", values = c("Tall" = "#a6611a", "Wide" = "#018571")) +
+  facet_wrap(~Benchmark, scales="free_x") +
+  guides(fill=guide_legend(reverse=T)) +
+  coord_flip()
+
+ggsave("Figures/Compression.pdf", width = 6.5, height=4)
+```
+
+## Query and transpose pseudo-genotype files
+
+```{r}
+# Courtesy of: https://stackoverflow.com/questions/34096162/dplyr-mutate-replace-on-a-subset-of-rows/34096422
+mutate_cond <- function(.data, condition, ..., new_init = NA, envir = parent.frame()) {
+  # Initialize any new variables as new_init
+  new_vars <- substitute(list(...))[-1]
+  new_vars %<>% sapply(deparse) %>% names %>% setdiff(names(.data))
+  .data[, new_vars] <- new_init
+
+  condition <- eval(substitute(condition), .data, envir)
+  .data[condition, ] <- .data %>% filter(condition) %>% mutate(...)
+  .data
+}
+
+parseSeconds = function(raw)
+{
+  components = strsplit(raw, ":")[[1]]
+  
+  if (length(components) == 3) {
+    hours = as.numeric(components[1])
+    minutes = as.numeric(components[2])
+    seconds = as.numeric(components[3]) + minutes * 60 + hours * 3600
+  } else {
+    minutes = as.numeric(components[1])
+    seconds = as.numeric(components[2]) + minutes * 60
+  }
+
+  return(seconds)
+}
+
+parseSecondsAll = function(raw)
+{
+  sapply(raw, parseSeconds)
+}
+
+convertBytesToGB = function(x)
+{
+  x / 1024 / 1024 / 1024
+}
+
+convertKBToGB = function(x)
+{
+  x / 1024 / 1024
+}
+
+data = suppressMessages(read_tsv("Results/Results_Genotypes.tsv")) %>%
+  mutate(DataPoints=log10(Dimensions^2)) %>%
+  filter(Description %in% c("Size", "Query", "Elapsed (wall clock) time (h:mm:ss or m:ss)", "Maximum resident set size (kbytes)")) %>%
+  mutate(Description=replace(Description, Description=="Size", "Data file size (GB)")) %>%
+  mutate(Description=replace(Description, Description=="Query", "Query time (seconds)")) %>%
+  mutate(Description=replace(Description, Description=="Elapsed (wall clock) time (h:mm:ss or m:ss)", "Transpose time (seconds)")) %>%
+  mutate(Description=replace(Description, Description=="Maximum resident set size (kbytes)", "Transpose memory usage (GB)")) %>%
+  mutate_cond(Description=="Transpose time (seconds)", Value=parseSecondsAll(Value)) %>%
+  mutate(Value=as.numeric(Value)) %>%
+  mutate_cond(Description=="Data file size (GB)", Value=convertBytesToGB(Value)) %>%
+  mutate_cond(Description=="Transpose memory usage (GB)", Value=convertKBToGB(Value)) %>%
+  mutate(Description=factor(Description, levels=unique(Description))) %>%
+  select(-Dimensions)
+
+min_data = group_by(data, Description) %>%
+  summarize(MinValue=min(Value)) %>%
+  ungroup()
+
+data = inner_join(data, min_data, by="Description") %>%
+  mutate(RatioValue=log10(Value / MinValue) + 1)
+
+ggplot(data, aes(x=DataPoints, y=RatioValue, col=Description)) +
+  geom_line() +
+  geom_point() +
+  theme_bw(base_size = 14) +
+  xlab("Number of data points (log-10)") +
+  ylab("Ratio vs. minimum (log-10)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  guides(col=FALSE) +
+  scale_color_manual("", values = c("#0571b0", "#ca0020", "#5e3c99", "#e66101")) +
+  facet_wrap(~Description)
+#  facet_wrap(~Description, scales="free_y")
+
+ggsave("Figures/Genotypes.pdf", width = 6.5, height=3)
+```

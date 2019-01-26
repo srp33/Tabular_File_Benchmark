@@ -124,11 +124,10 @@ function buildTestFiles2 {
   python3 ConvertTsvToFixedWidthFile2.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2
 }
 
-buildTestFiles2 10 90 1000 &
-buildTestFiles2 100 900 1000000 &
-buildTestFiles2 100000 900000 1000 &
-wait
-exit
+#buildTestFiles2 10 90 1000 &
+#buildTestFiles2 100 900 1000000 &
+#buildTestFiles2 100000 900000 1000 &
+#wait
 
 ############################################################
 # Query every 100th column from second version of 
@@ -144,8 +143,8 @@ function runQueries2 {
   dataFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2
   outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
 
-  #echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2.py $dataFile $outFile $numRows > /dev/null; } 2>&1 )" >> $resultFile
-  time python3 TestFixedWidth2.py $dataFile $outFile $numRows
+  echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2.py $dataFile $outFile $numRows > /dev/null; } 2>&1 )" >> $resultFile
+  #time python3 TestFixedWidth2.py $dataFile $outFile $numRows
 
   masterOutFile=/tmp/TestSplit_${numDiscrete}_${numContinuous}_${numRows}_tsv_False.tsv.out
   python3 CheckOutput.py $outFile $masterOutFile
@@ -153,7 +152,7 @@ function runQueries2 {
   rm -f $outFile
 }
 
-echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > Query_Results_fwf2.tsv
+#echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tValue" > Query_Results_fwf2.tsv
 
 #runQueries2 Query_Results_fwf2.tsv 10 90 1000
 #runQueries2 Query_Results_fwf2.tsv 100 900 1000000
@@ -174,8 +173,8 @@ function runQueries3 {
   dataFile=TestData/${numDiscrete}_${numContinuous}_$numRows.fwf2
   numDataPoints=$(($numDiscrete + $numContinuous))
 
-  echo -e "Filter\t$numDiscrete\t$numContinuous\t$numRows\tTrue\t$( { /usr/bin/time -f %e python3 TestFixedWidth3.py $dataFile /tmp/1 $numRows $numDiscrete $numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
-  #time python3 TestFixedWidth3.py $dataFile /tmp/1 $numRows $numDiscrete $numDataPoints
+  echo -e "Filter\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth3.py $dataFile /tmp/1 $numRows $numDiscrete $numDataPoints False > /dev/null; } 2>&1 )" >> $resultFile
+  echo -e "Num Features After Filtering\t$numDiscrete\t$numContinuous\t$numRows\t$(python3 TestFixedWidth3.py $dataFile /tmp/1 $numRows $numDiscrete $numDataPoints True)" >> $resultFile
 }
 
 #runQueries3 Query_Results_fwf2.tsv 10 90 1000
@@ -196,11 +195,11 @@ function compressLines {
 
   echo "Compressing $f with method $method and level $level."
 
-  #echo -e "$f\t$method\t$level\t$( { /usr/bin/time -f %e python3 CompressLines.py $f $numRows $method $level > /dev/null; } 2>&1 )" >> LineCompression_Times.tsv
-  python3 CompressLines.py $f $numRows $method $level
+  echo -e "$f\t$method\t$level\t$( { /usr/bin/time -f %e python3 CompressLines.py $f $numRows $method $level > /dev/null; } 2>&1 )" >> LineCompression_Times.tsv
+  #python3 CompressLines.py $f $numRows $method $level
 }
 
-#echo -e "File\tMethod\tSeconds" > LineCompression_Times.tsv
+#echo -e "File\tMethod\tLevel\tSeconds" > LineCompression_Times.tsv
 
 #for f in TestData/10_*.fwf2
 #do
@@ -234,13 +233,15 @@ function compressLines {
 
 ############################################################
 # Now create compressed versions where we compress the
-# entire file (not line by line).
+# entire file (not line by line). This uses gzip (level 9)
+# only.
 ############################################################
 
 function compressFile {
   f=$1
 
-  echo -e "$f\tgz\t$( { /usr/bin/time -f %e gzip $f > /dev/null; } 2>&1 )" >> File_Compression_Times.tsv
+  rm -f $f.gz
+  echo -e "$f\tgz\t$( { /usr/bin/time -f %e gzip -9 -k $f > /dev/null; } 2>&1 )" >> File_Compression_Times.tsv
 }
 
 #echo -e "File\tMethod\tSeconds" > File_Compression_Times.tsv
@@ -265,7 +266,7 @@ function calcFileSizes {
   echo -e "$extension\t$numDiscrete\t$numContinuous\t$numRows\t$(python3 PrintFileSize.py $dataFile)" >> $resultFile
 }
 
-#sizeFile=File_Sizes.tsv
+#sizeFile=Uncompressed_File_Sizes.tsv
 #echo -e "Extension\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
 
 #for extension in tsv flag msgpack fwf fwf2
@@ -327,7 +328,7 @@ function calcFileSizes3 {
   echo -e "$method\t$numDiscrete\t$numContinuous\t$numRows\t$(python3 PrintFileSize.py $dataFile)" >> $resultFile
 }
 
-#sizeFile=Compressed_File_Sizes.tsv
+#sizeFile=WholeFile_Compressed_File_Sizes.tsv
 #echo -e "Method\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
 
 #calcFileSizes3 $sizeFile 10 90 1000 gz
@@ -351,16 +352,9 @@ function runQueries4 {
   dataFile=TestData/${numDiscrete}_${numContinuous}_$numRows.fwf2.$compressionSuffix
   numDataPoints=$(($numDiscrete + $numContinuous))
 
-  #echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4.py $dataFile /tmp/2 $numRows $numDiscrete $numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
-############################################
-############################################
-############################################
-# Check this script and then modify commenting
-############################################
-############################################
-############################################
-  time python3 TestFixedWidth4.py $dataFile /tmp/2 $numRows $numDiscrete $numDataPoints $compressionMethod $compressionLevel
-  wc -l /tmp/2
+  echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4.py $dataFile /tmp/2 $numRows $numDiscrete $numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
+  #time python3 TestFixedWidth4.py $dataFile /tmp/2 $numRows $numDiscrete $numDataPoints $compressionMethod $compressionLevel
+  #wc -l /tmp/2
 }
 
 function runAllQueries4 {
@@ -377,12 +371,13 @@ function runAllQueries4 {
   runQueries4 $resultFile $numDiscrete $numContinuous $numRows snappy NA snappy
 }
 
-#rm -f Query_Results_fwf2_compressed.tsv
-#echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > Query_Results_fwf2_compressed.tsv
+#resultFile=Query_Results_fwf2_compressed.tsv
+#rm -f $resultFile
+#echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
 
-#runAllQueries4 Query_Results_fwf2_compressed.tsv 10 90 1000
-#runAllQueries4 Query_Results_fwf2_compressed.tsv 100 900 1000000
-#runAllQueries4 Query_Results_fwf2_compressed.tsv 100000 900000 1000
+#runAllQueries4 $resultFile 10 90 1000
+#runAllQueries4 $resultFile 100 900 1000000
+#runAllQueries4 $resultFile 100000 900000 1000
 
 ############################################################
 # Clean up the test files created so far to save disk space.
@@ -422,7 +417,7 @@ function runGenotypeTests {
   rm -f $dataFile ${dataFile}* /tmp/1
 }
 
-#resultFile=Results_Genotypes.tsv
+resultFile=Results_Genotypes.tsv
 #echo -e "Description\tDimensions\tValue" > $resultFile
 
 #runGenotypeTests $resultFile 10
@@ -432,9 +427,9 @@ function runGenotypeTests {
 #runGenotypeTests $resultFile 1000
 #runGenotypeTests $resultFile 5000
 #runGenotypeTests $resultFile 10000
-#runGenotypeTests $resultFile 50000
-#runGenotypeTests $resultFile 100000
-#runGenotypeTests $resultFile 500000
+runGenotypeTests $resultFile 50000
+runGenotypeTests $resultFile 100000
+runGenotypeTests $resultFile 500000
 
 #TODO for Geney and WishBuilder:
 #    Exclude sample and feature names (put in meta)

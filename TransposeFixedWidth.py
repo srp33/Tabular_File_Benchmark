@@ -27,8 +27,8 @@ with open(file_path + ".cc", 'rb') as cc_file:
         row_indices = list(range(dimensions))
         col_indices = list(range(dimensions))
 
-        #chunk_size = 1000
-        chunk_size = 5
+        chunk_size = 1000
+        #chunk_size = 5
         col_indices_chunks = []
         chunk_indices = []
 

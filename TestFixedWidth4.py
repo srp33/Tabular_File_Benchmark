@@ -50,11 +50,12 @@ def parse_row_values(row_index, col_coords):
 def query_cols(row_indices):
     matching_row_indices = []
 
-    coords = list(find_col_coords([discrete_query_col_index]))[0]
+    discrete_coords = list(find_col_coords([discrete_query_col_index]))[0]
+    num_coords = list(find_col_coords([num_query_col_index]))[0]
 
     for row_index in row_indices:
-        discrete_value = parse_row(row_index)[coords[0]:coords[0] + coords[1]].rstrip()
-        num_value = float(parse_row(row_index)[coords[0]:coords[0] + coords[1]].rstrip())
+        discrete_value = parse_row(row_index)[discrete_coords[0]:discrete_coords[0] + discrete_coords[1]].rstrip()
+        num_value = float(parse_row(row_index)[num_coords[0]:num_coords[0] + num_coords[1]].rstrip())
 
         if (discrete_value.startswith(b"A") or discrete_value.endswith(b"Z")) and num_value >= 0.1:
             matching_row_indices.append(row_index)

@@ -6,6 +6,7 @@ out_file_path = sys.argv[2]
 num_rows = int(sys.argv[3])
 discrete_query_col_index = int(sys.argv[4])
 num_query_col_index = int(sys.argv[5])
+print_num_matching = sys.argv[6] == "True"
 
 def find_col_coords(col_indices):
     for col_index in col_indices:
@@ -70,6 +71,9 @@ with open(file_path + ".cc", 'rb') as cc_file:
 
             matching_row_indices = query_discrete_col(range(1, num_rows))
             matching_row_indices = query_numeric_col(matching_row_indices)
+
+            if print_num_matching:
+                print(len(matching_row_indices))
 
             chunk_size = 1000
             out_lines = []

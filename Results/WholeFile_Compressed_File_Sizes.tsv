@@ -1,0 +1,4 @@
+Method	NumDiscrete	NumContinuous	NumRows	Size
+gz	10	90	1000	446897
+gz	100	900	1000000	4410914923
+gz	100000	900000	1000	4438771290

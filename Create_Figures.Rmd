@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 This part of the code is commented because it only needs to be executed once.
 
 ```{r}
-#install.packages(c("readr", "ggplot2", "dplyr"))
+#install.packages(c("readr", "ggplot2", "dplyr", "cowplot"))
 ```
 
 ## Load libraries
@@ -21,6 +21,7 @@ This part of the code is commented because it only needs to be executed once.
 library(ggplot2)
 library(readr)
 library(dplyr)
+library(cowplot)
 ```
 
 ## Initial slicing benchmark
@@ -47,9 +48,9 @@ data = suppressMessages(read_tsv("Results/Query_Results.tsv")) %>%
   rename(Technique=Description, `Memory mapped`=MemMap)
 
 ggplot(data, aes(x=Technique, y=Seconds, fill=`Memory mapped`)) +
-  geom_bar(stat="identity", width=0.7, position = position_dodge(width=0.75)) +
+  geom_bar(stat="identity", width=0.7, position = position_dodge(width=0.8)) +
   theme_bw(base_size = 14) +
-  facet_wrap(~`File shape`, ncol = 2) +
+  facet_wrap(~`File shape`, ncol = 2, scales="free_x") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
   xlab("") +
   ylab("Seconds (smaller is better)") +
@@ -73,7 +74,7 @@ data = suppressMessages(read_tsv("Results/Uncompressed_File_Sizes.tsv")) %>%
   mutate(`File shape`=factor(`File shape`, levels=rev(unique(`File shape`))))
 
 ggplot(data, aes(x=Extension, y=Size, fill=`File shape`)) +
-  geom_bar(stat="identity", width=0.7, position = position_dodge(width=0.75)) +
+  geom_bar(stat="identity", width=0.7, position = position_dodge(width=0.8)) +
   theme_bw(base_size = 14) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
   xlab("File format") +
@@ -162,7 +163,7 @@ data = suppressWarnings(bind_rows(time_data, size_data, query_data)) %>%
   mutate(`File shape`=factor(`File shape`, levels=rev(unique(`File shape`))))
 
 ggplot(data, aes(x=`Compression method`, y=Value, fill=`File shape`)) +
-  geom_bar(stat="identity", width=0.7, position = position_dodge(width=0.75)) +
+  geom_bar(stat="identity", width=0.7, position = position_dodge(width=0.8)) +
   theme_bw(base_size = 14) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
   ylab("") +
@@ -171,7 +172,7 @@ ggplot(data, aes(x=`Compression method`, y=Value, fill=`File shape`)) +
   guides(fill=guide_legend(reverse=T)) +
   coord_flip()
 
-ggsave("Figures/Compression.pdf", width = 6.5, height=3.7)
+ggsave("Figures/Compression.pdf", width = 6.5, height=3)
 ```
 
 ## Query and transpose pseudo-genotype files
@@ -234,24 +235,44 @@ data = suppressMessages(read_tsv("Results/Results_Genotypes.tsv")) %>%
   mutate(Description=factor(Description, levels=unique(Description))) %>%
   select(-Dimensions)
 
-min_data = group_by(data, Description) %>%
-  summarize(MinValue=min(Value)) %>%
-  ungroup()
+min_data = filter(data, DataPoints==min(DataPoints)) %>%
+  select(Description, Value) %>%
+  rename(MinValue=Value)
 
 data = inner_join(data, min_data, by="Description") %>%
   mutate(RatioValue=log10(Value / MinValue) + 1)
 
-ggplot(data, aes(x=DataPoints, y=RatioValue, col=Description)) +
+A = ggplot(data, aes(x=DataPoints, y=Value, col=Description)) +
   geom_line() +
   geom_point() +
-  theme_bw(base_size = 14) +
+  theme_bw(base_size = 12) +
   xlab("Number of data points (log-10)") +
-  ylab("Ratio vs. minimum (log-10)") +
+  ylab("") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
   guides(col=FALSE) +
   scale_color_manual("", values = c("#0571b0", "#ca0020", "#5e3c99", "#e66101")) +
-  facet_wrap(~Description)
-#  facet_wrap(~Description, scales="free_y")
+  facet_wrap(~Description, scales="free_y", ncol = 1)
 
-ggsave("Figures/Genotypes.pdf", width = 6.5, height=3)
+data <- data %>%
+  mutate(Description=as.character(Description)) %>%
+  mutate(Description=replace(Description, Description=="Data file size (GB)", "Data file size")) %>%
+  mutate(Description=replace(Description, Description=="Query time (seconds)", "Query time")) %>%
+  mutate(Description=replace(Description, Description=="Transpose time (seconds)", "Transpose time")) %>%
+  mutate(Description=replace(Description, Description=="Transpose memory usage (GB)", "Transpose memory usage")) %>%
+  mutate(Description=factor(Description, levels=unique(Description)))
+
+B = ggplot(data, aes(x=DataPoints, y=RatioValue, col=Description)) +
+  geom_line() +
+  geom_point() +
+  theme_bw(base_size = 12) +
+  xlab("Number of data points (log-10)") +
+  ylab("Ratio (log-10)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  guides(col=FALSE) +
+  scale_color_manual("", values = c("#0571b0", "#ca0020", "#5e3c99", "#e66101")) +
+  facet_wrap(~Description, ncol=1)
+
+plot_grid(A, B, labels=c("A", "B"), label_size=24, ncol=2)
+
+ggsave("Figures/Genotypes.pdf", width = 6.5, height=4)
 ```

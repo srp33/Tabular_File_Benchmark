@@ -272,7 +272,7 @@ B = ggplot(data, aes(x=DataPoints, y=RatioValue, col=Description)) +
   scale_color_manual("", values = c("#0571b0", "#ca0020", "#5e3c99", "#e66101")) +
   facet_wrap(~Description, ncol=1)
 
-plot_grid(A, B, labels=c("A", "B"), label_size=24, ncol=2)
+plot_grid(A, B, labels=c("A", "B"), label_size=18, ncol=2)
 
 ggsave("Figures/Genotypes.pdf", width = 6.5, height=4)
 ```

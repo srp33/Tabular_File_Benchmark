@@ -1,13 +1,15 @@
-import csv
-import io
 import mmap
-import pandas
 import sys
 import re
+from Helper import *
 
 file_path = sys.argv[1]
-out_file_path = sys.argv[2]
-memory_map = sys.argv[3] == "True"
+col_names_file_path = sys.argv[2]
+out_file_path = sys.argv[3]
+memory_map = sys.argv[4] == "True"
+
+# These have to be in sorted order
+col_indices = getColIndicesToQuery(col_names_file_path, memory_map)
 
 with open(file_path, 'rb') as my_file:
     if memory_map:
@@ -17,20 +19,15 @@ with open(file_path, 'rb') as my_file:
         header_line = my_file.readline()
         header_items = header_line.rstrip(b"\n").split(b"\t")
 
-        # These have to be in sorted order
-        index_range = range(0, len(header_items), 100)
-        indices = list(index_range)
+        out_file.write(b"\t".join([header_items[i] for i in col_indices]) + b"\n")
 
-        out_file.write(b"\t".join([header_items[i] for i in index_range]) + b"\n")
+        #reg_ex = r"^(?:[^\t]+\t){" + str(col_indices[0]) + "}([^\t]+)"
+        reg_ex = r"^(?:[^\t]*\t){" + str(col_indices[0]) + "}([^\t]*)"
 
-        #reg_ex = r"^(?:[^\t]+\t){" + str(indices[0]) + "}([^\t]+)"
-        reg_ex = r"^(?:[^\t]*\t){" + str(indices[0]) + "}([^\t]*)"
+        for i in range(1, len(col_indices)):
+            prior_index = col_indices[i-1]
+            index = col_indices[i]
 
-        for i in range(1, len(indices)):
-            prior_index = indices[i-1]
-            index = indices[i]
-
-            #reg_ex += r"(?:[^\t]+\t){" + str(index - prior_index) + "}([^\t]+)"
             reg_ex += r"(?:[^\t]*\t){" + str(index - prior_index) + "}([^\t]*)"
 
         reg_ex_comp = re.compile(reg_ex.encode())

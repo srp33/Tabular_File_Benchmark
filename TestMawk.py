@@ -1,8 +1,10 @@
 import sys
 import os
+from Helper import *
 
 file_path = sys.argv[1]
-out_file_path = sys.argv[2]
+col_names_file_path = sys.argv[2]
+out_file_path = sys.argv[3]
 
 with open(file_path, 'r') as my_file:
     header_items = next(my_file).rstrip("\n").split("\t")

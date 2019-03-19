@@ -5,6 +5,12 @@ expectedOutputFilePath = sys.argv[2]
 
 passed = True
 
+def formatNumber(num):
+    if "." in num or "e-" in num:
+        return "{:.8f}".format(float(num))
+
+    return num
+
 with open(outputFilePath) as outputFile:
     with open(expectedOutputFilePath) as expectedOutputFile:
         line_count = 0
@@ -14,8 +20,8 @@ with open(outputFilePath) as outputFile:
             line = line.rstrip("\n")
             expected_line = next(expectedOutputFile).rstrip("\n")
 
-            line = "\t".join([x.rstrip("0") for x in line.split("\t")])
-            expected_line = "\t".join([x.rstrip("0") for x in expected_line.split("\t")])
+            line = "\t".join([formatNumber(x) for x in line.split("\t")])
+            expected_line = "\t".join([formatNumber(x) for x in expected_line.split("\t")])
 
             if line != expected_line:
                 print("{} and {} are not equal.".format(outputFilePath, expectedOutputFilePath))
@@ -24,5 +30,16 @@ with open(outputFilePath) as outputFile:
                 passed = False
                 break
 
-if passed:
-    print("Passed")
+        next_line = next(expectedOutputFile, "END_OF_FILE")
+        if next_line != "END_OF_FILE":
+            print("Some text was in {} that was not in {}.".format(expectedOutputFilePath, outputFilePath))
+            passed = False
+
+if line_count == 0:
+    print("{} was empty.".format(outputFilePath))
+    sys.exit(1)
+else:
+    if passed:
+        print("Passed")
+    else:
+        sys.exit(1)

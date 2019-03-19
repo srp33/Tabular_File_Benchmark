@@ -1,22 +1,15 @@
 import mmap
 import sys
+from Helper import *
 
 file_path = sys.argv[1]
-out_file_path = sys.argv[2]
-num_rows = int(sys.argv[3])
+col_names_file_path = sys.argv[2]
+out_file_path = sys.argv[3]
+num_rows = int(sys.argv[4])
+memory_map = True
+chunk_size = 1000
 
-def find_col_coords():
-    for col_index in col_indices:
-        start_pos = col_index * max_column_coord_length
-        next_start_pos = start_pos + max_column_coord_length
-
-        yield [int(x) for x in cc_map_file[start_pos:next_start_pos].rstrip().split(b",")]
-
-def parse_row_values(row_index):
-    row_start = row_index * line_length
-
-    for coords in col_coords:
-        yield data_map_file[(row_start + coords[0]):(row_start + coords[0] + coords[1])].rstrip()
+col_indices = [x for x in getColIndicesToQuery(col_names_file_path, memory_map)]
 
 with open(file_path + ".ll", 'rb') as ll_file:
     line_length = int(ll_file.read().rstrip())
@@ -32,16 +25,14 @@ with open(file_path + ".cc", 'rb') as cc_file:
 
         with open(out_file_path, 'wb') as out_file:
             row_indices = range(num_rows+1)
-            num_cols = int(len(cc_map_file) / max_column_coord_length)
-            col_indices = range(0, num_cols, 100)
+            num_cols = int(len(cc_map_file) / (max_column_coord_length + 1))
 
-            col_coords = list(find_col_coords())
+            col_coords = list(parse_data_coords(col_indices, cc_map_file, max_column_coord_length, line_length))
 
             out_lines = []
-            chunk_size = 1000
 
             for row_index in row_indices:
-                out_lines.append(b"\t".join(parse_row_values(row_index)).rstrip())
+                out_lines.append(b"\t".join(parse_data_values(row_index, line_length, col_coords, data_map_file)).rstrip())
 
                 if len(out_lines) % chunk_size == 0:
                     out_file.write(b"\n".join(out_lines) + b"\n")

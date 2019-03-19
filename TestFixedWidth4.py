@@ -1,15 +1,16 @@
-import msgpack
 import mmap
-import re
 import sys
+from Helper import *
+import fastnumbers
 
 file_path = sys.argv[1]
-out_file_path = sys.argv[2]
-num_rows = int(sys.argv[3])
-discrete_query_col_index = int(sys.argv[4])
-num_query_col_index = int(sys.argv[5])
+col_names_file_path = sys.argv[2]
+out_file_path = sys.argv[3]
+num_rows = int(sys.argv[4])
+query_col_indices = [int(x) for x in sys.argv[5].split(",")]
 compression_method = sys.argv[6]
 compression_level = sys.argv[7]
+memory_map = True
 
 if compression_method == "bz2":
     import bz2 as cmpr
@@ -19,86 +20,77 @@ elif compression_method == "lzma":
     import lzma as cmpr
 elif compression_method == "snappy":
     import snappy as cmpr
+elif compression_method == "zstd":
+    import zstandard
+    cmpr = zstandard.ZstdDecompressor()
+elif compression_method == "lz4":
+    import lz4.frame as cmpr
 else:
     print("No matching compression method")
     sys.exit(1)
 
-def find_col_coords(col_indices):
-    for col_index in col_indices:
-        start_pos = col_index * max_column_coord_length
-        next_start_pos = start_pos + max_column_coord_length
+def get_column_type(query_col_index):
+    return next(parse_data_values(query_col_index, max_column_type_length, [(query_col_index, 0, 1)], file_handles["ct"]))
 
-        yield [int(x) for x in cc_map_file[start_pos:next_start_pos].rstrip().split(b",")]
+def parse_row(row_coord):
+    return cmpr.decompress(file_handles["data"][row_coord[1]:row_coord[2]]).rstrip()
 
-def parse_row(row_index):
-    row_start = row_start_dict[row_index]
-
-    if row_index == num_rows -1:
-        compressed_line = data_map_file[row_start:len(data_map_file)]
+def is_match(value, value_type):
+    if value_type == b"n":
+        return fastnumbers.float(value) >= 0.1
     else:
-        row_end = row_start_dict[row_index + 1]
-        compressed_line = data_map_file[row_start:row_end]
+        return value.startswith(b"A") or value.endswith(b"Z")
 
-    return cmpr.decompress(compressed_line)
+file_handles = {
+    "cc": openReadFile(file_path, ".cc"),
+    "data": openReadFile(file_path, ""),
+    "ct": openReadFile(file_path, ".ct"),
+    "rowstart": openReadFile(file_path, ".rowstart")
+}
 
-def parse_row_values(row_index, col_coords):
-    line = parse_row(row_index)
+line_length = readIntFromFile(file_path, ".ll")
+max_column_coord_length = readIntFromFile(file_path, ".mccl")
+max_column_type_length = readIntFromFile(file_path, ".mctl")
+max_row_start_length = readIntFromFile(file_path, ".mrsl")
+out_col_indices = [x for x in getColIndicesToQuery(col_names_file_path, memory_map)]
+out_col_coords = list(parse_data_coords(out_col_indices, file_handles["cc"], max_column_coord_length, line_length))
 
-    for coords in col_coords:
-        yield line[coords[0]:coords[0] + coords[1]].rstrip()
+with open(out_file_path, 'wb') as out_file:
+    num_cols = int(len(file_handles["cc"]) / (max_column_coord_length + 1))
+    out_col_coords = list(parse_data_coords(out_col_indices, file_handles["cc"], max_column_coord_length, line_length))
 
-def query_cols(row_indices):
-    matching_row_indices = []
+    query_col_types = [get_column_type(query_col_index) for query_col_index in query_col_indices]
+    query_col_coords = list(parse_data_coords(query_col_indices, file_handles["cc"], max_column_coord_length, line_length))
 
-    discrete_coords = list(find_col_coords([discrete_query_col_index]))[0]
-    num_coords = list(find_col_coords([num_query_col_index]))[0]
+    num_rows = int(len(file_handles["rowstart"]) / (max_row_start_length + 1))
+    row_coords = list(parse_data_coords(range(num_rows), file_handles["rowstart"], max_row_start_length, len(file_handles["data"])))
 
-    for row_index in row_indices:
-        discrete_value = parse_row(row_index)[discrete_coords[0]:discrete_coords[0] + discrete_coords[1]].rstrip()
-        num_value = float(parse_row(row_index)[num_coords[0]:num_coords[0] + num_coords[1]].rstrip())
+    chunk_size = 1000
+    out_lines = []
 
-        if (discrete_value.startswith(b"A") or discrete_value.endswith(b"Z")) and num_value >= 0.1:
-            matching_row_indices.append(row_index)
+    # Header line
+    out_lines.append(b"\t".join(parse_data_values(0, 0, out_col_coords, parse_row(row_coords[0]).rstrip())))
 
-    return matching_row_indices
+    for row_coord in row_coords[1:]:
+        line = parse_row(row_coord)
 
-with open(file_path + ".rowdict", 'rb') as rowdict_file:
-    row_start_dict = msgpack.unpackb(rowdict_file.read(), raw=False)
+        value_generator = parse_data_values(0, 0, query_col_coords, line)
+        value1 = next(value_generator)
+        value_type1 = query_col_types[0]
+        value2 = next(value_generator)
+        value_type2 = query_col_types[1]
 
-with open(file_path + ".ll", 'rb') as ll_file:
-    line_length = int(ll_file.read().rstrip())
+        num_matches = int(is_match(value1, value_type1)) + int(is_match(value2, value_type2))
 
-with open(file_path + ".mccl", 'rb') as mccl_file:
-    max_column_coord_length = int(mccl_file.read().rstrip())
+        if num_matches == len(query_col_indices):
+            out_lines.append(b"\t".join(parse_data_values(0, 0, out_col_coords, line)).rstrip())
 
-with open(file_path + ".cc", 'rb') as cc_file:
-    cc_map_file = mmap.mmap(cc_file.fileno(), 0, prot=mmap.PROT_READ)
-
-    with open(file_path, 'rb') as my_file:
-        data_map_file = mmap.mmap(my_file.fileno(), 0, prot=mmap.PROT_READ)
-
-        with open(out_file_path, 'wb') as out_file:
-            num_cols = int(len(cc_map_file) / max_column_coord_length)
-            out_col_indices = range(0, num_cols, 100)
-            out_col_coords = list(find_col_coords(out_col_indices))
-
-            # Header line
-            out_file.write(b"\t".join(parse_row_values(0, out_col_coords)).rstrip() + b"\n")
-
-            matching_row_indices = query_cols(range(1, num_rows))
-
-            chunk_size = 1000
-            out_lines = []
-
-            for row_index in matching_row_indices:
-                out_lines.append(b"\t".join(parse_row_values(row_index, out_col_coords)).rstrip())
-
-                if len(out_lines) % chunk_size == 0:
-                    out_file.write(b"\n".join(out_lines) + b"\n")
-                    out_lines = []
-
-            if len(out_lines) > 0:
+            if len(out_lines) % chunk_size == 0:
                 out_file.write(b"\n".join(out_lines) + b"\n")
+                out_lines = []
 
-        data_map_file.close()
-    cc_map_file.close()
+    if len(out_lines) > 0:
+        out_file.write(b"\n".join(out_lines) + b"\n")
+
+for handle in file_handles:
+    file_handles[handle].close()

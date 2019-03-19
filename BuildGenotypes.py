@@ -3,6 +3,7 @@ import os
 import random
 import string
 import sys
+import fastnumbers
 
 dimensions = int(sys.argv[1])
 out_file_path = sys.argv[2]
@@ -11,9 +12,9 @@ random.seed(0)
 
 acgt = ["A", "C", "G", "T"]
 
-num_homo_ref = int(float(dimensions) * 0.7)
-num_het = int(float(dimensions) * 0.2)
-num_homo_alt = int(float(dimensions) * 0.1)
+num_homo_ref = int(fastnumbers.float(dimensions) * 0.7)
+num_het = int(fastnumbers.float(dimensions) * 0.2)
+num_homo_alt = int(fastnumbers.float(dimensions) * 0.1)
 
 genotype_options = []
 for ref_allele in acgt:

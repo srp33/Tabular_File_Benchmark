@@ -2,30 +2,33 @@ import itertools
 import mmap
 import sys
 import re
+from Helper import *
 
 file_path = sys.argv[1]
-out_file_path = sys.argv[2]
-memory_map = sys.argv[3] == "True"
+col_names_file_path = sys.argv[2]
+out_file_path = sys.argv[3]
+memory_map = sys.argv[4] == "True"
 
 def add_column(i, end_character):
-    if i in index_range:
+    if i in col_indices:
         return r"([^\t]+" + end_character + ")"
     else:
         return r"(?:[^\t]+" + end_character + ")"
 
+col_indices = getColIndicesToQuery(col_names_file_path, memory_map)
+
 with open(file_path, 'r') as my_file:
     header_items = next(my_file).rstrip("\n").split("\t")
-    index_range = range(0, len(header_items), 100)
 
     reg_ex = r"^"
 
     for i in range(len(header_items)-1):
         reg_ex += add_column(i, r"\t")
 
-        if i > max(index_range):
+        if i > max(col_indices):
             break
 
-    if max(index_range) == (len(header_items) - 1):
+    if max(col_indices) == (len(header_items) - 1):
         reg_ex += add_column(len(header_items)-1, r"\n")
 
     reg_ex_comp = re.compile(reg_ex.encode(), re.MULTILINE | re.DOTALL)

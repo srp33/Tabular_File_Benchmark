@@ -1,92 +1,62 @@
 import mmap
 import sys
+from Helper import *
+import fastnumbers
 
 file_path = sys.argv[1]
-out_file_path = sys.argv[2]
-num_rows = int(sys.argv[3])
-discrete_query_col_index = int(sys.argv[4])
-num_query_col_index = int(sys.argv[5])
-print_num_matching = sys.argv[6] == "True"
+col_names_file_path = sys.argv[2]
+out_file_path = sys.argv[3]
+num_rows = int(sys.argv[4])
+query_col_indices = [int(x) for x in sys.argv[5].split(",")]
+memory_map = True
 
-def find_col_coords(col_indices):
-    for col_index in col_indices:
-        start_pos = col_index * max_column_coord_length
-        next_start_pos = start_pos + max_column_coord_length
+def filter_rows(row_indices, query_col_index, query_col_coords):
+    col_type = next(parse_data_values(query_col_index, max_column_type_length, [(query_col_index, 0, 1)], file_handles["ct"]))
 
-        yield [int(x) for x in cc_map_file[start_pos:next_start_pos].rstrip().split(b",")]
+    if col_type == b"n":
+        for row_index in row_indices:
+            if fastnumbers.float(next(parse_data_values(row_index, line_length, query_col_coords, file_handles["data"]))) >= 0.1:
+                yield row_index
+    else:
+        for row_index in row_indices:
+            value = next(parse_data_values(row_index, line_length, query_col_coords, file_handles["data"]))
 
-def parse_row_values(row_index, col_coords):
-    row_start = row_index * line_length
+            if value.startswith(b"A") or value.endswith(b"Z"):
+                yield row_index
 
-    for coords in col_coords:
-        yield data_map_file[row_start + coords[0]:row_start + coords[0] + coords[1]].rstrip()
+file_handles = {
+    "cc": openReadFile(file_path, ".cc"),
+    "data": openReadFile(file_path, ""),
+    "ct": openReadFile(file_path, ".ct"),
+}
 
-def query_discrete_col(row_indices):
-    matching_row_indices = []
+line_length = readIntFromFile(file_path, ".ll")
+max_column_coord_length = readIntFromFile(file_path, ".mccl")
+max_column_type_length = readIntFromFile(file_path, ".mctl")
+out_col_indices = [x for x in getColIndicesToQuery(col_names_file_path, memory_map)]
+out_col_coords = list(parse_data_coords(out_col_indices, file_handles["cc"], max_column_coord_length, line_length))
 
-    coords = list(find_col_coords([discrete_query_col_index]))[0]
+with open(out_file_path, 'wb') as out_file:
+    num_cols = int(len(file_handles["cc"]) / (max_column_coord_length + 1))
 
-    for row_index in row_indices:
-        row_start = row_index * line_length
-        discrete_value = data_map_file[row_start + coords[0]:row_start + coords[0] + coords[1]].rstrip()
+    all_query_col_coords = parse_data_coords(query_col_indices, file_handles["cc"], max_column_coord_length, line_length)
+    keep_row_indices = range(1, num_rows)
 
-        if discrete_value.startswith(b"A") or discrete_value.endswith(b"Z"):
-            matching_row_indices.append(row_index)
+    for query_col_index in query_col_indices:
+        keep_row_indices = filter_rows(keep_row_indices, query_col_index, [next(all_query_col_coords)])
 
-    return matching_row_indices
+    chunk_size = 1000
+    out_lines = []
 
-def query_numeric_col(row_indices):
-    matching_row_indices = []
+    for row_index in [0] + list(keep_row_indices):
+        out_lines.append(b"\t".join(parse_data_values(row_index, line_length, out_col_coords, file_handles["data"])).rstrip())
 
-    coords = list(find_col_coords([num_query_col_index]))[0]
-
-    for row_index in row_indices:
-        row_start = row_index * line_length
-        num_value = float(data_map_file[row_start + coords[0]:row_start + coords[0] + coords[1]].rstrip())
-
-        if num_value >= 0.1:
-            matching_row_indices.append(row_index)
-
-    return matching_row_indices
-
-with open(file_path + ".ll", 'rb') as ll_file:
-    line_length = int(ll_file.read().rstrip())
-
-with open(file_path + ".mccl", 'rb') as mccl_file:
-    max_column_coord_length = int(mccl_file.read().rstrip())
-
-with open(file_path + ".cc", 'rb') as cc_file:
-    cc_map_file = mmap.mmap(cc_file.fileno(), 0, prot=mmap.PROT_READ)
-
-    with open(file_path, 'rb') as data_file:
-        data_map_file = mmap.mmap(data_file.fileno(), 0, prot=mmap.PROT_READ)
-
-        with open(out_file_path, 'wb') as out_file:
-            num_cols = int(len(cc_map_file) / max_column_coord_length)
-            out_col_indices = range(0, num_cols, 100)
-            out_col_coords = list(find_col_coords(out_col_indices))
-
-            # Header line
-            out_file.write(b"\t".join(parse_row_values(0, out_col_coords)).rstrip() + b"\n")
-
-            matching_row_indices = query_discrete_col(range(1, num_rows))
-            matching_row_indices = query_numeric_col(matching_row_indices)
-
-            if print_num_matching:
-                print(len(matching_row_indices))
-
-            chunk_size = 1000
+        if len(out_lines) % chunk_size == 0:
+            out_file.write(b"\n".join(out_lines) + b"\n")
             out_lines = []
 
-            for row_index in matching_row_indices:
-                out_lines.append(b"\t".join(parse_row_values(row_index, out_col_coords)).rstrip())
+    if len(out_lines) > 0:
+        out_file.write(b"\n".join(out_lines) + b"\n")
 
-                if len(out_lines) % chunk_size == 0:
-                    out_file.write(b"\n".join(out_lines) + b"\n")
-                    out_lines = []
-
-            if len(out_lines) > 0:
-                out_file.write(b"\n".join(out_lines) + b"\n")
-
-        data_map_file.close()
-    cc_map_file.close()
+for handle in file_handles:
+    file_handles[handle].close()

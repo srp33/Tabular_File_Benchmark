@@ -1,5 +1,7 @@
 Archive
 TestData
 nohup*
-OLD_NOTES
-Geney_NOTES.txt
+*NOTES*
+tmp
+*.pyc
+Results2

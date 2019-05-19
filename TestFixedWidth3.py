@@ -37,7 +37,7 @@ out_col_indices = [x for x in getColIndicesToQuery(col_names_file_path, memory_m
 out_col_coords = list(parse_data_coords(out_col_indices, file_handles["cc"], max_column_coord_length, line_length))
 
 with open(out_file_path, 'wb') as out_file:
-    num_cols = int(len(file_handles["cc"]) / (max_column_coord_length + 1))
+    #num_cols = int(len(file_handles["cc"]) / (max_column_coord_length + 1))
 
     all_query_col_coords = parse_data_coords(query_col_indices, file_handles["cc"], max_column_coord_length, line_length)
     keep_row_indices = range(1, num_rows)

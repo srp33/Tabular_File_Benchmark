@@ -25,7 +25,7 @@ with open(file_path + ".cc", 'rb') as cc_file:
 
         with open(out_file_path, 'wb') as out_file:
             row_indices = range(num_rows+1)
-            num_cols = int(len(cc_map_file) / (max_column_coord_length + 1))
+            #num_cols = int(len(cc_map_file) / (max_column_coord_length + 1))
 
             col_coords = list(parse_data_coords(col_indices, cc_map_file, max_column_coord_length, line_length))
 

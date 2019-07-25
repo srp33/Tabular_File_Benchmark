@@ -26,9 +26,8 @@ RUN apt-get update && apt-get install -y apt-transport-https software-properties
     add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/' && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     apt update && \
-    apt install -y r-base r-base-dev libcurl4-openssl-dev libssl-dev libxml2-dev
-
-RUN R -e "install.packages(c('data.table', 'feather', 'fst', 'readr', 'dplyr'), repos='https://rweb.crmda.ku.edu/cran/')"
+    apt install -y r-base r-base-dev libcurl4-openssl-dev libssl-dev libxml2-dev && \
+    R -e "install.packages(c('data.table', 'feather', 'fst', 'readr', 'dplyr'), repos='https://rweb.crmda.ku.edu/cran/')"
 
 ######################################################################################
 # Add scripts that we created
@@ -36,7 +35,11 @@ RUN R -e "install.packages(c('data.table', 'feather', 'fst', 'readr', 'dplyr'), 
 
 COPY *.py /
 COPY *.R /
+COPY *.cpp /
 COPY test.sh /
+
+RUN g++ -O3 -std=gnu++14 -o /TestFixedWidth2 TestFixedWidth2.cpp \
+ && chmod +x /TestFixedWidth2
 
 #  && find /usr/local/lib/R/site-library/ -depth -wholename '*/html' -exec rm -r "{}" \; \
 #  && find /usr/local/lib/R/site-library/ -depth -wholename '*/data' -exec rm -r "{}" \; \

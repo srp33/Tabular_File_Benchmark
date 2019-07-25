@@ -142,7 +142,6 @@ function buildTestFiles2 {
 
   python3 ConvertTsvToFixedWidthFile2.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2
 }
-
 #buildTestFiles2 10 90 1000 &
 #buildTestFiles2 100 900 1000000 &
 #buildTestFiles2 100000 900000 1000 &
@@ -164,7 +163,6 @@ function runQueries2 {
   colNamesFile=/tmp/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
 
   echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2.py $dataFile $colNamesFile $outFile $numRows > /dev/null; } 2>&1 )" >> $resultFile
-  #python3 TestFixedWidth2.py $dataFile $colNamesFile $outFile $numRows
 
   masterOutFile=/tmp/TestSplit_${numDiscrete}_${numContinuous}_${numRows}_tsv_False.tsv.out
   python3 CheckOutput.py $outFile $masterOutFile
@@ -173,11 +171,14 @@ function runQueries2 {
 }
 
 resultFile=Results2/Query_Results_fwf2.tsv
-#echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
+echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
 
-#runQueries2 $resultFile 10 90 1000
-#runQueries2 $resultFile 100 900 1000000
-#runQueries2 $resultFile 100000 900000 1000
+#echo "$(pwd)"
+#g++ -O3 -std=gnu++14 /Applications/tmp/Tabular_File_Benchmark/tmp/main.cpp -o Mmap
+
+runQueries2 $resultFile 10 90 1000
+runQueries2 $resultFile 100 900 1000000
+runQueries2 $resultFile 100000 900000 1000
 
 ############################################################
 # Query second version of fixed-width files. This time 
@@ -531,7 +532,6 @@ resultFile=Results2/Query_Results_fwf2_compressed_transposed.tsv
 #runQuery4T $resultFile 100000 900000 1000 zstd 1 zstd_1
 #runQuery4T $resultFile 100000 900000 1000 zstd 22 zstd_22
 
-echo "got here"
 exit
 
 ############################################################

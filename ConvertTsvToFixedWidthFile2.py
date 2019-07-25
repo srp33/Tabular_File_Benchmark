@@ -53,7 +53,7 @@ for i in range(len(header_items)):
     column_size = column_size_dict[i]
     column_start_coords.append(str(cumulative_position))
     cumulative_position += column_size
-
+column_start_coords.append(str(line_length + 1))
 # Calculate the column coordinates and max length of these coordinates
 column_coords_string, max_column_coord_length = buildStringMap(column_start_coords)
 

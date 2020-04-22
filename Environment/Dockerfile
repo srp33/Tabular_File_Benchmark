@@ -6,7 +6,7 @@ FROM ubuntu:18.04
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
       build-essential python3-dev python3-setuptools python3-pip libsnappy-dev \
-      gawk time \
+      gawk time wget \
  && pip3 install --upgrade setuptools pip
 
 ######################################################################################
@@ -30,16 +30,42 @@ RUN apt-get update && apt-get install -y apt-transport-https software-properties
     R -e "install.packages(c('data.table', 'feather', 'fst', 'readr', 'dplyr'), repos='https://rweb.crmda.ku.edu/cran/')"
 
 ######################################################################################
+# Install zstandard
+######################################################################################
+
+ENV zstd_ver=1.4.4
+
+RUN mkdir /zstd && \
+    cd /zstd && \
+    wget -O zstd-${zstd_ver}.tar.gz \
+      https://github.com/facebook/zstd/releases/download/v${zstd_ver}/zstd-${zstd_ver}.tar.gz && \
+    tar -zxvf zstd-${zstd_ver}.tar.gz && \
+    rm zstd-${zstd_ver}.tar.gz && \
+    mv zstd-${zstd_ver}/* . && \
+    rm -rf zstd-${zstd_ver} && \
+    make install
+
+######################################################################################
+# Add and compile C++ code
+######################################################################################
+
+COPY *.cpp /
+
+RUN g++ -O3 -std=gnu++14 -o /TestFixedWidth2 TestFixedWidth2.cpp && \
+    chmod +x /TestFixedWidth2 && \
+    g++ -O3 -std=gnu++14 -o /TestFixedWidth3 TestFixedWidth3.cpp && \
+    chmod +x /TestFixedWidth3
+RUN g++ -O3 -std=gnu++14 TestFixedWidth4T.cpp -lz -lzstd -o /TestFixedWidth4T && \
+    chmod +x /TestFixedWidth4T
+
+
+######################################################################################
 # Add scripts that we created
 ######################################################################################
 
 COPY *.py /
 COPY *.R /
-COPY *.cpp /
 COPY test.sh /
-
-RUN g++ -O3 -std=gnu++14 -o /TestFixedWidth2 TestFixedWidth2.cpp \
- && chmod +x /TestFixedWidth2
 
 #  && find /usr/local/lib/R/site-library/ -depth -wholename '*/html' -exec rm -r "{}" \; \
 #  && find /usr/local/lib/R/site-library/ -depth -wholename '*/data' -exec rm -r "{}" \; \

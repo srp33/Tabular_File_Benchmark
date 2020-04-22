@@ -34,6 +34,8 @@ function buildTestFiles {
   python3 ConvertTsvToHDF5.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.hdf5
 }
 
+mkdir -p TestData/TempResults
+
 ## Small files
 #time buildTestFiles 10 90 1000
 ## Tall, narrow files
@@ -62,11 +64,11 @@ function runQuery {
 
   echo Testing $scriptFile
   dataFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.$dataFileExtension
-  outFile=/tmp/${scriptName}_${numDiscrete}_${numContinuous}_${numRows}_${dataFileExtension}_${memMap}.$dataFileExtension.out
+  outFile=TestData/TempResults/${scriptName}_${numDiscrete}_${numContinuous}_${numRows}_${dataFileExtension}_${memMap}.$dataFileExtension.out
 
   rm -f $outFile
 
-  colNamesFile=/tmp/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
+  colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
   if [[ "$scriptFile" == "TestSplit.py" ]]
   then
     if [ ! -f $colNamesFile ]
@@ -78,7 +80,7 @@ function runQuery {
   echo -e "$scriptFile\t$fileType\t$numDiscrete\t$numContinuous\t$numRows\t$memMap\t$( { /usr/bin/time -f %e $scriptProgram $scriptFile $dataFile $colNamesFile $outFile $memMap > /dev/null; } 2>&1 )" >> $resultFile
   #time $scriptProgram $scriptFile $dataFile $colNamesFile $outFile $memMap
 
-  masterOutFile=/tmp/TestSplit_${numDiscrete}_${numContinuous}_${numRows}_tsv_False.tsv.out
+  masterOutFile=TestData/TempResults/TestSplit_${numDiscrete}_${numContinuous}_${numRows}_tsv_False.tsv.out
 
   # This compares against the output using the "ParseSplit" method
   if [[ "$scriptFile" != "TestSplit.py" ]]
@@ -96,31 +98,22 @@ function runQueries {
 
   runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestSplit.py tsv False
   runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestSplit.py tsv True
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestPandas.py tsv True
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestPandas.py tsv False
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestRegExQuantifiers.py tsv False
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestRegExQuantifiers.py tsv True
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestRegExTabs.py tsv False
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestRegExTabs.py tsv True
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestMsgPack.py msgpack False
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestMsgPack.py msgpack True
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestFlags.py flag False
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestFlags.py flag True
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestAwk.py tsv False
-###  On wide file, mawk gave this type of error so I excluded it: "$32801 exceeds maximum field(32767)"
-###  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestMawk.py tsv False
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestGawk.py tsv False
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestNawk.py tsv False
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestCut.py tsv False
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestFixedWidth.py fwf False
-  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestFixedWidth.py fwf True
-### Not really supported: see comments in TestReadTsv.R.
-###  runQuery $resultFile text $numDiscrete $numContinuous $numRows "Rscript --vanilla" TestReadTsv.R tsv False
-### This is very fast on the tall TSV file. It throws a SegFault on the wide TSV file.
-###  runQuery $resultFile text $numDiscrete $numContinuous $numRows "Rscript --vanilla" TestFread.R tsv False
-  runQuery $resultFile binary $numDiscrete $numContinuous $numRows "Rscript --vanilla" TestFeather.R fthr False
-  runQuery $resultFile binary $numDiscrete $numContinuous $numRows "Rscript --vanilla" TestFst.R fst False
-  runQuery $resultFile binary $numDiscrete $numContinuous $numRows python3 TestHDF5.py hdf5 False
+#  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestPandas.py tsv True
+#  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestAwk.py tsv False
+####  On wide file, mawk gave this type of error so I excluded it: "$32801 exceeds maximum field(32767)"
+####  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestMawk.py tsv False
+#  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestGawk.py tsv False
+#  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestNawk.py tsv False
+#  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestCut.py tsv False
+#  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestFixedWidth.py fwf False
+#  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestFixedWidth.py fwf True
+#### Not really supported: see comments in TestReadTsv.R.
+####  runQuery $resultFile text $numDiscrete $numContinuous $numRows "Rscript --vanilla" TestReadTsv.R tsv False
+#### This is very fast on the tall TSV file. It throws a SegFault on the wide TSV file.
+####  runQuery $resultFile text $numDiscrete $numContinuous $numRows "Rscript --vanilla" TestFread.R tsv False
+#  runQuery $resultFile binary $numDiscrete $numContinuous $numRows "Rscript --vanilla" TestFeather.R fthr False
+#  runQuery $resultFile binary $numDiscrete $numContinuous $numRows "Rscript --vanilla" TestFst.R fst False
+#  runQuery $resultFile binary $numDiscrete $numContinuous $numRows python3 TestHDF5.py hdf5 False
 }
 
 resultFile=Results2/Query_Results.tsv
@@ -160,25 +153,108 @@ function runQueries2 {
 
   dataFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2
   outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
-  colNamesFile=/tmp/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
+  llFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.ll
+  ccFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.cc
+  mcclFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.mccl
+  colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
 
-  echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2.py $dataFile $colNamesFile $outFile $numRows > /dev/null; } 2>&1 )" >> $resultFile
+  echo >> $resultFile
+  echo "Python Code--------------------------------------------------" >> $resultFile
+  echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
 
-  masterOutFile=/tmp/TestSplit_${numDiscrete}_${numContinuous}_${numRows}_tsv_False.tsv.out
+  masterOutFile=TestData/TempResults/TestSplit_${numDiscrete}_${numContinuous}_${numRows}_tsv_False.tsv.out
+  python3 CheckOutput.py $outFile $masterOutFile
+
+  echo >> $resultFile
+  echo "Python Code(No_MemoryMapping---------------------------------" >> $resultFile
+  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
+  echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows NO_MMAP > /dev/null; } 2>&1 )" >> $resultFile
+  python3 CheckOutput.py $outFile $masterOutFile
+
+  echo >> $resultFile
+  echo "C++ Code-----------------------------------------------------" >> $resultFile
+  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
+  echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
+  python3 CheckOutput.py $outFile $masterOutFile
+
+  echo >> $resultFile
+  echo "C++ Code(No_MemoryMapping)-----------------------------------" >> $resultFile
+  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}NM.fwf2.tmp
+  echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows NO_MMAP > /dev/null; } 2>&1 )" >> $resultFile
   python3 CheckOutput.py $outFile $masterOutFile
 
   rm -f $outFile
 }
 
 resultFile=Results2/Query_Results_fwf2.tsv
-echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
+#echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
 
-#echo "$(pwd)"
-#g++ -O3 -std=gnu++14 /Applications/tmp/Tabular_File_Benchmark/tmp/main.cpp -o Mmap
+#runQueries2 $resultFile 10 90 1000
+#runQueries2 $resultFile 100 900 1000000
+#runQueries2 $resultFile 100000 900000 1000
+#exit
 
-runQueries2 $resultFile 10 90 1000
-runQueries2 $resultFile 100 900 1000000
-runQueries2 $resultFile 100000 900000 1000
+function getMemUsed {
+  resultFile=$1
+  numDiscrete=$2
+  numContinuous=$3
+  numRows=$4
+
+  dataFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2
+  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
+  llFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.ll
+  ccFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.cc
+  mcclFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.mccl
+  colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
+  echo >> $resultFile
+  echo "Python Code--------------------------------------------------" >> $resultFile
+  { /usr/bin/time --verbose python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP  >> /dev/null ; } 2> tempOutput.txt
+  while read line; do
+        IFS=" " read -ra myList <<< "$line"
+        if [[ "${myList[0]}" == "Maximum" ]]; then
+        echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$line" >> $resultFile
+        fi
+  done <tempOutput.txt
+
+  echo >> $resultFile
+  echo "Python Code(No_MemoryMapping---------------------------------" >> $resultFile
+  { /usr/bin/time --verbose python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows NO_MMAP >> /dev/null ; } 2> tempOutput.txt
+  while read line; do
+        IFS=" " read -ra myList <<< "$line"
+        if [[ "${myList[0]}" == "Maximum" ]]; then
+	echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$line" >> $resultFile
+        fi
+  done <tempOutput.txt
+
+  echo >> $resultFile
+  echo "C++ Code-----------------------------------------------------" >> $resultFile
+  { /usr/bin/time --verbose ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows MMAP >> /dev/null ; } 2> tempOutput.txt
+  while read line; do
+        IFS=" " read -ra myList <<< "$line"
+        if [[ "${myList[0]}" == "Maximum" ]]; then
+        echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$line" >> $resultFile
+        fi
+  done <tempOutput.txt
+
+  echo >> $resultFile
+  echo "C++ Code(No_MemoryMapping)-----------------------------------" >> $resultFile
+  { /usr/bin/time --verbose ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows NO_MMAP >> /dev/null ; } 2> tempOutput.txt
+  while read line; do
+        IFS=" " read -ra myList <<< "$line"
+        if [[ "${myList[0]}" == "Maximum" ]]; then
+        echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$line" >> $resultFile
+        fi
+  done <tempOutput.txt
+  rm -f $outFile
+  echo "Memory Test Finished for all 4 Program Types"
+}
+
+#echo >> $resultFile
+#echo -e "\t\t############### Memory Used ###############" >> $resultFile
+#getMemUsed $resultFile 10 90 1000
+#getMemUsed $resultFile 100 900 1000000
+#getMemUsed $resultFile 100000 900000 1000
+#exit
 
 ############################################################
 # Query second version of fixed-width files. This time 
@@ -193,34 +269,48 @@ function runQueries3 {
   numRows=$4
 
   dataFilePrefix=TestData/${numDiscrete}_${numContinuous}_$numRows
+  ctFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.ct
   numDataPoints=$(($numDiscrete + $numContinuous))
-  colNamesFile=/tmp/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
-  masterOutFile=/tmp/${numDiscrete}_${numContinuous}_${numRows}_queries3_master.tsv
+  colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
+  masterOutFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3_master.tsv
 
-  rm -f $masterOutFile
+  dataFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2
+  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
+  llFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.ll
+  ccFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.cc
+  mcclFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.mccl
+  colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
 
-  echo -e "Filter\ttsv\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestSplitFilter.py $dataFilePrefix.tsv $colNamesFile $masterOutFile $numDiscrete $numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  #rm -f $masterOutFile
+
+  echo -e "Filter\ttsv(Python)\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestSplitFilter.py $dataFilePrefix.tsv $colNamesFile $masterOutFile $numDiscrete $numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
   #time python3 TestSplitFilter.py $dataFilePrefix.tsv $colNamesFile $masterOutFile $numDiscrete $numDataPoints
 
-  outFile=/tmp/${numDiscrete}_${numContinuous}_${numRows}_queries3.fwf2
+  outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3.fwf2
   rm -f $outFile
-  echo -e "Filter\tfwf2\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth3.py $dataFilePrefix.fwf2 $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  echo -e "Filter\tfwf2(Python)\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth3.py $dataFilePrefix.fwf2 $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
   #time python3 TestFixedWidth3.py $dataFilePrefix.fwf2 $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints
   python3 CheckOutput.py $outFile $masterOutFile
 
-  outFile=/tmp/${numDiscrete}_${numContinuous}_${numRows}_queries3.fthr
+  outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3.fthr
   rm -f $outFile
-  echo -e "Filter\tfthr\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e Rscript --vanilla TestFeatherFilter.R $dataFilePrefix.fthr $colNamesFile $outFile $numDiscrete $numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  echo -e "Filter\tfthr(R)\t\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e Rscript --vanilla TestFeatherFilter.R $dataFilePrefix.fthr $colNamesFile $outFile $numDiscrete $numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
   #time Rscript --vanilla TestFeatherFilter.R $dataFilePrefix.fthr $colNamesFile $outFile $numDiscrete $numDataPoints
   python3 CheckOutput.py $outFile $masterOutFile
+  
+  outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3C++.fwf2
+  echo -e "Filter\tfwf2(C++)\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth3 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows $ctFile $numDiscrete,$numDataPoints> /dev/null; } 2>&1 )" >> $resultFile
+  python3 CheckOutput.py $outFile $masterOutFile
+
 }
 
-resultFile=Results2/Query_Results_Filtering.tsv
+#resultFile=Results2/Query_Results_Filtering.tsv
 #echo -e "Description\tMethod\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
 
 #runQueries3 $resultFile 10 90 1000
 #runQueries3 $resultFile 100 900 1000000
 #runQueries3 $resultFile 100000 900000 1000
+#exit
 
 ############################################################
 # Build compressed versions of the second version of fixed-
@@ -421,9 +511,9 @@ function runQueries4 {
 
   dataFile=TestData/${numDiscrete}_${numContinuous}_$numRows.fwf2.$compressionSuffix
   numDataPoints=$(($numDiscrete + $numContinuous))
-  colNamesFile=/tmp/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
-  masterOutFile=/tmp/${numDiscrete}_${numContinuous}_${numRows}_queries3_master.tsv
-  outFile=/tmp/${numDiscrete}_${numContinuous}_${numRows}_queries3.$compressionSuffix
+  colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
+  masterOutFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3_master.tsv
+  outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3.$compressionSuffix
 
   rm -f $outFile
 
@@ -451,7 +541,7 @@ function runAllQueries4 {
   runQueries4 $resultFile $numDiscrete $numContinuous $numRows lz4 16 lz4_16
 }
 
-resultFile=Results2/Query_Results_fwf2_compressed.tsv
+#resultFile=Results2/Query_Results_fwf2_compressed.tsv
 #echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
 
 #runAllQueries4 $resultFile 10 90 1000
@@ -491,6 +581,14 @@ function transposeCompressTestFile {
   echo -e "${method}_${level}\t$numDiscrete\t$numContinuous\t$numRows\t$(python3 PrintFileSize.py $transposedFile.${method}_${level})" >> $sizeFile
 }
 
+sizeFile=Results2/File_Sizes_transposed.tsv
+echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
+
+#transposeCompressTestFile $sizeFile 10 90 1000 100 &
+#transposeCompressTestFile $sizeFile 100 900 1000000 1000 &
+#transposeCompressTestFile $sizeFile 100000 900000 1000 1000000 &
+wait
+
 function runQuery4T {
   resultFile=$1
   numDiscrete=$2
@@ -502,30 +600,36 @@ function runQuery4T {
 
   dataFile=TestData/${numDiscrete}_${numContinuous}_$numRows.fwf2.$compressionSuffix
   transposedFile=TestData/Transposed/${numDiscrete}_${numContinuous}_$numRows.fwf2.$compressionSuffix
+  transposedFileC=TestData/Transposed/${numDiscrete}_${numContinuous}_$numRows.fwf2
   numDataPoints=$(($numDiscrete + $numContinuous))
-  colNamesFile=/tmp/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
-  masterOutFile=/tmp/${numDiscrete}_${numContinuous}_${numRows}_queries3_master.tsv
-  outFile=/tmp/${numDiscrete}_${numContinuous}_${numRows}_queries4.$compressionSuffix
+  colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
+  masterOutFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3_master.tsv
+  outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries4.$compressionSuffix
+
+  #rm -f $outFile
+  #echo -e "Python-----" >> $resultFile
+  ##python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
+  #echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
+  #python3 CheckOutput.py $outFile $masterOutFile
 
   rm -f $outFile
-  echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
+  echo "C++--------" >> $resultFile
 
-  python3 CheckOutput.py $outFile $masterOutFile
+  echo DataFile: $dataFile
+  echo Transposed File: $transposedFile
+  echo Column Names File: $colNamesFile
+  echo $numDiscrete,$numDataPoints
+  ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
+  #echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  #python3 CheckOutput.py $outFile $masterOutFile
 }
 
-sizeFile=Results2/File_Sizes_transposed.tsv
-#echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
-
-#transposeCompressTestFile $sizeFile 10 90 1000 100
-#transposeCompressTestFile $sizeFile 10 90 1000 100 &
-#transposeCompressTestFile $sizeFile 100 900 1000000 1000 &
-#transposeCompressTestFile $sizeFile 100000 900000 1000 1000000 &
-#wait
-
 resultFile=Results2/Query_Results_fwf2_compressed_transposed.tsv
-#echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
+echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
 
-#runQuery4T $resultFile 10 90 1000 zstd 1 zstd_1
+runQuery4T $resultFile 10 90 1000 zstd 1 zstd_1
+##TODO: The following test is failing with this error:
+##        zstd.ZstdError: decompression error: did not decompress full frame
 #runQuery4T $resultFile 10 90 1000 zstd 22 zstd_22
 #runQuery4T $resultFile 100 900 1000000 zstd 1 zstd_1
 #runQuery4T $resultFile 100 900 1000000 zstd 22 zstd_22
@@ -569,25 +673,34 @@ function runGenotypeTests {
   echo -e "Query\t$dimensions\t$( { /usr/bin/time -f %e python3 TestFixedWidth5.py $dataFile $rowIndicesFile $colIndicesFile $dataFile.tmp > /dev/null; } 2>&1 )" >> $resultFile
   #time python3 TestFixedWidth5.py $dataFile $rowIndicesFile $colIndicesFile $dataFile.tmp
 
-  /usr/bin/time -v python3 TransposeFixedWidthGenotypes.py $dataFile $dimensions $dataFile.tmp 2> /tmp/1
+  /usr/bin/time -v python3 TransposeFixedWidthGenotypes.py $dataFile $dimensions $dataFile.tmp 2> TestData/TempResults/1
   #time python3 TransposeFixedWidthGenotypes.py $dataFile $dimensions $dataFile.tmp
-  python3 ParseTimeOutput.py /tmp/1 $dimensions >> $resultFile
+  python3 ParseTimeOutput.py TestData/TempResults/1 $dimensions >> $resultFile
 
   echo -e "Transposed Size\t$dimensions\t$(python3 PrintFileSize.py $dataFile.tmp)" >> $resultFile
 
-  rm -f $dataFile ${dataFile}* /tmp/1
+  rm -f $dataFile ${dataFile}* TestData/TempResults/1
 }
 
 resultFile=Results2/Results_Genotypes.tsv
 echo -e "Description\tDimensions\tValue" > $resultFile
 
-runGenotypeTests $resultFile 10
-runGenotypeTests $resultFile 50
-runGenotypeTests $resultFile 100
-runGenotypeTests $resultFile 500
-runGenotypeTests $resultFile 1000
-runGenotypeTests $resultFile 5000
-runGenotypeTests $resultFile 10000
-runGenotypeTests $resultFile 50000
-runGenotypeTests $resultFile 100000
-runGenotypeTests $resultFile 500000
+#runGenotypeTests $resultFile 10
+#runGenotypeTests $resultFile 50
+#runGenotypeTests $resultFile 100
+#runGenotypeTests $resultFile 500
+#runGenotypeTests $resultFile 1000
+#runGenotypeTests $resultFile 5000
+#runGenotypeTests $resultFile 10000
+#runGenotypeTests $resultFile 50000
+#runGenotypeTests $resultFile 100000
+#runGenotypeTests $resultFile 500000
+#!/bin/bash
+
+set -o errexit
+
+############################################################
+# Build first round of test files.
+############################################################
+
+function buildTestFile {

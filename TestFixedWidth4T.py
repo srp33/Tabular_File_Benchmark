@@ -37,6 +37,7 @@ t_line_length = readIntFromFile(transposed_file_path, ".ll")
 max_column_coord_length = readIntFromFile(file_path, ".mccl")
 t_max_column_coord_length = readIntFromFile(transposed_file_path, ".mccl")
 max_row_start_length = readIntFromFile(file_path, ".mrsl")
+print(transposed_file_path + ".mrsl")
 t_max_row_start_length = readIntFromFile(transposed_file_path, ".mrsl")
 max_column_type_length = readIntFromFile(file_path, ".mctl")
 

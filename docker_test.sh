@@ -17,7 +17,7 @@ cp test.sh $tmpDir/
 cp *.py $tmpDir/
 cp *.R $tmpDir/
 cp *.cpp $tmpDir/
-cp tempOutput.txt $tmpDir/
+#cp tempOutput.txt $tmpDir/
 cp -r zstd-dev $tmpDir/
 
 cd $tmpDir

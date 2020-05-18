@@ -605,23 +605,23 @@ function runQuery4T {
   colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
   masterOutFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3_master.tsv
   outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries4.$compressionSuffix
+  
+  echo "DataFile : " $dataFile
+  echo "TransFile : " $transposedFile
 
-  #rm -f $outFile
-  #echo -e "Python-----" >> $resultFile
-  ##python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
-  #echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
-  #python3 CheckOutput.py $outFile $masterOutFile
+  rm -f $outFile
+  echo -e "Python-----" >> $resultFile
+  #python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
+  echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
+  python3 CheckOutput.py $outFile $masterOutFile
 
   rm -f $outFile
   echo "C++--------" >> $resultFile
 
-  echo DataFile: $dataFile
-  echo Transposed File: $transposedFile
-  echo Column Names File: $colNamesFile
-  echo $numDiscrete,$numDataPoints
-  ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
-  #echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
-  #python3 CheckOutput.py $outFile $masterOutFile
+ # ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
+
+  echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  python3 CheckOutput.py $outFile $masterOutFile
 }
 
 resultFile=Results2/Query_Results_fwf2_compressed_transposed.tsv
@@ -630,7 +630,7 @@ echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultF
 runQuery4T $resultFile 10 90 1000 zstd 1 zstd_1
 ##TODO: The following test is failing with this error:
 ##        zstd.ZstdError: decompression error: did not decompress full frame
-#runQuery4T $resultFile 10 90 1000 zstd 22 zstd_22
+##runQuery4T $resultFile 10 90 1000 zstd 22 zstd_22
 #runQuery4T $resultFile 100 900 1000000 zstd 1 zstd_1
 #runQuery4T $resultFile 100 900 1000000 zstd 22 zstd_22
 #runQuery4T $resultFile 100000 900000 1000 zstd 1 zstd_1

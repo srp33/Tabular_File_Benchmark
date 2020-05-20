@@ -4,7 +4,7 @@ set -o errexit
 
 d=$(pwd)
 
-#mkdir -p Results2 TestData
+mkdir -p Results2 TestData
 #rm -rf Results2/* TestData/*
 
 tmpDir=/tmp/FWF2_${USER}

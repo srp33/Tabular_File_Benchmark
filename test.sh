@@ -30,8 +30,8 @@ function buildTestFiles {
 
   python3 ConvertTsvToFixedWidthFile.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf
   # This takes about 16 hours to run...
-  Rscript --vanilla ConvertTsvToRFormats.R TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.fthr TestData/${numDiscrete}_${numContinuous}_${numRows}.fst
-  python3 ConvertTsvToHDF5.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.hdf5
+  #Rscript --vanilla ConvertTsvToRFormats.R TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.fthr TestData/${numDiscrete}_${numContinuous}_${numRows}.fst
+  #python3 ConvertTsvToHDF5.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.hdf5
 }
 
 mkdir -p TestData/TempResults
@@ -192,7 +192,6 @@ resultFile=Results2/Query_Results_fwf2.tsv
 #runQueries2 $resultFile 10 90 1000
 #runQueries2 $resultFile 100 900 1000000
 #runQueries2 $resultFile 100000 900000 1000
-#exit
 
 function getMemUsed {
   resultFile=$1
@@ -292,11 +291,11 @@ function runQueries3 {
   #time python3 TestFixedWidth3.py $dataFilePrefix.fwf2 $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints
   python3 CheckOutput.py $outFile $masterOutFile
 
-  outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3.fthr
-  rm -f $outFile
-  echo -e "Filter\tfthr(R)\t\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e Rscript --vanilla TestFeatherFilter.R $dataFilePrefix.fthr $colNamesFile $outFile $numDiscrete $numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
-  #time Rscript --vanilla TestFeatherFilter.R $dataFilePrefix.fthr $colNamesFile $outFile $numDiscrete $numDataPoints
-  python3 CheckOutput.py $outFile $masterOutFile
+  #outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3.fthr
+  #rm -f $outFile
+  #echo -e "Filter\tfthr(R)\t\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e Rscript --vanilla TestFeatherFilter.R $dataFilePrefix.fthr $colNamesFile $outFile $numDiscrete $numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  ##time Rscript --vanilla TestFeatherFilter.R $dataFilePrefix.fthr $colNamesFile $outFile $numDiscrete $numDataPoints
+  #python3 CheckOutput.py $outFile $masterOutFile
   
   outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3C++.fwf2
   echo -e "Filter\tfwf2(C++)\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth3 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows $ctFile $numDiscrete,$numDataPoints> /dev/null; } 2>&1 )" >> $resultFile
@@ -304,13 +303,12 @@ function runQueries3 {
 
 }
 
-#resultFile=Results2/Query_Results_Filtering.tsv
+resultFile=Results2/Query_Results_Filtering.tsv
 #echo -e "Description\tMethod\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
 
 #runQueries3 $resultFile 10 90 1000
 #runQueries3 $resultFile 100 900 1000000
 #runQueries3 $resultFile 100000 900000 1000
-#exit
 
 ############################################################
 # Build compressed versions of the second version of fixed-
@@ -582,12 +580,12 @@ function transposeCompressTestFile {
 }
 
 sizeFile=Results2/File_Sizes_transposed.tsv
-echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
+#echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
 
 #transposeCompressTestFile $sizeFile 10 90 1000 100 &
 #transposeCompressTestFile $sizeFile 100 900 1000000 1000 &
 #transposeCompressTestFile $sizeFile 100000 900000 1000 1000000 &
-wait
+#wait
 
 function runQuery4T {
   resultFile=$1
@@ -606,21 +604,21 @@ function runQuery4T {
   masterOutFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3_master.tsv
   outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries4.$compressionSuffix
   
-  echo "DataFile : " $dataFile
-  echo "TransFile : " $transposedFile
+  echo "Data file: $dataFile"
+  echo "Transposed file: $transposedFile"
 
-  rm -f $outFile
-  echo -e "Python-----" >> $resultFile
+  #rm -f $outFile
+  #echo -e "Python-----" >> $resultFile
+  #echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
   #python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
-  echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
-  python3 CheckOutput.py $outFile $masterOutFile
+  #python3 CheckOutput.py $outFile $masterOutFile
 
   rm -f $outFile
   echo "C++--------" >> $resultFile
 
- # ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
+  ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
 
-  echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  #echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
   python3 CheckOutput.py $outFile $masterOutFile
 }
 
@@ -631,10 +629,10 @@ runQuery4T $resultFile 10 90 1000 zstd 1 zstd_1
 ##TODO: The following test is failing with this error:
 ##        zstd.ZstdError: decompression error: did not decompress full frame
 ##runQuery4T $resultFile 10 90 1000 zstd 22 zstd_22
-#runQuery4T $resultFile 100 900 1000000 zstd 1 zstd_1
-#runQuery4T $resultFile 100 900 1000000 zstd 22 zstd_22
-#runQuery4T $resultFile 100000 900000 1000 zstd 1 zstd_1
-#runQuery4T $resultFile 100000 900000 1000 zstd 22 zstd_22
+runQuery4T $resultFile 100 900 1000000 zstd 1 zstd_1
+runQuery4T $resultFile 100 900 1000000 zstd 22 zstd_22
+runQuery4T $resultFile 100000 900000 1000 zstd 1 zstd_1
+runQuery4T $resultFile 100000 900000 1000 zstd 22 zstd_22
 
 exit
 

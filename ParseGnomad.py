@@ -1,5 +1,6 @@
 import copy
 import gzip
+import re
 import sys
 
 gnomad_vcf_file_path = sys.argv[1]
@@ -49,23 +50,32 @@ with gzip.open(out_file_path, 'w') as out_file:
 
             line_items = line.split("\t")
             out_items = line_items[:-1]
+            # Remove unnecessary decimal places
+            out_items[5] = out_items[5].replace(".00", "")
 
-            # Create default dictionary
             item_dict = {}
-            for info_item in info_items:
-                if info_types[info_item] == "Flag":
-                    item_dict[info_item] = "0"
-                else:
-                    item_dict[info_item] = ""
-
-            # We skip the last item (vep)
             for item in line_items[-1].split(";")[:-1]:
                 item_split = item.split("=")
                 item_key = item_split[0]
-                item_split.append("1")
-                item_dict[item_key] = item_split[1]
+
+                if info_types[item_key] == "Flag":
+                    item_dict[item_key] = "1"
+                else:
+                    item_value = item_split[1]
+
+                    # Shorten some of the float representations
+                    if info_types[item_key] == "Float":
+                        if item_value != ".":
+                            if item_value == "0.00000e+00":
+                                item_value = "0"
+                            else:
+                                item_value = re.sub(r"0+e", "e", item_value).replace("e+00", "")
+                    item_dict[item_key] = item_value
 
             for info_item in info_items:
-                out_items.append(item_dict[info_item])
+                if info_item in item_dict:
+                    out_items.append(item_dict[info_item])
+                else:
+                    out_items.append("")
 
             out_file.write(("\t".join(out_items) + "\n").encode())

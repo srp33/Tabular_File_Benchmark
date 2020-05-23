@@ -39,15 +39,9 @@ with gzip.open(out_file_path, 'w') as out_file:
         for i in range(comment_lines):
             gnomad_file.readline()
 
-        line_count = 0
+        chunk_lines = []
         for line in gnomad_file:
             line = line.decode().rstrip("\n")
-
-            line_count += 1
-            if line_count % 100000 == 0:
-                print("Processed {} lines - {}".format(line_count, line[:20]), flush=True)
-                break
-
             line_items = line.split("\t")
             out_items = line_items[:-1]
             # Remove unnecessary decimal places
@@ -78,4 +72,12 @@ with gzip.open(out_file_path, 'w') as out_file:
                 else:
                     out_items.append("")
 
-            out_file.write(("\t".join(out_items) + "\n").encode())
+            chunk_lines.append("\t".join(out_items))
+            if len(chunk_lines) % 100000 == 0:
+                print("Reached {}".format(line[:15]), flush=True)
+                out_file.write(("\n".join(chunk_lines) + "\n").encode())
+                chunk_lines = []
+                break
+
+        if len(chunk_lines) > 0:
+            out_file.write(("\n".join(chunk_lines) + "\n").encode())

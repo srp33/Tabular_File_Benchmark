@@ -7,3 +7,6 @@ tmp
 Results2
 zstd-dev
 *_temp*
+*.bgz
+*.gz
+*.tbi

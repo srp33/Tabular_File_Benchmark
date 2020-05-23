@@ -27,6 +27,7 @@
 #include <vector>
 #include <ctype.h>
 #include <unordered_map>
+
 using namespace std;
 
 const int CHUNK_SIZE = 1000;
@@ -48,30 +49,33 @@ bool isNumber (char* ctFile, int curIndex)
 //Used to format the output
 static inline void trimRightWhitespace(std::string &s)
 {
-    unsigned long int endOfWhitespace = 0;
-    unsigned long int stringSize = s.size();
-    for (unsigned long int i = stringSize; i > 0; i--)
-    {
-        if (s[i] != ' ' && s[i] != '\0'  && s[i] != '\n')
+    if(s.size() != 0){
+        unsigned long int endOfWhitespace = 0;
+        unsigned long int stringSize = s.size();
+        for (unsigned long int i = stringSize; i > 0; i--)
         {
-            endOfWhitespace = i;
-            break;
+            if (s[i] != ' ' && s[i] != '\0'  && s[i] != '\n')
+            {
+                endOfWhitespace = i;
+                break;
+            }
+
         }
-        
+
+        s.erase(endOfWhitespace + 1, s.size());
     }
-    
-    s.erase(endOfWhitespace + 1, s.size());
-    
+
+
 }
 
 //This function takes an index and a mmap file, then returns the integar (as an int) found at that position
 //Used to build the lineIndex array
-size_t getIntFromCCFile(int coorFileMaxLength, char * coorFile, int indexToStart)
+long long int getIntFromCCFile(int coorFileMaxLength, char * coorFile, long long int indexToStart)
 {
     char substring[coorFileMaxLength];
     memmove(substring, &coorFile[indexToStart], coorFileMaxLength);
-    int position = atoi(substring);
-    
+    long long int position = atoi(substring);
+
     return position;
 }
 
@@ -85,11 +89,11 @@ char* openMmapFile(const char* filePath)
         cerr << "Unable to open " << filePath << " for input." << endl;
         exit(1);
     }
-    
+
     //lseek finds the end of the file (to be used in opening a datamapped file)
     long long dataFileSize = lseek(intFileObject, 0, SEEK_END);
     char *dataFile = reinterpret_cast<char*>(mmap(NULL, dataFileSize, PROT_READ, MAP_FILE | MAP_SHARED, intFileObject, 0));
-    
+
     return dataFile;
 }
 
@@ -100,7 +104,7 @@ int readScalarFromFile(string filePath)
     ifstream grabInt(filePath);
     int intToGet;
     grabInt >> intToGet;
-    
+
     return intToGet;
 }
 
@@ -111,7 +115,7 @@ int long long readScalarFromArgv(string arguement)
     istringstream getRows(arguement);
     int long long scalar;
     getRows >> scalar;
-    
+
     return scalar;
 }
 
@@ -133,10 +137,10 @@ vector<int> createLineIndex(string filePath)
             toInt >> numericID;
             lineIndex.push_back(numericID);
         }
-        
+
         odd++;
     }
-    
+
     return lineIndex;
 }
 //This function takes in a mmap file, a coordinate, the width of the column, and a string by reference
@@ -162,15 +166,15 @@ void parseDataCoords(unsigned long int lineIndexSize, int* lineIndices, char * c
         int indexToStart = (column * (coordsFileMaxLength + 1));
         int startPos = getIntFromCCFile(coordsFileMaxLength, coordsFile, indexToStart);
         startPositions[i] = startPos;
-        
+
         long long int endPos = getIntFromCCFile(coordsFileMaxLength, coordsFile, (indexToStart + coordsFileMaxLength + 1));
         long long int width = (endPos - startPos);
         widths[i] = width;
-        
-        
+
+
     }
-    
-    
+
+
 }
 
 vector<int> makeQueryColVector(string csvValues)
@@ -188,9 +192,9 @@ vector<int> makeQueryColVector(string csvValues)
         string secondCol = csvValues.substr(found + 1, csvValues.size() - 1);
         indices.push_back(atoi(firstCol.c_str()));
         indices.push_back(atoi(secondCol.c_str()));
-        
+
     }
-    
+
     return indices;
 }
 
@@ -208,7 +212,6 @@ vector<unsigned long int> filterRows (vector<int> queryColIndices, int long long
             long long int width = colWidths[j];
             string strToAdd = "";
             createTrimmedValue(dataMapFile, coorToGrab, width, strToAdd);
-            //cout << strToAdd << endl;
             int curIndex = queryColIndices[j];
             if (isNumber(ctFile, curIndex))
             {
@@ -221,7 +224,7 @@ vector<unsigned long int> filterRows (vector<int> queryColIndices, int long long
                 {
                     break;
                 }
-                
+
             }
             else
             {
@@ -233,7 +236,7 @@ vector<unsigned long int> filterRows (vector<int> queryColIndices, int long long
                 {
                     break;
                 }
-                
+
             }
         }
         if(colsAdded == queryColIndices.size())
@@ -251,13 +254,11 @@ vector<unsigned long int> filterRows (vector<int> queryColIndices, int long long
 
 static void decompressFile_orDie(const char* fname)
 {
-//    std::string outFile = "~/decompressedOutput.txt";
-//    const char* outFilePath = outFile.c_str();
     FILE* const fin  = fopen_orDie(fname, "rb");
     size_t const buffInSize = ZSTD_DStreamInSize();
     void*  const buffIn  = malloc_orDie(buffInSize);
     FILE* const fout = stdout;
-    size_t const buffOutSize = ZSTD_DStreamOutSize();  /* Guarantee to successfully flush at least one complete compressed block in all circumstances. */
+    size_t const buffOutSize = ZSTD_DStreamOutSize();
     void*  const buffOut = malloc_orDie(buffOutSize);
 
     ZSTD_DCtx* const dctx = ZSTD_createDCtx();
@@ -274,7 +275,7 @@ static void decompressFile_orDie(const char* fname)
     size_t lastRet = 0;
     int isEmpty = 1;
     while ( (read = fread_orDie(buffIn, toRead, fin)) ) {
-        
+
         isEmpty = 0;
         ZSTD_inBuffer input = { buffIn, read, 0 };
         /* Given a valid frame, zstd won't consume the last byte of the frame
@@ -296,7 +297,7 @@ static void decompressFile_orDie(const char* fname)
             fwrite_orDie(buffOut, output.pos, fout);
             lastRet = ret;
             break;
-            
+
 //        }
     }
 
@@ -325,154 +326,135 @@ static void decompressOneLine(const char* fname, size_t pos, void* &buffOut, siz
 {
     FILE* const fin  = fopen(fname, "r+");
     size_t const buffInSize = ZSTD_DStreamInSize();
-    void*  const buffIn  = malloc_orDie(buffInSize);
+    void*  const buffIn  = malloc_orDie(10000000000);
     ZSTD_DCtx* const dctx = ZSTD_createDCtx();
     CHECK(dctx != NULL, "ZSTD_createDCtx() failed!");
 
-    /* This loop assumes that the input file is one or more concatenated zstd
-    * streams. This example won't work if there is trailing non-zstd data at
-    * the end, but streaming decompression in general handles this case.
-    * ZSTD_decompressStream() returns 0 exactly when the frame is completed,
-    * and doesn't consume input after the frame.
-    */
     size_t read;
     int isEmpty = 1;
+    fseek(fin, 0, SEEK_SET);
     fseek(fin, pos, SEEK_CUR);
     //10000 = ll - 1
     while ( (read = fread(buffIn, 1, ll, fin)) ) {
-        
+
         isEmpty = 0;
         ZSTD_inBuffer input = { buffIn, read, 0 };
-        /* Given a valid frame, zstd won't consume the last byte of the frame
-        * until it has flushed all of the decompressed data of the frame.
-        * Therefore, instead of checking if the return code is 0, we can
-        * decompress just check if input.pos < input.size.
-        */
-        ZSTD_outBuffer output = { buffOut, buffOutSize, 0};
-        /* The return code is zero if the frame is complete, but there may
-        * be multiple frames concatenated together. Zstd will automatically
-        * reset the context when a frame is complete. Still, calling
-        * ZSTD_DCtx_reset() can be useful to reset the context to a clean
-        * state, for instance if the last decompression call returned an
-        * error.
-        */
-	cout << "Before decompression" << endl;
-	cout << "Pos : " << pos << endl;
-	cout << "buffOutSize : " << buffOutSize << endl;
-        size_t const ret = ZSTD_decompressStream(dctx, &output , &input);
-	cout << "After decompression" << endl;
-	cout << "Ret : " << ret << endl;
-        //cout << "Just wanna frame variable ya know?";
-        break;
-        //Check compiler versions!
-	//-fstack-protector
-//Emit extra code to check for buffer overflows, such as stack smashing attacks. This is done by adding a guard variable to functions with vulnerable objects. This includes functions that call alloca, and functions with buffers larger than 8 bytes. The guards are initialized when a function is entered and then checked when the function exits. If a guard check fails, an error message is printed and the program exits.
 
-        
+        ZSTD_outBuffer output = { buffOut, 10000000000, 0};
+
+        size_t const ret = ZSTD_decompressStream(dctx, &output , &input);
+        free(buffIn);
         ZSTD_freeDCtx(dctx);
         fclose_orDie(fin);
-        free(buffIn);
-        free(buffOut);
+
+        cout << "Ret value : " << ret << endl;
+
+
+        break;
     }
+
 }
 
 vector<unsigned long int> findMatchingRows(char* outBuffer, long long int mccl, int ll, char* ctFile, int rowNumber){
     vector <unsigned long int> temp;
-    
+
     unsigned long int rowIndex = 1;
-    
+
     bool num = isNumber(ctFile, rowNumber);
-    
     for(int i = 0; i < (ll - 1); i += mccl){
         string value;
-        //ERROR IS LINE BENEATH
+
         createTrimmedValue(outBuffer, i, mccl, value);
-        //ERROR IS LINE ABOVE
-        if(num){
-            
-            float tempInt = atof(value.c_str());
-            if (tempInt > .1){
-                temp.push_back(rowIndex);
-            }
-            
-        }else{
-            
-            if (value[0] == 'A' || value[value.size() - 1] == 'Z'){
-                temp.push_back(rowIndex);
+        if(value.size() != 0){
+            if(num){
+
+                float tempInt = atof(value.c_str());
+                if (tempInt > .1){
+                    temp.push_back(rowIndex);
+                }
+
+            }else{
+
+                if (value[0] == 'A' || value[value.size() - 1] == 'Z'){
+                    temp.push_back(rowIndex);
+                }
             }
         }
-        
+
         rowIndex++;
-        
     }
-    
-    
+    free(outBuffer);
+
     return temp;
 }
 
 vector<unsigned long int> filterRowsTransposed (const char * transposedFile, vector<int> queryColIndices, const char * dataFilePath, long long int* widths, int lineLength, char* ctFile){
-    
+
     string pathToMccl(transposedFile);
     pathToMccl += ".mrsl";
-    
+
     string rowStart(transposedFile);
     rowStart += ".rowstart";
-    
+
     const char* rowStartCharStar = rowStart.c_str();
-    
+
     char* rowStartFile = openMmapFile(rowStartCharStar);
-    
+
     int mccl = readScalarFromFile(pathToMccl);
-    
+
     vector<unsigned long int> matchingRows;
     vector<unsigned long int> col1;
     vector<unsigned long int> col2;
     matchingRows.push_back(0);
-    
+
     /* Decompress */
-    
+
     for(int i = 0; i < queryColIndices.size(); i++){
-        
+
         int pos = (mccl + 1) * queryColIndices.at(i);
-	cout << "MCCL : " << mccl << endl;
-	cout << "Col to Query : " << queryColIndices.at(i) << endl;
-	cout << "Position : " << pos << endl;
         size_t index = getIntFromCCFile(mccl, rowStartFile, pos);
         size_t const buffOutSize = ZSTD_DStreamOutSize();
-	//size_t const buffOutSize = 100000000000;
-        void*  buffOut = malloc_orDie(buffOutSize);
-	cout << "Before calling dol" << endl;
-	cout << "Index (pos) : " << index << endl;	
+        void*  buffOut = malloc_orDie(10000000000);
         decompressOneLine(transposedFile, index, buffOut, buffOutSize, lineLength);
-	cout << "After calling dol" << endl;
         long long int curColWidth = widths[i];
         if (i == 0){
             col1 = findMatchingRows((char*)buffOut, curColWidth, lineLength, ctFile, queryColIndices.at(i));
+            //cout << "Buffer : " << (char*)buffOut << endl;
         }
         else{
             col2 = findMatchingRows((char*)buffOut, curColWidth, lineLength, ctFile, queryColIndices.at(i));
+            //cout << "Buffer : " << (char*)buffOut << endl;
         }
     }
-    
+
     for (int i = 0; i < col1.size(); i++){
         for (int j = 0; j < col2.size(); j++){
             if (col1.at(i) == col2.at(j)){
                 matchingRows.push_back(col2.at(j));
-                
+
             }
         }
     }
-    
-    
+
+//    for (int i = 0; i < matchingRows.size(); i++){
+//        cout << "Row : " << matchingRows.at(i) << endl;
+//    }
     return matchingRows;
-    
-    
+
+
 }
 
 
 int main(int argc, const char** argv)
 {
-    
+
+//    //OLD ARGS
+//    const char* const exeName = argv[0];
+//    const char*  transposedPath = argv[1]; ///Users/jameswengler/TFB/Transposed/10_90_1000.fwf2.zstd_1
+//    const char*  dataPath = argv[2];  //../TestData/10_90_1000.fwf2
+//    const char*  colNamesFilePath = argv[3]; //../TestData/10_90_1000.fwf2_columns.tsv
+//    string queryColIndicesStr = argv[4]; // 10,100
+//    const char* outFilePath = argv[5]; //../TestData/Output.txt
 
     //NEW ARGS
     const char*  dataPath = argv[1]; //~/TempDir/Temp/10_90_1000.fwf2
@@ -480,80 +462,80 @@ int main(int argc, const char** argv)
     const char*  colNamesFilePath = argv[3]; //~/TempDir/Temp/10_90_1000_columns.tsv
     const char* outFilePath = argv[4]; //~/TempDir/Temp/Output.txt
     string queryColIndicesStr = argv[5]; //10,100
-    
+
     string pathToLlFile(dataPath);
     pathToLlFile += ".ll";
-    
+
     string ctFilePath(dataPath);
     ctFilePath += ".ct";
-    
+
     char* ctFile = openMmapFile((char*)ctFilePath.c_str());
-    
+
     string colFile(dataPath);
     colFile += ".cc";
     const char* pathToColFile = colFile.c_str();
-    
+
     string pathToMCCL(dataPath);
     pathToMCCL += ".mccl";
-    
+
     string transposedCC(transposedPath);
     transposedCC += ".cc";
-    
+
     string transposedData(transposedPath);
     //transposedData += ".zstd_1";
-    
+
     string transposedMCCL(transposedPath);
     transposedMCCL += ".mccl";
-    
+
     string pathToLlFileTransposed(transposedPath);
     pathToLlFileTransposed += ".ll";
 
     //Opens the line length file, pulls out an integer, and assigns it to lineLength
     int lineLength = readScalarFromFile(pathToLlFile);
     //cout << lineLength << endl;
-    
+
     int lineLengthTransposed = readScalarFromFile(pathToLlFileTransposed);
-    
+
     //Opens a memory mapped file to the .fwf2 data file
     char *dataMapFile = openMmapFile(dataPath);
-    
+
     //Opens a memory mapped file to the .cc file
     char *ccMapFile = openMmapFile(pathToColFile);
-    
+
     char*ccMapFileTransposed = openMmapFile((char*)transposedCC.c_str());
-    
+
     //Uses an ifstream to pull out an int for the maximum column coordinate length (max number of characters per line)
     int maxColumnCoordLength = readScalarFromFile(pathToMCCL);
-    
+
     int maxColumnCoordLengthTranspoed = readScalarFromFile(transposedMCCL);
-    
+
     //Uses an ifstream to pull out each index for the column to be grabbed
     vector<int> lineIndex = createLineIndex(colNamesFilePath);
     unsigned long int lineIndexSize = lineIndex.size();
     int* lineIndexPointerArray = &lineIndex[0];
-    
+
     //Create 2 arrays to be used in ParseDataCoordinates
     long long int colCoords[lineIndexSize];
     long long int colWidths[lineIndexSize];
-    
+
     //Calls ParseDataCoordinates that populates the above arrays with the starting postitions and widths
     parseDataCoords(lineIndexSize, lineIndexPointerArray, ccMapFile, maxColumnCoordLength, colCoords, colWidths);
-    
+
     //Create a vector from queryColIndicesStr
     vector<int> queryColIndices = makeQueryColVector(queryColIndicesStr);
     long long int colCoordsQuery[queryColIndices.size()];
     long long int colWidthsQuery[queryColIndices.size()];
     unsigned long int queryColSize = queryColIndices.size();
     int*queryColPointerArray = &queryColIndices[0];
-    
+
     parseDataCoords(queryColSize, queryColPointerArray, ccMapFileTransposed, maxColumnCoordLengthTranspoed, colCoordsQuery, colWidthsQuery);
-    
+
     //Found the problem, for the second parseDataCoords I need to pass in the files found in the /Transposed directory, and not the files found in /TestData. That is, except for actual data file. That file needs to be the file found in /TestData
     //Solution: Pass in two file paths. One for the normal data (/TestData) and another for the transposed files (/Transposed)
     //ERROR IS IN THE LINE BELOW
     vector<unsigned long int> matchingRows = filterRowsTransposed((char*)transposedData.c_str(), queryColIndices, dataPath, colWidthsQuery, lineLengthTransposed, ctFile);
     //ERROR IS IN THE LINE ABOVE
-    
+
     //Uses a FILE object to open argv[4] as an output file
     //Implements chunking to reduce writing calls to the file
     //Writes to the file using fprintf (C syntax, and notably faster than C++)
@@ -566,66 +548,78 @@ int main(int argc, const char** argv)
         cerr << "Failed to open output file (was NULL)" << endl;
         exit(1);
     }
-    
+
 
     string pathToMccl(dataPath);
-    pathToMccl += ".mrsl";
-    
+    //pathToMccl += ".mrsl";
+    pathToMccl += ".mccl";
+
     string rowStart(dataPath);
     rowStart += ".rowstart";
-    
+
     const char* rowStartCharStar = rowStart.c_str();
-    
+
     char* rowStartFile = openMmapFile(rowStartCharStar);
-    
+
     int mccl = readScalarFromFile(pathToMccl);
-    
+
     ofstream outfile ("~/testOutput.txt",std::ofstream::binary);
-    
+
     string ccNonTransposed(dataPath);
     ccNonTransposed += ".cc";
-    
+
     char* ccNonTransposedChar = openMmapFile(ccNonTransposed.c_str());
-    
+
     string pathToMcclNonTrans(dataPath);
     pathToMcclNonTrans += ".mccl";
     int newMccl = readScalarFromFile(pathToMcclNonTrans);
-    
+    string pathToMrsl(dataPath);
+    pathToMrsl += ".mrsl";
+    int mrsl = readScalarFromFile(pathToMrsl);
 
-    
     for (unsigned long int i = 0; i < matchingRows.size(); i++)
     {
-        
-        /**
-         TODO:
-         - pull transposed files and non-transposed files from bonsai
-         - create 2 directories, one with transposed one with the non-transposed
-         - Edit below to take the datafile, pull the matching rows, then get the columsn according to columns_tsv
-            - PSUEDO
-                Get pos with basic math (pos is where in the datafile the matching row is
-                Decompress the line using decompressOneLine
-                Use for loop to get the requested columns
-         */
-        
-        int pos = (mccl + 1) * matchingRows.at(i);
-        size_t index = getIntFromCCFile(mccl, rowStartFile, pos);
-        //cout << index << endl;
+        //cout << "Row Number : " << matchingRows.at(i) << endl;
+
+        unsigned long long int pos = (mrsl + 1) * matchingRows.at(i);
+        //cout << "Pos : " << pos << endl;
+        unsigned long long int index = getIntFromCCFile(mrsl, rowStartFile, pos);
+        //cout << "Index : " << index << endl;
         size_t const buffOutSize = ZSTD_DStreamOutSize();
-        void* buffOut = malloc_orDie(buffOutSize);
+        void* buffOut = malloc_orDie(10000000000);
+
+        //FIXME
+        //Only decompressing when index = 0;
         decompressOneLine(dataPath, index, buffOut, buffOutSize, lineLength);
-        
+        //cout << endl;
+
+//        if(i == 0){
+//            cout << "Column : " << matchingRows.at(i) << endl;
+//            cout << "Pos : " << pos << endl;
+//            cout << "MRSL : " << mrsl << endl;
+//            cout << "Index : " << index << endl;
+//            cout << "Rowstart Path : " << rowStart << endl;
+//            cout << "Buffer for row " << matchingRows.at(10) << " : " << (char*)buffOut << endl << endl;
+//            break;
+//        }
         for(int j = 0; j < lineIndex.size(); j++){
 
             long int coorToGrab = colCoords[j];
             long int width = colWidths[j];
             string value;
+
             createTrimmedValue((char*)buffOut, coorToGrab, width, value);
             chunk += value;
             if(j != lineIndex.size() - 1){
                 chunk += "\t";
             }
-            
+
+
+
+
         }
+        //cout << "Made it here!" << endl;
+        //free(buffOut);
         chunk += "\n";
         if (chunkCount < CHUNK_SIZE)
         {
@@ -635,12 +629,17 @@ int main(int argc, const char** argv)
         {
             //the .c_str() function converts chunk from char[] to char*[]
             fprintf(outFile, "%s", chunk.c_str());
+            //cout << "Printed a value" << endl;
             chunk = "";
             chunkCount = 0;
         }
-        
+
+
+
 
     }
+
+
 
 
 //    After the for loop, adds the remaing chunk to the file
@@ -648,6 +647,9 @@ int main(int argc, const char** argv)
     {
         fprintf(outFile, "%s", chunk.c_str());
     }
-    
+
     return 0;
 }
+
+
+

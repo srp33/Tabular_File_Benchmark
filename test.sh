@@ -604,9 +604,6 @@ function runQuery4T {
   masterOutFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3_master.tsv
   outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries4.$compressionSuffix
   
-  echo "Data file: $dataFile"
-  echo "Transposed file: $transposedFile"
-
   #rm -f $outFile
   #echo -e "Python-----" >> $resultFile
   #echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
@@ -616,23 +613,23 @@ function runQuery4T {
   rm -f $outFile
   echo "C++--------" >> $resultFile
 
-  ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
+ ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
 
   #echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
-  python3 CheckOutput.py $outFile $masterOutFile
+  #python3 CheckOutput.py $outFile $masterOutFile
 }
 
 resultFile=Results2/Query_Results_fwf2_compressed_transposed.tsv
 echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
 
-runQuery4T $resultFile 10 90 1000 zstd 1 zstd_1
+#runQuery4T $resultFile 10 90 1000 zstd 1 zstd_1
 ##TODO: The following test is failing with this error:
 ##        zstd.ZstdError: decompression error: did not decompress full frame
 ##runQuery4T $resultFile 10 90 1000 zstd 22 zstd_22
 runQuery4T $resultFile 100 900 1000000 zstd 1 zstd_1
-runQuery4T $resultFile 100 900 1000000 zstd 22 zstd_22
-runQuery4T $resultFile 100000 900000 1000 zstd 1 zstd_1
-runQuery4T $resultFile 100000 900000 1000 zstd 22 zstd_22
+#runQuery4T $resultFile 100 900 1000000 zstd 22 zstd_22
+#runQuery4T $resultFile 100000 900000 1000 zstd 1 zstd_1
+#runQuery4T $resultFile 100000 900000 1000 zstd 22 zstd_22
 
 exit
 
@@ -693,12 +690,11 @@ echo -e "Description\tDimensions\tValue" > $resultFile
 #runGenotypeTests $resultFile 50000
 #runGenotypeTests $resultFile 100000
 #runGenotypeTests $resultFile 500000
-#!/bin/bash
-
-set -o errexit
 
 ############################################################
-# Build first round of test files.
+# Download, parse, and query gnomad files.
 ############################################################
 
-function buildTestFile {
+#wget https://storage.googleapis.com/gnomad-public/release/2.1.1/vcf/genomes/gnomad.genomes.r2.1.1.sites.vcf.bgz
+
+#TODO: Copy stuff from gnomad.sh, cadd.sh

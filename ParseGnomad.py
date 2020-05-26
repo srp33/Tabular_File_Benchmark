@@ -14,22 +14,23 @@ header_items = None
 # Parse metadata values and header first
 with gzip.open(gnomad_vcf_file_path) as gnomad_file:
     for line in gnomad_file:
-        comment_lines += 1
         line = line.decode().rstrip("\n")
 
         if line.startswith("##"):
             if line.startswith("##INFO=<ID="):
                 x = line.replace("##INFO=<ID=", "").split(",")
 
-                # We ignore vep annotations for simplicity
+                # We ignore VEP annotations for simplicity
                 if x[0] != "vep":
                     info_items.append(x[0])
-                    info_types[x[0]] = x[2].replace("Type=", "")
+                info_types[x[0]] = x[2].replace("Type=", "")
         elif line.startswith("#"):
             header_items = line.split("\t")
             header_items[0] = header_items[0][1:]
         else:
             break
+
+        comment_lines += 1
 
 with gzip.open(out_file_path, 'w') as out_file:
     out_file.write(("\t".join(header_items[:-1] + info_items) + "\n").encode())
@@ -44,11 +45,11 @@ with gzip.open(out_file_path, 'w') as out_file:
             line = line.decode().rstrip("\n")
             line_items = line.split("\t")
             out_items = line_items[:-1]
-            # Remove unnecessary decimal places
+            # Remove unnecessary decimal places from quality scores
             out_items[5] = out_items[5].replace(".00", "")
 
             item_dict = {}
-            for item in line_items[-1].split(";")[:-1]:
+            for item in line_items[-1].split(";"):
                 item_split = item.split("=")
                 item_key = item_split[0]
 
@@ -70,7 +71,10 @@ with gzip.open(out_file_path, 'w') as out_file:
                 if info_item in item_dict:
                     out_items.append(item_dict[info_item])
                 else:
-                    out_items.append("")
+                    if info_types[item_key] == "Flag":
+                        out_items.append("0")
+                    else:
+                        out_items.append("")
 
             chunk_lines.append("\t".join(out_items))
             if len(chunk_lines) % 100000 == 0:

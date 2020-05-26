@@ -612,6 +612,7 @@ function runQuery4T {
 
   rm -f $outFile
   echo "C++--------" >> $resultFile
+  echo $numDiscrete,$numDataPoints
 
  ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
 

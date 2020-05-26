@@ -296,7 +296,6 @@ static void decompressFile_orDie(const char* fname)
             CHECK_ZSTD(ret);
             fwrite_orDie(buffOut, output.pos, fout);
             lastRet = ret;
-            break;
 
 //        }
     }
@@ -340,7 +339,7 @@ static void decompressOneLine(const char* fname, size_t pos, void* &buffOut, siz
         isEmpty = 0;
         ZSTD_inBuffer input = { buffIn, read, 0 };
 
-        ZSTD_outBuffer output = { buffOut, 10000000000, 0};
+        ZSTD_outBuffer output = { buffOut, ll, 0};
 
         size_t const ret = ZSTD_decompressStream(dctx, &output , &input);
         free(buffIn);
@@ -348,6 +347,7 @@ static void decompressOneLine(const char* fname, size_t pos, void* &buffOut, siz
         fclose_orDie(fin);
 
         cout << "Ret value : " << ret << endl;
+        cout << "Position : " << pos << endl;
 
 
         break;
@@ -463,6 +463,9 @@ int main(int argc, const char** argv)
     const char* outFilePath = argv[4]; //~/TempDir/Temp/Output.txt
     string queryColIndicesStr = argv[5]; //10,100
 
+//    decompressFile_orDie(dataPath);
+//    exit(1);
+
     string pathToLlFile(dataPath);
     pathToLlFile += ".ll";
 
@@ -576,6 +579,7 @@ int main(int argc, const char** argv)
     string pathToMrsl(dataPath);
     pathToMrsl += ".mrsl";
     int mrsl = readScalarFromFile(pathToMrsl);
+    cout << "Size of matchingRows : " << matchingRows.size() << endl;
 
     for (unsigned long int i = 0; i < matchingRows.size(); i++)
     {
@@ -589,11 +593,10 @@ int main(int argc, const char** argv)
         void* buffOut = malloc_orDie(10000000000);
 
         //FIXME
-        //Only decompressing when index = 0;
+        //Only decompressing when index = 0 in the DataPath;
         decompressOneLine(dataPath, index, buffOut, buffOutSize, lineLength);
         //cout << endl;
 
-//        if(i == 0){
 //            cout << "Column : " << matchingRows.at(i) << endl;
 //            cout << "Pos : " << pos << endl;
 //            cout << "MRSL : " << mrsl << endl;
@@ -613,9 +616,6 @@ int main(int argc, const char** argv)
             if(j != lineIndex.size() - 1){
                 chunk += "\t";
             }
-
-
-
 
         }
         //cout << "Made it here!" << endl;
@@ -650,6 +650,3 @@ int main(int argc, const char** argv)
 
     return 0;
 }
-
-
-

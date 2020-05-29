@@ -20,9 +20,7 @@ with gzip.open(gnomad_vcf_file_path) as gnomad_file:
             if line.startswith("##INFO=<ID="):
                 x = line.replace("##INFO=<ID=", "").split(",")
 
-                # We ignore VEP annotations for simplicity
-                if x[0] != "vep":
-                    info_items.append(x[0])
+                info_items.append(x[0])
                 info_types[x[0]] = x[2].replace("Type=", "")
         elif line.startswith("#"):
             header_items = line.split("\t")
@@ -71,7 +69,7 @@ with gzip.open(out_file_path, 'w') as out_file:
                 if info_item in item_dict:
                     out_items.append(item_dict[info_item])
                 else:
-                    if info_types[item_key] == "Flag":
+                    if info_types[info_item] == "Flag":
                         out_items.append("0")
                     else:
                         out_items.append("")
@@ -81,7 +79,7 @@ with gzip.open(out_file_path, 'w') as out_file:
                 print("Reached {}".format(line[:15]), flush=True)
                 out_file.write(("\n".join(chunk_lines) + "\n").encode())
                 chunk_lines = []
-                break
+                #break
 
         if len(chunk_lines) > 0:
             out_file.write(("\n".join(chunk_lines) + "\n").encode())

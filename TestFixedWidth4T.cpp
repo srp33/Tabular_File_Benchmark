@@ -31,7 +31,7 @@
 using namespace std;
 
 const int CHUNK_SIZE = 1000;
-bool isNumber (char* ctFile, int curIndex)
+bool isNumber (char* ctFile, long long int curIndex)
 {
     if (ctFile[curIndex * 2] == 'n')
     {
@@ -73,8 +73,8 @@ static inline void trimRightWhitespace(std::string &s)
 long long int getIntFromCCFile(int coorFileMaxLength, char * coorFile, long long int indexToStart)
 {
     char substring[coorFileMaxLength];
-    memmove(substring, &coorFile[indexToStart], coorFileMaxLength);
-    long long int position = atoi(substring);
+    memmove(substring, &coorFile[indexToStart], coorFileMaxLength + 1);
+    long long int position = atoll(substring);
 
     return position;
 }
@@ -110,10 +110,10 @@ int readScalarFromFile(string filePath)
 
 //This function reads a single integar from agrv
 //Used for numRows
-int long long readScalarFromArgv(string arguement)
+long long int readScalarFromArgv(string arguement)
 {
     istringstream getRows(arguement);
-    int long long scalar;
+    long long int scalar;
     getRows >> scalar;
 
     return scalar;
@@ -121,19 +121,20 @@ int long long readScalarFromArgv(string arguement)
 
 //This function returns a vector of the columns that the user wants to project
 //Used to make a vector from the _columns_tsv file
-vector<int> createLineIndex(string filePath)
+vector<long long int> createLineIndex(string filePath)
 {
     string stringToReadFrom = "";
-    vector<int> lineIndex = {};
+    vector<long long int> lineIndex = {};
     //"odd" is responsible for only pulling the integers out of the file by skipping all the strings (input file is int-string-int-string etc)
-    int odd = 0;    ifstream columns(filePath);
+    int odd = 0;
+    ifstream columns(filePath);
     while (columns >> stringToReadFrom)
     {
         if (odd % 2 == 0)
         {
             //Converts the string (From the file) to an int (for use later)
             istringstream toInt(stringToReadFrom);
-            int numericID;
+            long long int numericID;
             toInt >> numericID;
             lineIndex.push_back(numericID);
         }
@@ -158,13 +159,13 @@ void createTrimmedValue(char * mmapFile, long int coorToGrab, long long int widt
 //This function passes in 2 arrays by reference, and then using the lineIndex array, populates them with the
 //start position and width of each column the user wants to project
 //Used to create the arrays containing the data for each column
-void parseDataCoords(unsigned long int lineIndexSize, int* lineIndices, char * coordsFile, int coordsFileMaxLength, long long int* startPositions, long long int* widths)
+void parseDataCoords(unsigned long int lineIndexSize, long long int* lineIndices, char * coordsFile, int coordsFileMaxLength, long long int* startPositions, long long int* widths)
 {
     for (int i = 0; i < lineIndexSize; i++)
     {
-        int column = lineIndices[i];
-        int indexToStart = (column * (coordsFileMaxLength + 1));
-        int startPos = getIntFromCCFile(coordsFileMaxLength, coordsFile, indexToStart);
+        long long int column = lineIndices[i];
+        long long int indexToStart = (column * (coordsFileMaxLength + 1));
+        long long int startPos = getIntFromCCFile(coordsFileMaxLength, coordsFile, indexToStart);
         startPositions[i] = startPos;
 
         long long int endPos = getIntFromCCFile(coordsFileMaxLength, coordsFile, (indexToStart + coordsFileMaxLength + 1));
@@ -177,9 +178,9 @@ void parseDataCoords(unsigned long int lineIndexSize, int* lineIndices, char * c
 
 }
 
-vector<int> makeQueryColVector(string csvValues)
+vector<long long int> makeQueryColVector(string csvValues)
 {
-    vector<int> indices;
+    vector<long long int> indices;
     size_t found = csvValues.find(",");
     if (found == string::npos)
     {
@@ -321,10 +322,9 @@ static void decompressFile_orDie(const char* fname)
     free(buffOut);
 }
 
-static void decompressOneLine(const char* fname, size_t pos, void* &buffOut, size_t const buffOutSize, size_t ll)
+static void decompressOneLine(const char* fname, long long int pos, void* &buffOut, size_t const buffOutSize, size_t ll)
 {
     FILE* const fin  = fopen(fname, "r+");
-    size_t const buffInSize = ZSTD_DStreamInSize();
     void*  const buffIn  = malloc_orDie(10000000000);
     ZSTD_DCtx* const dctx = ZSTD_createDCtx();
     CHECK(dctx != NULL, "ZSTD_createDCtx() failed!");
@@ -333,7 +333,6 @@ static void decompressOneLine(const char* fname, size_t pos, void* &buffOut, siz
     int isEmpty = 1;
     fseek(fin, 0, SEEK_SET);
     fseek(fin, pos, SEEK_CUR);
-    //10000 = ll - 1
     while ( (read = fread(buffIn, 1, ll, fin)) ) {
 
         isEmpty = 0;
@@ -346,16 +345,12 @@ static void decompressOneLine(const char* fname, size_t pos, void* &buffOut, siz
         ZSTD_freeDCtx(dctx);
         fclose_orDie(fin);
 
-        cout << "Ret value : " << ret << endl;
-        cout << "Position : " << pos << endl;
-
-
         break;
     }
 
 }
 
-vector<unsigned long int> findMatchingRows(char* outBuffer, long long int mccl, int ll, char* ctFile, int rowNumber){
+vector<unsigned long int> findMatchingRows(char* outBuffer, long long int mccl, int ll, char* ctFile, long long int rowNumber){
     vector <unsigned long int> temp;
 
     unsigned long int rowIndex = 1;
@@ -388,7 +383,7 @@ vector<unsigned long int> findMatchingRows(char* outBuffer, long long int mccl, 
     return temp;
 }
 
-vector<unsigned long int> filterRowsTransposed (const char * transposedFile, vector<int> queryColIndices, const char * dataFilePath, long long int* widths, int lineLength, char* ctFile){
+vector<unsigned long int> filterRowsTransposed (const char * transposedFile, vector<long long int> queryColIndices, const char * dataFilePath, long long int* widths, int lineLength, char* ctFile){
 
     string pathToMccl(transposedFile);
     pathToMccl += ".mrsl";
@@ -411,19 +406,17 @@ vector<unsigned long int> filterRowsTransposed (const char * transposedFile, vec
 
     for(int i = 0; i < queryColIndices.size(); i++){
 
-        int pos = (mccl + 1) * queryColIndices.at(i);
-        size_t index = getIntFromCCFile(mccl, rowStartFile, pos);
+        long long int pos = (mccl + 1) * queryColIndices.at(i);
+        long long int index = getIntFromCCFile(mccl, rowStartFile, pos);
         size_t const buffOutSize = ZSTD_DStreamOutSize();
         void*  buffOut = malloc_orDie(10000000000);
         decompressOneLine(transposedFile, index, buffOut, buffOutSize, lineLength);
         long long int curColWidth = widths[i];
         if (i == 0){
             col1 = findMatchingRows((char*)buffOut, curColWidth, lineLength, ctFile, queryColIndices.at(i));
-            //cout << "Buffer : " << (char*)buffOut << endl;
         }
         else{
             col2 = findMatchingRows((char*)buffOut, curColWidth, lineLength, ctFile, queryColIndices.at(i));
-            //cout << "Buffer : " << (char*)buffOut << endl;
         }
     }
 
@@ -436,9 +429,6 @@ vector<unsigned long int> filterRowsTransposed (const char * transposedFile, vec
         }
     }
 
-//    for (int i = 0; i < matchingRows.size(); i++){
-//        cout << "Row : " << matchingRows.at(i) << endl;
-//    }
     return matchingRows;
 
 
@@ -447,24 +437,13 @@ vector<unsigned long int> filterRowsTransposed (const char * transposedFile, vec
 
 int main(int argc, const char** argv)
 {
-
-//    //OLD ARGS
-//    const char* const exeName = argv[0];
-//    const char*  transposedPath = argv[1]; ///Users/jameswengler/TFB/Transposed/10_90_1000.fwf2.zstd_1
-//    const char*  dataPath = argv[2];  //../TestData/10_90_1000.fwf2
-//    const char*  colNamesFilePath = argv[3]; //../TestData/10_90_1000.fwf2_columns.tsv
-//    string queryColIndicesStr = argv[4]; // 10,100
-//    const char* outFilePath = argv[5]; //../TestData/Output.txt
-
     //NEW ARGS
-    const char*  dataPath = argv[1]; //~/TempDir/Temp/10_90_1000.fwf2
-    const char*  transposedPath = argv[2]; //~/TempDir/Temp/10_90_1000.fwf2.zstd_1
-    const char*  colNamesFilePath = argv[3]; //~/TempDir/Temp/10_90_1000_columns.tsv
-    const char* outFilePath = argv[4]; //~/TempDir/Temp/Output.txt
-    string queryColIndicesStr = argv[5]; //10,100
+    const char*  dataPath = argv[1];
+    const char*  transposedPath = argv[2];
+    const char*  colNamesFilePath = argv[3];
+    const char* outFilePath = argv[4];
+    string queryColIndicesStr = argv[5];
 
-//    decompressFile_orDie(dataPath);
-//    exit(1);
 
     string pathToLlFile(dataPath);
     pathToLlFile += ".ll";
@@ -513,9 +492,9 @@ int main(int argc, const char** argv)
     int maxColumnCoordLengthTranspoed = readScalarFromFile(transposedMCCL);
 
     //Uses an ifstream to pull out each index for the column to be grabbed
-    vector<int> lineIndex = createLineIndex(colNamesFilePath);
+    vector<long long int> lineIndex = createLineIndex(colNamesFilePath);
     unsigned long int lineIndexSize = lineIndex.size();
-    int* lineIndexPointerArray = &lineIndex[0];
+    long long int* lineIndexPointerArray = &lineIndex[0];
 
     //Create 2 arrays to be used in ParseDataCoordinates
     long long int colCoords[lineIndexSize];
@@ -525,11 +504,11 @@ int main(int argc, const char** argv)
     parseDataCoords(lineIndexSize, lineIndexPointerArray, ccMapFile, maxColumnCoordLength, colCoords, colWidths);
 
     //Create a vector from queryColIndicesStr
-    vector<int> queryColIndices = makeQueryColVector(queryColIndicesStr);
+    vector<long long int> queryColIndices = makeQueryColVector(queryColIndicesStr);
     long long int colCoordsQuery[queryColIndices.size()];
     long long int colWidthsQuery[queryColIndices.size()];
     unsigned long int queryColSize = queryColIndices.size();
-    int*queryColPointerArray = &queryColIndices[0];
+    long long int*queryColPointerArray = &queryColIndices[0];
 
     parseDataCoords(queryColSize, queryColPointerArray, ccMapFileTransposed, maxColumnCoordLengthTranspoed, colCoordsQuery, colWidthsQuery);
 
@@ -583,28 +562,12 @@ int main(int argc, const char** argv)
 
     for (unsigned long int i = 0; i < matchingRows.size(); i++)
     {
-        //cout << "Row Number : " << matchingRows.at(i) << endl;
-
         unsigned long long int pos = (mrsl + 1) * matchingRows.at(i);
-        //cout << "Pos : " << pos << endl;
         unsigned long long int index = getIntFromCCFile(mrsl, rowStartFile, pos);
-        //cout << "Index : " << index << endl;
         size_t const buffOutSize = ZSTD_DStreamOutSize();
         void* buffOut = malloc_orDie(10000000000);
 
-        //FIXME
-        //Only decompressing when index = 0 in the DataPath;
         decompressOneLine(dataPath, index, buffOut, buffOutSize, lineLength);
-        //cout << endl;
-
-//            cout << "Column : " << matchingRows.at(i) << endl;
-//            cout << "Pos : " << pos << endl;
-//            cout << "MRSL : " << mrsl << endl;
-//            cout << "Index : " << index << endl;
-//            cout << "Rowstart Path : " << rowStart << endl;
-//            cout << "Buffer for row " << matchingRows.at(10) << " : " << (char*)buffOut << endl << endl;
-//            break;
-//        }
         for(int j = 0; j < lineIndex.size(); j++){
 
             long int coorToGrab = colCoords[j];
@@ -612,14 +575,16 @@ int main(int argc, const char** argv)
             string value;
 
             createTrimmedValue((char*)buffOut, coorToGrab, width, value);
+	    cout << "Coor : " << coorToGrab << endl;
+	    cout << "Width : " << width << endl;
+	    cout << "Value : " << value << endl;
             chunk += value;
             if(j != lineIndex.size() - 1){
                 chunk += "\t";
             }
 
         }
-        //cout << "Made it here!" << endl;
-        //free(buffOut);
+        free(buffOut);
         chunk += "\n";
         if (chunkCount < CHUNK_SIZE)
         {
@@ -629,7 +594,6 @@ int main(int argc, const char** argv)
         {
             //the .c_str() function converts chunk from char[] to char*[]
             fprintf(outFile, "%s", chunk.c_str());
-            //cout << "Printed a value" << endl;
             chunk = "";
             chunkCount = 0;
         }
@@ -650,3 +614,4 @@ int main(int argc, const char** argv)
 
     return 0;
 }
+

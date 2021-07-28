@@ -26,7 +26,6 @@
 #include <fstream>
 #include <vector>
 #include <ctype.h>
-#include <unordered_map>
 
 using namespace std;
 
@@ -174,6 +173,20 @@ void parseDataCoords(unsigned long int lineIndexSize, long long int* lineIndices
 
 
     }
+
+//    long long int column = lineIndices[i];
+//    cout << "Col : " << column << endl;
+//    long long int indexToStart = (column * (coordsFileMaxLength + 1));
+//    cout << "Index : " << indexToStart << endl;
+//    long long int startPos = getIntFromCCFile(coordsFileMaxLength, coordsFile, indexToStart);
+//    cout << "StartPos : " << startPos << endl;
+//    startPositions[i] = startPos;
+//
+//    long long int endPos = getIntFromCCFile(coordsFileMaxLength, coordsFile, (indexToStart + coordsFileMaxLength + 1));
+//    cout << "EndPos : " << endPos << endl;
+//    long long int width = (endPos - startPos);
+//    widths[i] = width;
+
 
 
 }
@@ -409,7 +422,7 @@ vector<unsigned long int> filterRowsTransposed (const char * transposedFile, vec
         long long int pos = (mccl + 1) * queryColIndices.at(i);
         long long int index = getIntFromCCFile(mccl, rowStartFile, pos);
         size_t const buffOutSize = ZSTD_DStreamOutSize();
-        void*  buffOut = malloc_orDie(10000000000);
+        void*  buffOut = malloc_orDie(lineLength * 100);
         decompressOneLine(transposedFile, index, buffOut, buffOutSize, lineLength);
         long long int curColWidth = widths[i];
         if (i == 0){
@@ -565,7 +578,7 @@ int main(int argc, const char** argv)
         unsigned long long int pos = (mrsl + 1) * matchingRows.at(i);
         unsigned long long int index = getIntFromCCFile(mrsl, rowStartFile, pos);
         size_t const buffOutSize = ZSTD_DStreamOutSize();
-        void* buffOut = malloc_orDie(10000000000);
+        void* buffOut = malloc_orDie(lineLength * 100);
 
         decompressOneLine(dataPath, index, buffOut, buffOutSize, lineLength);
         for(int j = 0; j < lineIndex.size(); j++){
@@ -575,9 +588,6 @@ int main(int argc, const char** argv)
             string value;
 
             createTrimmedValue((char*)buffOut, coorToGrab, width, value);
-	    cout << "Coor : " << coorToGrab << endl;
-	    cout << "Width : " << width << endl;
-	    cout << "Value : " << value << endl;
             chunk += value;
             if(j != lineIndex.size() - 1){
                 chunk += "\t";
@@ -594,6 +604,7 @@ int main(int argc, const char** argv)
         {
             //the .c_str() function converts chunk from char[] to char*[]
             fprintf(outFile, "%s", chunk.c_str());
+//            cout << "Printed to a file" << endl;
             chunk = "";
             chunkCount = 0;
         }
@@ -614,4 +625,3 @@ int main(int argc, const char** argv)
 
     return 0;
 }
-

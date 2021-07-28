@@ -6,4 +6,7 @@
 
 #rm -f whole_genome_SNVs_inclAnno.tsv.gz whole_genome_SNVs_inclAnno.tsv.gz.tbi
 
-python3 ConvertTsvToFixedWidthFile2.py TestData/cadd.tsv.gz TestData/cadd.fwf2
+python3 F4/Builder.py TestData/cadd.tsv.gz TestData/cadd.f4 "\t" 30
+
+# 12,221,577,960 rows in CADD file (excluding header).
+# 134 columns

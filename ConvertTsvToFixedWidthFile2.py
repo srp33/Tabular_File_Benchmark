@@ -97,9 +97,6 @@ with open(out_file_path + ".mctl", 'wb') as mctl_file:
 # Save the data to output file
 tsv_file = get_tsv_file_handle()
 with open(out_file_path, 'wb') as out_file:
-    line_number = 0
-    cumulative_position = 0
-
     for line in tsv_file:
         line_items = line.rstrip(b"\n").split(b"\t")
 
@@ -113,8 +110,5 @@ with open(out_file_path, 'wb') as out_file:
         # However, it makes the files much more readable to humans.
         line_out = (line_out + "\n").encode()
         out_file.write(line_out)
-
-        line_number += 1
-        cumulative_position += len(line_out)
 
 tsv_file.close()

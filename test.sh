@@ -306,9 +306,9 @@ function runQueries3 {
 resultFile=Results2/Query_Results_Filtering.tsv
 #echo -e "Description\tMethod\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
 
-#runQueries3 $resultFile 10 90 1000
-#runQueries3 $resultFile 100 900 1000000
-#runQueries3 $resultFile 100000 900000 1000
+runQueries3 $resultFile 10 90 1000
+runQueries3 $resultFile 100 900 1000000
+runQueries3 $resultFile 100000 900000 1000
 
 ############################################################
 # Build compressed versions of the second version of fixed-
@@ -542,9 +542,9 @@ function runAllQueries4 {
 #resultFile=Results2/Query_Results_fwf2_compressed.tsv
 #echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
 
-#runAllQueries4 $resultFile 10 90 1000
-#runAllQueries4 $resultFile 100 900 1000000
-#runAllQueries4 $resultFile 100000 900000 1000
+runAllQueries4 $resultFile 10 90 1000
+runAllQueries4 $resultFile 100 900 1000000
+runAllQueries4 $resultFile 100000 900000 1000
 
 ############################################################
 # Measure how quickly we can query the files that have
@@ -604,30 +604,34 @@ function runQuery4T {
   masterOutFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3_master.tsv
   outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries4.$compressionSuffix
   
-  #rm -f $outFile
-  #echo -e "Python-----" >> $resultFile
-  #echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
+  rm -f $outFile
+  echo -e "Python-----" >> $resultFile
+  echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
   #python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
-  #python3 CheckOutput.py $outFile $masterOutFile
+  python3 CheckOutput.py $outFile $masterOutFile
 
   rm -f $outFile
   echo "C++--------" >> $resultFile
+  #echo DataFile : $dataFile
+  #echo ColFile : $colNamesFile
+  #echo TransposedFile : $transposedFile
+  #echo Output : $outFile
 
- ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
- #echo Col File : $colNamesFile
- # echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
-  #python3 CheckOutput.py $outFile $masterOutFile
+#./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
+
+ echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  python3 CheckOutput.py $outFile $masterOutFile
 }
 
 resultFile=Results2/Query_Results_fwf2_compressed_transposed.tsv
 echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
 
-#runQuery4T $resultFile 10 90 1000 zstd 1 zstd_1
+runQuery4T $resultFile 10 90 1000 zstd 1 zstd_1
 ##TODO: The following test is failing with this error:
 ##        zstd.ZstdError: decompression error: did not decompress full frame
 ##runQuery4T $resultFile 10 90 1000 zstd 22 zstd_22
 runQuery4T $resultFile 100 900 1000000 zstd 1 zstd_1
-#runQuery4T $resultFile 100 900 1000000 zstd 22 zstd_22
+runQuery4T $resultFile 100 900 1000000 zstd 22 zstd_22
 #runQuery4T $resultFile 100000 900000 1000 zstd 1 zstd_1
 #runQuery4T $resultFile 100000 900000 1000 zstd 22 zstd_22
 
@@ -698,3 +702,5 @@ echo -e "Description\tDimensions\tValue" > $resultFile
 #wget https://storage.googleapis.com/gnomad-public/release/2.1.1/vcf/genomes/gnomad.genomes.r2.1.1.sites.vcf.bgz
 
 #TODO: Copy stuff from gnomad.sh, cadd.sh
+
+git clone https://github.com/srp33/F4.git

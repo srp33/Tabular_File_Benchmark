@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
 # Install Python3 and modules.
 ######################################################################################
 
-RUN pip3 install "msgpack==0.5.6" "numpy==1.15.2" "pandas==0.23.4" "python-snappy==0.5.3" "tables==3.4.4" "zstandard==0.10.2" "lz4==2.1.6" "fastnumbers==2.1.1"
+RUN pip3 install "msgpack==0.5.6" "numpy==1.15.2" "pandas==0.23.4" "python-snappy==0.5.3" "tables==3.4.4" "zstandard==0.10.2" "lz4==2.1.6" "fastnumbers==2.1.1" "joblib==0.15.1"
 
 ######################################################################################
 # Install R

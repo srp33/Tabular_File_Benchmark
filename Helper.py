@@ -13,7 +13,6 @@ def getColIndicesToQuery(col_names_file_path, memory_map):
 
     return index_range
 
-
 def getColNamesToQuery(col_names_file_path, memory_map):
     with open(col_names_file_path, "rb") as col_file:
         if memory_map:
@@ -25,7 +24,6 @@ def getColNamesToQuery(col_names_file_path, memory_map):
     col_file.close()
 
     return col_names
-
 
 def parse_data_coords(line_indices, coords_file, coords_file_max_length, full_str_length):
     coords_file_length = len(coords_file)
@@ -82,7 +80,6 @@ def parse_data_coords_seek(line_indices, coords_file_path, coords_file_max_lengt
 
             yield [index, data_start_pos, data_end_pos]
 
-
 def parse_data_values(start_offset, segment_length, data_coords, str_like_object, end_offset=0):
     start_pos = start_offset * segment_length
 
@@ -110,11 +107,9 @@ def buildStringMap(the_list):
 
     return output, str(max_value_length).encode()
 
-
 def readIntFromFile(file_path, file_extension):
     with open(file_path + file_extension, 'rb') as the_file:
         return int(the_file.read().rstrip())
-
 
 def openReadFile(file_path, file_extension):
     the_file = open(file_path + file_extension, 'rb')

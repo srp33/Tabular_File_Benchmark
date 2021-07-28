@@ -37,7 +37,7 @@ function buildTestFiles {
 mkdir -p TestData/TempResults
 
 ## Small files
-#time buildTestFiles 10 90 1000
+time buildTestFiles 10 90 1000
 ## Tall, narrow files
 #time buildTestFiles 100 900 1000000
 ## Short, wide files
@@ -117,9 +117,9 @@ function runQueries {
 }
 
 resultFile=Results2/Query_Results.tsv
-#echo -e "Description\tFileType\tNumDiscrete\tNumContinuous\tNumRows\tMemMap\tSeconds" > $resultFile
+echo -e "Description\tFileType\tNumDiscrete\tNumContinuous\tNumRows\tMemMap\tSeconds" > $resultFile
 
-#runQueries $resultFile 10 90 1000
+runQueries $resultFile 10 90 1000
 #runQueries $resultFile 100 900 1000000
 #runQueries $resultFile 100000 900000 1000
 
@@ -135,10 +135,10 @@ function buildTestFiles2 {
 
   python3 ConvertTsvToFixedWidthFile2.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2
 }
-#buildTestFiles2 10 90 1000 &
+buildTestFiles2 10 90 1000 &
 #buildTestFiles2 100 900 1000000 &
 #buildTestFiles2 100000 900000 1000 &
-#wait
+wait
 
 ############################################################
 # Query every 100th column from second version of 
@@ -187,9 +187,9 @@ function runQueries2 {
 }
 
 resultFile=Results2/Query_Results_fwf2.tsv
-#echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
+echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
 
-#runQueries2 $resultFile 10 90 1000
+runQueries2 $resultFile 10 90 1000
 #runQueries2 $resultFile 100 900 1000000
 #runQueries2 $resultFile 100000 900000 1000
 
@@ -253,7 +253,6 @@ function getMemUsed {
 #getMemUsed $resultFile 10 90 1000
 #getMemUsed $resultFile 100 900 1000000
 #getMemUsed $resultFile 100000 900000 1000
-#exit
 
 ############################################################
 # Query second version of fixed-width files. This time 
@@ -297,18 +296,23 @@ function runQueries3 {
   ##time Rscript --vanilla TestFeatherFilter.R $dataFilePrefix.fthr $colNamesFile $outFile $numDiscrete $numDataPoints
   #python3 CheckOutput.py $outFile $masterOutFile
   
-  outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3C++.fwf2
-  echo -e "Filter\tfwf2(C++)\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth3 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows $ctFile $numDiscrete,$numDataPoints> /dev/null; } 2>&1 )" >> $resultFile
-  python3 CheckOutput.py $outFile $masterOutFile
+  #outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3C++.fwf2
+  #echo -e "Filter\tfwf2(C++)\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth3 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows $ctFile $numDiscrete,$numDataPoints> /dev/null; } 2>&1 )" >> $resultFile
+  #python3 CheckOutput.py $outFile $masterOutFile
 
+  ####################################################
+  # We will invoke Rust version here
+  ####################################################
 }
 
 resultFile=Results2/Query_Results_Filtering.tsv
-#echo -e "Description\tMethod\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
+echo -e "Description\tMethod\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
 
 runQueries3 $resultFile 10 90 1000
-runQueries3 $resultFile 100 900 1000000
-runQueries3 $resultFile 100000 900000 1000
+echo "got here!"
+exit
+#runQueries3 $resultFile 100 900 1000000
+#runQueries3 $resultFile 100000 900000 1000
 
 ############################################################
 # Build compressed versions of the second version of fixed-
@@ -539,12 +543,12 @@ function runAllQueries4 {
   runQueries4 $resultFile $numDiscrete $numContinuous $numRows lz4 16 lz4_16
 }
 
-#resultFile=Results2/Query_Results_fwf2_compressed.tsv
-#echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
+resultFile=Results2/Query_Results_fwf2_compressed.tsv
+echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
 
-runAllQueries4 $resultFile 10 90 1000
-runAllQueries4 $resultFile 100 900 1000000
-runAllQueries4 $resultFile 100000 900000 1000
+#runAllQueries4 $resultFile 10 90 1000
+#runAllQueries4 $resultFile 100 900 1000000
+#runAllQueries4 $resultFile 100000 900000 1000
 
 ############################################################
 # Measure how quickly we can query the files that have
@@ -626,16 +630,14 @@ function runQuery4T {
 resultFile=Results2/Query_Results_fwf2_compressed_transposed.tsv
 echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
 
-runQuery4T $resultFile 10 90 1000 zstd 1 zstd_1
+#runQuery4T $resultFile 10 90 1000 zstd 1 zstd_1
 ##TODO: The following test is failing with this error:
 ##        zstd.ZstdError: decompression error: did not decompress full frame
 ##runQuery4T $resultFile 10 90 1000 zstd 22 zstd_22
-runQuery4T $resultFile 100 900 1000000 zstd 1 zstd_1
-runQuery4T $resultFile 100 900 1000000 zstd 22 zstd_22
+#runQuery4T $resultFile 100 900 1000000 zstd 1 zstd_1
+#runQuery4T $resultFile 100 900 1000000 zstd 22 zstd_22
 #runQuery4T $resultFile 100000 900000 1000 zstd 1 zstd_1
 #runQuery4T $resultFile 100000 900000 1000 zstd 22 zstd_22
-
-exit
 
 ############################################################
 # Clean up the test files created so far to save disk space.
@@ -703,4 +705,4 @@ echo -e "Description\tDimensions\tValue" > $resultFile
 
 #TODO: Copy stuff from gnomad.sh, cadd.sh
 
-git clone https://github.com/srp33/F4.git
+#git clone https://github.com/srp33/F4.git

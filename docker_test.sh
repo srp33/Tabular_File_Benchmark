@@ -18,7 +18,7 @@ cp *.py $tmpDir/
 cp *.R $tmpDir/
 cp *.cpp $tmpDir/
 #cp tempOutput.txt $tmpDir/
-cp -r zstd-dev $tmpDir/
+#cp -r zstd-dev $tmpDir/
 
 cd $tmpDir
 ./build_docker

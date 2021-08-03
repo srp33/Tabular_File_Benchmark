@@ -11,3 +11,4 @@ zstd-dev
 *.gz
 *.tbi
 F4
+Temp_*

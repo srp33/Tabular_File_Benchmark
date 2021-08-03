@@ -6,14 +6,16 @@ FROM ubuntu:18.04
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
       build-essential python3-dev python3-setuptools python3-pip libsnappy-dev \
-      gawk time wget \
+      gawk time wget curl \
  && pip3 install --upgrade setuptools pip
 
 ######################################################################################
 # Install Python3 and modules.
 ######################################################################################
 
-RUN pip3 install "msgpack==0.5.6" "numpy==1.15.2" "pandas==0.23.4" "python-snappy==0.5.3" "tables==3.4.4" "zstandard==0.10.2" "lz4==2.1.6" "fastnumbers==2.1.1" "joblib==0.15.1"
+RUN pip3 install "msgpack==0.5.6" "numpy==1.15.2" "pandas==0.23.4" "python-snappy==0.5.3" \
+                 "tables==3.4.4" "zstandard==0.10.2" "lz4==2.1.6" "fastnumbers==2.1.1" \
+                 "joblib==0.15.1"
 
 ######################################################################################
 # Install R
@@ -58,6 +60,13 @@ RUN g++ -O3 -std=gnu++14 -o /TestFixedWidth2 TestFixedWidth2.cpp && \
 RUN g++ -O3 -std=gnu++14 TestFixedWidth4T.cpp -lz -lzstd -o /TestFixedWidth4T && \
     chmod +x /TestFixedWidth4T
 
+######################################################################################
+# Install Rust and compile Rust code
+######################################################################################
+
+RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y
+COPY *.rs /
+RUN /root/.cargo/bin/rustc -o /TestFixedWidth2_rust /TestFixedWidth2.rs
 
 ######################################################################################
 # Add scripts that we created

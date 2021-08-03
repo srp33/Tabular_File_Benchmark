@@ -158,18 +158,19 @@ function runQueries2 {
   mcclFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.mccl
   colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
 
-  echo >> $resultFile
-  echo "Python Code--------------------------------------------------" >> $resultFile
-  echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
+  #echo >> $resultFile
+  #echo "Python Code--------------------------------------------------" >> $resultFile
+  #echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
+  python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP
 
-  masterOutFile=TestData/TempResults/TestSplit_${numDiscrete}_${numContinuous}_${numRows}_tsv_False.tsv.out
-  python3 CheckOutput.py $outFile $masterOutFile
+  #masterOutFile=TestData/TempResults/TestSplit_${numDiscrete}_${numContinuous}_${numRows}_tsv_False.tsv.out
+  #python3 CheckOutput.py $outFile $masterOutFile
 
-  echo >> $resultFile
-  echo "Python Code(No_MemoryMapping---------------------------------" >> $resultFile
-  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
-  echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows NO_MMAP > /dev/null; } 2>&1 )" >> $resultFile
-  python3 CheckOutput.py $outFile $masterOutFile
+  #echo >> $resultFile
+  #echo "Python Code(No_MemoryMapping---------------------------------" >> $resultFile
+  #outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
+  #echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows NO_MMAP > /dev/null; } 2>&1 )" >> $resultFile
+  #python3 CheckOutput.py $outFile $masterOutFile
 
   #echo >> $resultFile
   #echo "C++ Code-----------------------------------------------------" >> $resultFile
@@ -183,8 +184,8 @@ function runQueries2 {
   #echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows NO_MMAP > /dev/null; } 2>&1 )" >> $resultFile
   #python3 CheckOutput.py $outFile $masterOutFile
 
-  echo >> $resultFile
-  echo "Rust Code-----------------------------------------------------" >> $resultFile
+  #echo >> $resultFile
+  #echo "Rust Code-----------------------------------------------------" >> $resultFile
   outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.rust.tmp
   #echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth2_rust $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
   /TestFixedWidth2_rust $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows

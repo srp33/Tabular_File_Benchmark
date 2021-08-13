@@ -1,0 +1,7 @@
+[package]
+name = "TestFixedWidth2_rust"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+memmap2 = "0.3.0"

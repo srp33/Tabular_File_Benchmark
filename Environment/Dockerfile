@@ -65,8 +65,10 @@ RUN g++ -O3 -std=gnu++14 TestFixedWidth4T.cpp -lz -lzstd -o /TestFixedWidth4T &&
 ######################################################################################
 
 RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y
-COPY *.rs /
-RUN /root/.cargo/bin/rustc -o /TestFixedWidth2_rust /TestFixedWidth2.rs
+COPY Rust/Cargo.toml /
+COPY Rust/TestFixedWidth2.rs /src/main.rs
+RUN /root/.cargo/bin/cargo build
+#RUN /root/.cargo/bin/rustc -o /TestFixedWidth2_rust /TestFixedWidth2.rs
 
 ######################################################################################
 # Add scripts that we created

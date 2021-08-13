@@ -15,7 +15,7 @@ cp Environment/Dockerfile $tmpDir/
 cp Environment/build_docker $tmpDir/
 cp test.sh $tmpDir/
 cp *.py $tmpDir/
-cp *.rs $tmpDir/
+cp -r Rust $tmpDir/Rust/
 cp *.R $tmpDir/
 cp *.cpp $tmpDir/
 

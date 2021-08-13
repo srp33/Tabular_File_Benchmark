@@ -28,7 +28,7 @@ docker run -i -t --rm \
   -v $d/TestData:/TestData \
   -v $tmpDir:/tmp \
   --user $(id -u):$(id -g) \
-  srp33/tab_bench ./test.sh
+  srp33/tab_bench bash /test.sh
 #  srp33/tab_bench /bin/bash
 
 cd ..

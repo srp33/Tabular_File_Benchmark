@@ -5,7 +5,7 @@ set -o errexit
 d=$(pwd)
 
 mkdir -p Results2 TestData
-rm -rf Results2/* TestData/*
+#rm -rf Results2/* TestData/*
 
 tmpDir=/tmp/FWF2_$(date "+%Y%m%d-%H%M%S")
 rm -rf $tmpDir
@@ -22,8 +22,8 @@ cp *.cpp $tmpDir/
 cd $tmpDir
 ./build_docker
 
-#docker run --rm \
-docker run -i -t --rm \
+#docker run -i -t --rm \
+docker run --rm \
   -v $d/Results2:/Results2 \
   -v $d/TestData:/TestData \
   -v $tmpDir:/tmp \

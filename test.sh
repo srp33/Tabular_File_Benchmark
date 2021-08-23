@@ -37,7 +37,7 @@ function buildTestFiles {
 mkdir -p TestData/TempResults
 
 ## Small files
-time buildTestFiles 10 90 1000
+#time buildTestFiles 10 90 1000
 ## Tall, narrow files
 #time buildTestFiles 100 900 1000000
 ## Short, wide files
@@ -116,10 +116,10 @@ function runQueries {
 #  runQuery $resultFile binary $numDiscrete $numContinuous $numRows python3 TestHDF5.py hdf5 False
 }
 
-resultFile=Results2/Query_Results.tsv
-echo -e "Description\tFileType\tNumDiscrete\tNumContinuous\tNumRows\tMemMap\tSeconds" > $resultFile
+#resultFile=Results2/Query_Results.tsv
+#echo -e "Description\tFileType\tNumDiscrete\tNumContinuous\tNumRows\tMemMap\tSeconds" > $resultFile
 
-runQueries $resultFile 10 90 1000
+#runQueries $resultFile 10 90 1000
 #runQueries $resultFile 100 900 1000000
 #runQueries $resultFile 100000 900000 1000
 
@@ -135,10 +135,11 @@ function buildTestFiles2 {
 
   python3 ConvertTsvToFixedWidthFile2.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2
 }
-buildTestFiles2 10 90 1000 &
+
+#buildTestFiles2 10 90 1000 &
 #buildTestFiles2 100 900 1000000 &
 #buildTestFiles2 100000 900000 1000 &
-wait
+#wait
 
 ############################################################
 # Query every 100th column from second version of 
@@ -158,48 +159,39 @@ function runQueries2 {
   mcclFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.mccl
   colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
 
-  #echo >> $resultFile
-  #echo "Python Code--------------------------------------------------" >> $resultFile
-  #echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
-  python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP
+#  echo -e "Python\tYes\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
+#  python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP
 
-  #masterOutFile=TestData/TempResults/TestSplit_${numDiscrete}_${numContinuous}_${numRows}_tsv_False.tsv.out
-  #python3 CheckOutput.py $outFile $masterOutFile
+  masterOutFile=TestData/TempResults/TestSplit_${numDiscrete}_${numContinuous}_${numRows}_tsv_False.tsv.out
+#  python3 CheckOutput.py $outFile $masterOutFile
 
-  #echo >> $resultFile
-  #echo "Python Code(No_MemoryMapping---------------------------------" >> $resultFile
-  #outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
-  #echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows NO_MMAP > /dev/null; } 2>&1 )" >> $resultFile
-  #python3 CheckOutput.py $outFile $masterOutFile
+#  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
+#  echo -e "Python\tNo\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows NO_MMAP > /dev/null; } 2>&1 )" >> $resultFile
+#  python3 CheckOutput.py $outFile $masterOutFile
 
-  #echo >> $resultFile
-  #echo "C++ Code-----------------------------------------------------" >> $resultFile
-  #outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
-  #echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
-  #python3 CheckOutput.py $outFile $masterOutFile
+#  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
+#  echo -e "C++\tYes\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
+#  python3 CheckOutput.py $outFile $masterOutFile
 
-  #echo >> $resultFile
-  #echo "C++ Code(No_MemoryMapping)-----------------------------------" >> $resultFile
-  #outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}NM.fwf2.tmp
-  #echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows NO_MMAP > /dev/null; } 2>&1 )" >> $resultFile
-  #python3 CheckOutput.py $outFile $masterOutFile
+#  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}NM.fwf2.tmp
+#  echo -e "C++\tNo\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows NO_MMAP > /dev/null; } 2>&1 )" >> $resultFile
+#  python3 CheckOutput.py $outFile $masterOutFile
 
-  #echo >> $resultFile
-  #echo "Rust Code-----------------------------------------------------" >> $resultFile
   outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.rust.tmp
-  #echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e /target/debug/TestFixedWidth2_rust $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
-  /target/debug/TestFixedWidth2_rust $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows
+#  echo -e "Rust\tYes\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e /target/release/TestFixedWidth2_rust $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows > /dev/null; } 2>&1 )" >> $resultFile
+  /target/release/TestFixedWidth2_rust $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows
   python3 CheckOutput.py $outFile $masterOutFile
 
+  #TODO: Remove all outFiles that are created above.
   rm -f $outFile
 }
 
 resultFile=Results2/Query_Results_fwf2.tsv
-echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
+echo -e "Language\tMemMapping\tDescription\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
 
 runQueries2 $resultFile 10 90 1000
-#runQueries2 $resultFile 100 900 1000000
-#runQueries2 $resultFile 100000 900000 1000
+runQueries2 $resultFile 100 900 1000000
+runQueries2 $resultFile 100000 900000 1000
 echo "got here!"
 exit
 

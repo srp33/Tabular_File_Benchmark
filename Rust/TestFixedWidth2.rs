@@ -7,8 +7,8 @@ use std::path::PathBuf;
 use std::cmp;
 use std::str::FromStr;
 
-fn get_col_indices_to_query(column_names_file_path: &str) -> Vec<i32> {
-    let mut index_range: Vec<i32> = Vec::new();
+fn get_col_indices_to_query(column_names_file_path: &str) -> Vec<usize> {
+    let mut index_range: Vec<usize> = Vec::new();
     let file = File::open(column_names_file_path).unwrap();
     let mmap = unsafe { MmapOptions::new().map(&file).unwrap() };
     let n = mmap.split(|byte|byte == &b'\n');
@@ -17,18 +17,18 @@ fn get_col_indices_to_query(column_names_file_path: &str) -> Vec<i32> {
             continue;
         }
         let int_string = std::str::from_utf8(line.split(|byte| byte== &b'\t').nth(0).unwrap());
-        let num = int_string.unwrap().trim().parse::<i32>().unwrap();
+        let num = int_string.unwrap().trim().parse::<usize>().unwrap();
         index_range.push(num);
     }
     return index_range;
 }
 
-fn parse_data_coords(line_indices: Vec<i32>, coords_file: Mmap, coords_file_max_length: i32, full_str_length: i32) -> Vec<Vec<i32>> {
-    let mut results: Vec<Vec<i32>> = Vec::new();
-    let coords_file_length = coords_file.len() as i32;
-    let out_dict: Vec<i32> = Vec::new();
-    let mut data_start_pos:i32;
-    let mut data_end_pos:i32;
+fn parse_data_coords(line_indices: Vec<usize>, coords_file: Mmap, coords_file_max_length: usize, full_str_length: usize) -> Vec<Vec<usize>> {
+    let mut results: Vec<Vec<usize>> = Vec::new();
+    let coords_file_length = coords_file.len() as usize;
+    let out_dict: Vec<usize> = Vec::new();
+    let mut data_start_pos:usize;
+    let mut data_end_pos:usize;
     for index in line_indices {
         let start_pos = index * (coords_file_max_length + 1);
         let next_start_pos = start_pos + coords_file_max_length + 1;
@@ -39,7 +39,7 @@ fn parse_data_coords(line_indices: Vec<i32>, coords_file: Mmap, coords_file_max_
         else {
             let test = &coords_file[start_pos as usize..next_start_pos as usize];
             let int_string = std::str::from_utf8(test).unwrap().trim_end();
-            data_start_pos = int_string.parse::<i32>().unwrap();
+            data_start_pos = int_string.parse::<usize>().unwrap();
         }
         if next_start_pos == further_next_start_pos {
             data_end_pos = full_str_length;
@@ -51,16 +51,16 @@ fn parse_data_coords(line_indices: Vec<i32>, coords_file: Mmap, coords_file_max_
             else {
                 let test = &coords_file[next_start_pos as usize..further_next_start_pos as usize];
                 let int_string = std::str::from_utf8(test).unwrap().trim_end();
-                data_end_pos = int_string.parse::<i32>().unwrap();
+                data_end_pos = int_string.parse::<usize>().unwrap();
             }
         }
-        let temp_results:Vec<i32> = vec![index, data_start_pos, data_end_pos];
+        let temp_results:Vec<usize> = vec![index, data_start_pos, data_end_pos];
         results.push(temp_results);
     }
     return results;
 }
 
-fn parse_data_values (start_offset: i32, segment_length: i32, data_coords: &Vec<Vec<i32>>, str_like_object: &Mmap) -> String {
+fn parse_data_values (start_offset: usize, segment_length: usize, data_coords: &Vec<Vec<usize>>, str_like_object: &Mmap) -> String {
     let mut current_line: Vec<&str> = Vec::new();
     let end_offset = 0;
     let start_pos = start_offset * segment_length;
@@ -81,14 +81,14 @@ fn main() -> Result<(), Error> {
     let out_file_path = &args[4];
     let file_path_mccl = &args[5];
     let column_names_file_path = &args[6];
-    let num_rows: i32 = FromStr::from_str(&args[7]).unwrap();
-    let chunk_size = 1000;
+    let num_rows: usize = FromStr::from_str(&args[7]).unwrap();
+    let chunk_size: usize = 1000;
 
     //Determine the column indices to be queried and create the row indices
     let col_indices = get_col_indices_to_query(column_names_file_path);
     let line_length = fs::read_to_string(file_path_ll).expect("Unable to read file").parse().unwrap();
     let max_column_coord_length = fs::read_to_string(file_path_mccl).expect("Unable to read file").parse().unwrap();
-    let row_indices: Vec<i32> = (0..num_rows+1).collect();
+    let row_indices: Vec<usize> = (0..num_rows+1).collect();
 
     //Create the mmaps to be used in parse_data_coords and parse_data_values, open the outfile
     let file_cc = File::open(file_path_cc).unwrap();

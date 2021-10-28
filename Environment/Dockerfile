@@ -65,9 +65,15 @@ RUN g++ -O3 -std=gnu++14 TestFixedWidth4T.cpp -lz -lzstd -o /TestFixedWidth4T &&
 ######################################################################################
 
 RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y
-COPY Rust/Cargo.toml /
-COPY Rust/TestFixedWidth2.rs /src/main.rs
-RUN /root/.cargo/bin/cargo build --release
+RUN mkdir -p /Rust/TestFixedWidth2/src /Rust/TestFixedWidth3/src
+
+COPY Rust/Cargo2.toml /Rust/TestFixedWidth2/Cargo.toml
+COPY Rust/TestFixedWidth2.rs /Rust/TestFixedWidth2/src/main.rs
+RUN cd /Rust/TestFixedWidth2; /root/.cargo/bin/cargo build --release
+
+COPY Rust/Cargo3.toml /Rust/TestFixedWidth3/Cargo.toml
+COPY Rust/TestFixedWidth3.rs /Rust/TestFixedWidth3/src/main.rs
+RUN cd /Rust/TestFixedWidth3; /root/.cargo/bin/cargo build --release
 
 ######################################################################################
 # Add scripts that we created
@@ -76,30 +82,3 @@ RUN /root/.cargo/bin/cargo build --release
 COPY *.py /
 COPY *.R /
 COPY test.sh /
-
-#  && find /usr/local/lib/R/site-library/ -depth -wholename '*/html' -exec rm -r "{}" \; \
-#  && find /usr/local/lib/R/site-library/ -depth -wholename '*/data' -exec rm -r "{}" \; \
-#  && find /usr/local/lib/R/site-library/ -depth -wholename '*/doc' -exec rm -r "{}" \; \
-#  && find /usr/local/lib/R/site-library/ -depth -wholename '*/tests' -exec rm -r "{}" \; \
-#  && find /usr/local/lib/R/site-library/ -depth -wholename '*/examples' -exec rm -r "{}" \; \
-#  && find /usr/local/lib/R/site-library/ -depth -wholename '*/help' -exec rm -r "{}" \; \
-#  && find /usr/local/lib/R/site-library/ -depth -wholename '*/www' -exec rm -r "{}" \; \
-#  && find /usr/local/lib/R/site-library/ -depth -wholename '*/www-dir' -exec rm -r "{}" \; \
-#  && find /usr/local/lib/R/site-library/ -depth -wholename '*/staticdocs' -exec rm -r "{}" \; \
-#  && find /usr/local/lib/R/site-library/ -depth -wholename '*/demo' -exec rm -r "{}" \; \
-#  && find /usr/lib/R/library/ -depth -wholename '*/html' -exec rm -r "{}" \; \
-#  && find /usr/lib/R/library/ -depth -wholename '*/data' -exec rm -r "{}" \; \
-#  && find /usr/lib/R/library/ -depth -wholename '*/doc' -exec rm -r "{}" \; \
-#  && find /usr/lib/R/library/ -depth -wholename '*/tests' -exec rm -r "{}" \; \
-#  && find /usr/lib/R/library/ -depth -wholename '*/examples' -exec rm -r "{}" \; \
-#  && find /usr/lib/R/library/ -depth -wholename '*/help' -exec rm -r "{}" \; \
-#  && find /usr/lib/R/library/ -depth -wholename '*/www' -exec rm -r "{}" \; \
-#  && find /usr/lib/R/library/ -depth -wholename '*/www-dir' -exec rm -r "{}" \; \
-#  && find /usr/lib/R/library/ -depth -wholename '*/staticdocs' -exec rm -r "{}" \; \
-#  && find /usr/lib/R/library/ -depth -wholename '*/demo' -exec rm -r "{}" \; \
-#  && rm -rf /usr/local/lib/R/site-library/BH \
-#  && rm -rf /usr/share/mime /usr/share/tcltk  \
-#  && rm -rf /usr/share/tcltk /usr/share/man \
-#  && rm -rf /usr/share/doc /usr/share/locale /usr/share/perl5 \
-#  && apt-get -y autoremove \
-#  && apt-get -y clean

@@ -178,8 +178,8 @@ function runQueries2 {
 #  python3 CheckOutput.py $outFile $masterOutFile
 
   outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.rust.tmp
-#  echo -e "Rust\tYes\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e /target/release/TestFixedWidth2_rust $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows > /dev/null; } 2>&1 )" >> $resultFile
-  /target/release/TestFixedWidth2_rust $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows
+  echo -e "Rust\tYes\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e /Rust/TestFixedWidth2/target/release/main $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows > /dev/null; } 2>&1 )" >> $resultFile
+  #/Rust/TestFixedWidth2/target/release/main $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows
   python3 CheckOutput.py $outFile $masterOutFile
 
   #TODO: Remove all outFiles that are created above.
@@ -187,13 +187,11 @@ function runQueries2 {
 }
 
 resultFile=Results2/Query_Results_fwf2.tsv
-echo -e "Language\tMemMapping\tDescription\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
+#echo -e "Language\tMemMapping\tDescription\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
 
-runQueries2 $resultFile 10 90 1000
-runQueries2 $resultFile 100 900 1000000
-runQueries2 $resultFile 100000 900000 1000
-echo "got here!"
-exit
+#runQueries2 $resultFile 10 90 1000
+#runQueries2 $resultFile 100 900 1000000
+#runQueries2 $resultFile 100000 900000 1000
 
 function getMemUsed {
   resultFile=$1
@@ -283,36 +281,40 @@ function runQueries3 {
 
   #rm -f $masterOutFile
 
-  echo -e "Filter\ttsv(Python)\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestSplitFilter.py $dataFilePrefix.tsv $colNamesFile $masterOutFile $numDiscrete $numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  #echo -e "Filter\ttsv\tPython\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestSplitFilter.py $dataFilePrefix.tsv $colNamesFile $masterOutFile $numDiscrete $numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
   #time python3 TestSplitFilter.py $dataFilePrefix.tsv $colNamesFile $masterOutFile $numDiscrete $numDataPoints
 
-  outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3.fwf2
-  rm -f $outFile
-  echo -e "Filter\tfwf2(Python)\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth3.py $dataFilePrefix.fwf2 $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
-  #time python3 TestFixedWidth3.py $dataFilePrefix.fwf2 $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints
-  python3 CheckOutput.py $outFile $masterOutFile
+  #outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3.fwf2
+  #rm -f $outFile
+  #echo -e "Filter\tfwf2\tPython\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth3.py $dataFilePrefix.fwf2 $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  ###time python3 TestFixedWidth3.py $dataFilePrefix.fwf2 $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints
+  #python3 CheckOutput.py $outFile $masterOutFile
 
   #outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3.fthr
   #rm -f $outFile
-  #echo -e "Filter\tfthr(R)\t\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e Rscript --vanilla TestFeatherFilter.R $dataFilePrefix.fthr $colNamesFile $outFile $numDiscrete $numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
-  ##time Rscript --vanilla TestFeatherFilter.R $dataFilePrefix.fthr $colNamesFile $outFile $numDiscrete $numDataPoints
+  #echo -e "Filter\tfthr\tR\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e Rscript --vanilla TestFeatherFilter.R $dataFilePrefix.fthr $colNamesFile $outFile $numDiscrete $numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  #time Rscript --vanilla TestFeatherFilter.R $dataFilePrefix.fthr $colNamesFile $outFile $numDiscrete $numDataPoints
   #python3 CheckOutput.py $outFile $masterOutFile
   
   #outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3C++.fwf2
-  #echo -e "Filter\tfwf2(C++)\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth3 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows $ctFile $numDiscrete,$numDataPoints> /dev/null; } 2>&1 )" >> $resultFile
+  #rm -f $outFile
+  #echo -e "Filter\tfwf2\tC++\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth3 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows $ctFile $numDiscrete,$numDataPoints> /dev/null; } 2>&1 )" >> $resultFile
   #python3 CheckOutput.py $outFile $masterOutFile
 
-  ####################################################
-  # We will invoke Rust version here
-  ####################################################
+  outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}.fwf2.rust
+  rm -f $outFile
+  echo -e "Filter\tfwf2\tRust\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e /Rust/TestFixedWidth3/target/release/main $dataFile $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  #/Rust/TestFixedWidth3/target/release/main $dataFile $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints
+  python3 CheckOutput.py $outFile $masterOutFile
 }
 
 resultFile=Results2/Query_Results_Filtering.tsv
-echo -e "Description\tMethod\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
+echo -e "Description\tFormat\tLanguage\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
 
 runQueries3 $resultFile 10 90 1000
 #runQueries3 $resultFile 100 900 1000000
 #runQueries3 $resultFile 100000 900000 1000
+exit
 
 ############################################################
 # Build compressed versions of the second version of fixed-

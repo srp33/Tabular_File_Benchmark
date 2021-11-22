@@ -279,16 +279,16 @@ function runQueries3 {
   mcclFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.mccl
   colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
 
-  #rm -f $masterOutFile
+  rm -f $masterOutFile
 
-  #echo -e "Filter\ttsv\tPython\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestSplitFilter.py $dataFilePrefix.tsv $colNamesFile $masterOutFile $numDiscrete $numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
-  #time python3 TestSplitFilter.py $dataFilePrefix.tsv $colNamesFile $masterOutFile $numDiscrete $numDataPoints
+  echo -e "Filter\ttsv\tPython\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestSplitFilter.py $dataFilePrefix.tsv $colNamesFile $masterOutFile $numDiscrete $numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  time python3 TestSplitFilter.py $dataFilePrefix.tsv $colNamesFile $masterOutFile $numDiscrete $numDataPoints
 
-  #outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3.fwf2
-  #rm -f $outFile
-  #echo -e "Filter\tfwf2\tPython\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth3.py $dataFilePrefix.fwf2 $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
-  ###time python3 TestFixedWidth3.py $dataFilePrefix.fwf2 $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints
-  #python3 CheckOutput.py $outFile $masterOutFile
+  outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3.fwf2
+  rm -f $outFile
+  echo -e "Filter\tfwf2\tPython\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth3.py $dataFilePrefix.fwf2 $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  ##time python3 TestFixedWidth3.py $dataFilePrefix.fwf2 $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints
+  python3 CheckOutput.py $outFile $masterOutFile
 
   #outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3.fthr
   #rm -f $outFile
@@ -296,10 +296,10 @@ function runQueries3 {
   #time Rscript --vanilla TestFeatherFilter.R $dataFilePrefix.fthr $colNamesFile $outFile $numDiscrete $numDataPoints
   #python3 CheckOutput.py $outFile $masterOutFile
   
-  #outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3C++.fwf2
-  #rm -f $outFile
-  #echo -e "Filter\tfwf2\tC++\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth3 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows $ctFile $numDiscrete,$numDataPoints> /dev/null; } 2>&1 )" >> $resultFile
-  #python3 CheckOutput.py $outFile $masterOutFile
+  outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3C++.fwf2
+  rm -f $outFile
+  echo -e "Filter\tfwf2\tC++\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth3 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows $ctFile $numDiscrete,$numDataPoints> /dev/null; } 2>&1 )" >> $resultFile
+  python3 CheckOutput.py $outFile $masterOutFile
 
   outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}.fwf2.rust
   rm -f $outFile
@@ -308,13 +308,12 @@ function runQueries3 {
   python3 CheckOutput.py $outFile $masterOutFile
 }
 
-resultFile=Results2/Query_Results_Filtering.tsv
-echo -e "Description\tFormat\tLanguage\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
+#resultFile=Results2/Query_Results_Filtering.tsv
+#echo -e "Description\tFormat\tLanguage\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
 
-runQueries3 $resultFile 10 90 1000
+#runQueries3 $resultFile 10 90 1000
 #runQueries3 $resultFile 100 900 1000000
 #runQueries3 $resultFile 100000 900000 1000
-exit
 
 ############################################################
 # Build compressed versions of the second version of fixed-
@@ -335,7 +334,7 @@ function compressLines {
 #  python3 CompressLines.py $f $numRows $method $level False
 }
 
-resultFile=Results2/Line_Compression_Times.tsv
+#resultFile=Results2/Line_Compression_Times.tsv
 #echo -e "File\tMethod\tLevel\tSeconds" > $resultFile
 
 #for f in TestData/10_*.fwf2
@@ -347,6 +346,7 @@ resultFile=Results2/Line_Compression_Times.tsv
 #  compressLines $resultFile $f 1000 lzma NA
 #  compressLines $resultFile $f 1000 snappy NA
 #  compressLines $resultFile $f 1000 zstd 1
+###TODO  compressLines $resultFile $f 1000 zstd 3
 #  compressLines $resultFile $f 1000 zstd 22
 #  compressLines $resultFile $f 1000 lz4 0
 #  compressLines $resultFile $f 1000 lz4 16
@@ -394,7 +394,7 @@ function compressFile {
   echo -e "$f\tgz\t$( { /usr/bin/time -f %e gzip -9 -k $f > /dev/null; } 2>&1 )" >> $resultFile
 }
 
-resultFile=Results2/File_Compression_Times.tsv
+#resultFile=Results2/File_Compression_Times.tsv
 #echo -e "File\tMethod\tSeconds" > $resultFile
 
 #for f in TestData/10*.fwf2
@@ -418,7 +418,7 @@ function calcFileSizes {
   echo -e "$extension\t$numDiscrete\t$numContinuous\t$numRows\t$(python3 PrintFileSize.py $dataFile)" >> $resultFile
 }
 
-sizeFile=Results2/Uncompressed_File_Sizes.tsv
+#sizeFile=Results2/Uncompressed_File_Sizes.tsv
 #echo -e "Extension\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
 
 #for extension in tsv flag msgpack fwf fwf2
@@ -446,7 +446,7 @@ function calcFileSizes2 {
   echo -e "$method\t$level\t$numDiscrete\t$numContinuous\t$numRows\t$(python3 PrintFileSize.py $dataFile)" >> $resultFile
 }
 
-sizeFile=Results2/Line_Compressed_File_Sizes.tsv
+#sizeFile=Results2/Line_Compressed_File_Sizes.tsv
 #echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
 
 #calcFileSizes2 $sizeFile 10 90 1000 bz2 1
@@ -492,7 +492,7 @@ function calcFileSizes3 {
   echo -e "$method\t$numDiscrete\t$numContinuous\t$numRows\t$(python3 PrintFileSize.py $dataFile)" >> $resultFile
 }
 
-sizeFile=Results2/WholeFile_Compressed_File_Sizes.tsv
+#sizeFile=Results2/WholeFile_Compressed_File_Sizes.tsv
 #echo -e "Method\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
 
 #calcFileSizes3 $sizeFile 10 90 1000 gz
@@ -522,7 +522,10 @@ function runQueries4 {
   rm -f $outFile
 
   echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4.py $dataFile $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
-  #time python3 TestFixedWidth4.py $dataFile $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
+  time python3 TestFixedWidth4.py $dataFile $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
+
+  #TODO: Probably remove this because we're only doing this with Python (to compare the different compression methods rather than to compare languages).
+  #/Rust/TestFixedWidth4/target/release/main $dataFile $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints $compressionMethod
 
   python3 CheckOutput.py $outFile $masterOutFile
 }
@@ -545,8 +548,8 @@ function runAllQueries4 {
   runQueries4 $resultFile $numDiscrete $numContinuous $numRows lz4 16 lz4_16
 }
 
-resultFile=Results2/Query_Results_fwf2_compressed.tsv
-echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
+#resultFile=Results2/Query_Results_fwf2_compressed.tsv
+#echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
 
 #runAllQueries4 $resultFile 10 90 1000
 #runAllQueries4 $resultFile 100 900 1000000
@@ -585,7 +588,7 @@ function transposeCompressTestFile {
   echo -e "${method}_${level}\t$numDiscrete\t$numContinuous\t$numRows\t$(python3 PrintFileSize.py $transposedFile.${method}_${level})" >> $sizeFile
 }
 
-sizeFile=Results2/File_Sizes_transposed.tsv
+#sizeFile=Results2/File_Sizes_transposed.tsv
 #echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
 
 #transposeCompressTestFile $sizeFile 10 90 1000 100 &
@@ -611,35 +614,30 @@ function runQuery4T {
   outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries4.$compressionSuffix
   
   rm -f $outFile
-  echo -e "Python-----" >> $resultFile
-  echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
+  echo -e "$compressionMethod\t$compressionLevel\tPython\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
   #python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
   python3 CheckOutput.py $outFile $masterOutFile
 
+  #Remove this? I am getting a segmentation fault sometimes.
   rm -f $outFile
-  echo "C++--------" >> $resultFile
-  #echo DataFile : $dataFile
-  #echo ColFile : $colNamesFile
-  #echo TransposedFile : $transposedFile
-  #echo Output : $outFile
-
-#./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
-
- echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
+  #echo -e "$compressionMethod\t$compressionLevel\tC++\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
   python3 CheckOutput.py $outFile $masterOutFile
 }
 
 resultFile=Results2/Query_Results_fwf2_compressed_transposed.tsv
-echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
+echo -e "Method\tLevel\tLanguage\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
 
 #runQuery4T $resultFile 10 90 1000 zstd 1 zstd_1
 ##TODO: The following test is failing with this error:
 ##        zstd.ZstdError: decompression error: did not decompress full frame
+##TODO: Focus on zstd_1?
 ##runQuery4T $resultFile 10 90 1000 zstd 22 zstd_22
 #runQuery4T $resultFile 100 900 1000000 zstd 1 zstd_1
 #runQuery4T $resultFile 100 900 1000000 zstd 22 zstd_22
 #runQuery4T $resultFile 100000 900000 1000 zstd 1 zstd_1
 #runQuery4T $resultFile 100000 900000 1000 zstd 22 zstd_22
+exit
 
 ############################################################
 # Clean up the test files created so far to save disk space.

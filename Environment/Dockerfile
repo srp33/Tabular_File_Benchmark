@@ -67,13 +67,17 @@ RUN g++ -O3 -std=gnu++14 TestFixedWidth4T.cpp -lz -lzstd -o /TestFixedWidth4T &&
 RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y
 RUN mkdir -p /Rust/TestFixedWidth2/src /Rust/TestFixedWidth3/src
 
-COPY Rust/Cargo2.toml /Rust/TestFixedWidth2/Cargo.toml
+COPY Rust/Cargo.toml /Rust/TestFixedWidth2/Cargo.toml
 COPY Rust/TestFixedWidth2.rs /Rust/TestFixedWidth2/src/main.rs
 RUN cd /Rust/TestFixedWidth2; /root/.cargo/bin/cargo build --release
 
-COPY Rust/Cargo3.toml /Rust/TestFixedWidth3/Cargo.toml
+COPY Rust/Cargo.toml /Rust/TestFixedWidth3/Cargo.toml
 COPY Rust/TestFixedWidth3.rs /Rust/TestFixedWidth3/src/main.rs
 RUN cd /Rust/TestFixedWidth3; /root/.cargo/bin/cargo build --release
+
+COPY Rust/Cargo.toml /Rust/TestFixedWidth4/Cargo.toml
+COPY Rust/TestFixedWidth4.rs /Rust/TestFixedWidth4/src/main.rs
+RUN cd /Rust/TestFixedWidth4; /root/.cargo/bin/cargo build --release
 
 ######################################################################################
 # Add scripts that we created

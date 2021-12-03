@@ -522,9 +522,9 @@ function runQueries4 {
   rm -f $outFile
 
   echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4.py $dataFile $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
-  time python3 TestFixedWidth4.py $dataFile $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
+  #time python3 TestFixedWidth4.py $dataFile $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
 
-  #TODO: Probably remove this because we're only doing this with Python (to compare the different compression methods rather than to compare languages).
+  # We are not using this version in our tests, but it does work.
   #/Rust/TestFixedWidth4/target/release/main $dataFile $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints $compressionMethod
 
   python3 CheckOutput.py $outFile $masterOutFile
@@ -614,29 +614,37 @@ function runQuery4T {
   outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries4.$compressionSuffix
   
   rm -f $outFile
-  echo -e "$compressionMethod\t$compressionLevel\tPython\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
+  #echo -e "$compressionMethod\t$compressionLevel\tPython\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
   #python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
-  python3 CheckOutput.py $outFile $masterOutFile
+  #python3 CheckOutput.py $outFile $masterOutFile
 
   #Remove this? I am getting a segmentation fault sometimes.
   rm -f $outFile
-  ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
   #echo -e "$compressionMethod\t$compressionLevel\tC++\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
   python3 CheckOutput.py $outFile $masterOutFile
+
+  #rm -f $outFile
+  #echo -e "$compressionMethod\t$compressionLevel\tRust\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e /Rust/TestFixedWidth4T/target/release/main $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  ##/Rust/TestFixedWidth4T/target/release/main $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
+  #python3 CheckOutput.py $outFile $masterOutFile
 }
 
-resultFile=Results2/Query_Results_fwf2_compressed_transposed.tsv
-echo -e "Method\tLevel\tLanguage\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
+#resultFile=Results2/Query_Results_fwf2_compressed_transposed.tsv
+#echo -e "Method\tLevel\tLanguage\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
 
 #runQuery4T $resultFile 10 90 1000 zstd 1 zstd_1
-##TODO: The following test is failing with this error:
+##TODO: The following test is failing with this error (Python version):
 ##        zstd.ZstdError: decompression error: did not decompress full frame
-##TODO: Focus on zstd_1?
+##        Probably just focus on zstd_1, which is faster than 22 anyway.
+##          If so, stop creating those files above.
+##      C++ is going slow and is giving a segmentation fault on the wide files.
+##        So probability remove entirely from this script.
 ##runQuery4T $resultFile 10 90 1000 zstd 22 zstd_22
 #runQuery4T $resultFile 100 900 1000000 zstd 1 zstd_1
-#runQuery4T $resultFile 100 900 1000000 zstd 22 zstd_22
+##runQuery4T $resultFile 100 900 1000000 zstd 22 zstd_22
 #runQuery4T $resultFile 100000 900000 1000 zstd 1 zstd_1
-#runQuery4T $resultFile 100000 900000 1000 zstd 22 zstd_22
+##runQuery4T $resultFile 100000 900000 1000 zstd 22 zstd_22
 exit
 
 ############################################################

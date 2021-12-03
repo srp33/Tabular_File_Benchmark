@@ -5,7 +5,7 @@ import fastnumbers
 
 file_path = sys.argv[1]
 transposed_file_path = sys.argv[2]
-col_indices_file_path = sys.argv[3]
+col_names_file_path = sys.argv[3]
 out_file_path = sys.argv[4]
 query_col_indices = [int(x) for x in sys.argv[5].split(",")]
 compression_method = sys.argv[6]
@@ -14,6 +14,7 @@ memory_map = True
 
 if compression_method == "zstd":
     import zstandard
+    print(dir(zstandard))
     cmpr = zstandard.ZstdDecompressor()
 else:
     print("No matching compression method")
@@ -66,7 +67,7 @@ t_sample_coords = parse_data_coords(range(num_samples), file_handles["t_cc"], t_
 for query_col_index in query_col_indices:
     t_sample_coords = filter_row(cmpr.decompress(next(filter_lines)), t_sample_coords, query_col_index)
 
-variable_indices = [x for x in getColIndicesToQuery(col_indices_file_path, memory_map)]
+variable_indices = [x for x in getColIndicesToQuery(col_names_file_path, memory_map)]
 variable_coords = list(parse_data_coords(variable_indices, file_handles["cc"], max_column_coord_length, line_length))
 
 sample_coords = parse_data_coords([0] + [i[0] + 1 for i in t_sample_coords], file_handles["rowstart"], max_row_start_length, len(file_handles["data"]))

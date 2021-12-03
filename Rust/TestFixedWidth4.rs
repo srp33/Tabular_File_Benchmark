@@ -122,14 +122,14 @@ fn main () -> Result<(), Error> {
     let out_file_path = &args[3];
     // let num_rows: usize = FromStr::from_str(&args[4]).unwrap();
     let query_col_indices = args[5].split(",").map(|x| FromStr::from_str(x).unwrap()).collect::<Vec<usize>>();
-    let compression_method = &args[6];
+    //let compression_method = &args[6];
     //let compression_level = &args[7];
     //let memory_map: bool = true;
 
-    if !compression_method.eq("zstd") {
-        println!("{}", "No matching compression method");
-        std::process::exit(1);
-    }
+    //if !compression_method.eq("zstd") {
+    //    println!("{}", "No matching compression method");
+    //    std::process::exit(1);
+    //}
 
     let mut file_handles = HashMap::new();
     file_handles.insert(String::from("cc"), open_read_file(file_path, ".cc"));

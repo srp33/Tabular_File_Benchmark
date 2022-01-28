@@ -15,7 +15,11 @@ function buildTestFile {
 
   dataFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.$dataFileExtension
 
-  python3 $scriptFile $numDiscrete $numContinuous $numRows $dataFile
+  if [ ! -f $dataFile ]
+  then
+    echo Creating $dataFile
+    python3 $scriptFile $numDiscrete $numContinuous $numRows $dataFile
+  fi
 }
 
 function buildTestFiles {
@@ -28,24 +32,37 @@ function buildTestFiles {
   buildTestFile $numDiscrete $numContinuous $numRows BuildFlagFile.py flag &
   wait
 
-  python3 ConvertTsvToFixedWidthFile.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf
+  fwfFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf
+  if [ ! -f $fwfFile ]
+  then
+    echo Creating $fwfFile
+    python3 ConvertTsvToFixedWidthFile.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv $fwfFile
+  fi
+
   # This takes about 16 hours to run...
   #Rscript --vanilla ConvertTsvToRFormats.R TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.fthr TestData/${numDiscrete}_${numContinuous}_${numRows}.fst
   #python3 ConvertTsvToHDF5.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.hdf5
+
+  #https://www.danielecook.com/speeding-up-reading-and-writing-in-r/
+  #https://data.nozav.org/post/2019-r-data-frame-benchmark/
+  #https://vroom.r-lib.org/articles/benchmarks.html
+  #fst R package
+  #vroom R package
+  #arrow?
+  #hdf5
 }
 
 mkdir -p TestData/TempResults
 
 ## Small files
-#time buildTestFiles 10 90 1000
+buildTestFiles 10 90 1000
 ## Tall, narrow files
-#time buildTestFiles 100 900 1000000
+buildTestFiles 100 900 1000000
 ## Short, wide files
-#time buildTestFiles 100000 900000 1000
+buildTestFiles 100000 900000 1000
 
 ############################################################
-# Query every 100th column from first round of test files
-# using a variety of methods.
+# Query every 100th column using a variety of methods.
 ############################################################
 
 function runQuery {
@@ -98,15 +115,16 @@ function runQueries {
 
   runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestSplit.py tsv False
   runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestSplit.py tsv True
-#  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestPandas.py tsv True
-#  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestAwk.py tsv False
+  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestPandas.py tsv True
+  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestAwk.py tsv False
 ####  On wide file, mawk gave this type of error so I excluded it: "$32801 exceeds maximum field(32767)"
 ####  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestMawk.py tsv False
-#  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestGawk.py tsv False
-#  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestNawk.py tsv False
-#  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestCut.py tsv False
-#  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestFixedWidth.py fwf False
-#  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestFixedWidth.py fwf True
+  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestGawk.py tsv False
+  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestNawk.py tsv False
+  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestCut.py tsv False
+  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestFixedWidth.py fwf False
+  runQuery $resultFile text $numDiscrete $numContinuous $numRows python3 TestFixedWidth.py fwf True
+
 #### Not really supported: see comments in TestReadTsv.R.
 ####  runQuery $resultFile text $numDiscrete $numContinuous $numRows "Rscript --vanilla" TestReadTsv.R tsv False
 #### This is very fast on the tall TSV file. It throws a SegFault on the wide TSV file.
@@ -116,12 +134,15 @@ function runQueries {
 #  runQuery $resultFile binary $numDiscrete $numContinuous $numRows python3 TestHDF5.py hdf5 False
 }
 
-#resultFile=Results2/Query_Results.tsv
-#echo -e "Description\tFileType\tNumDiscrete\tNumContinuous\tNumRows\tMemMap\tSeconds" > $resultFile
+resultFile=Results2/Query_Results.tsv
 
-#runQueries $resultFile 10 90 1000
-#runQueries $resultFile 100 900 1000000
-#runQueries $resultFile 100000 900000 1000
+if [ ! -f $resultFile ]
+then
+  echo -e "Description\tFileType\tNumDiscrete\tNumContinuous\tNumRows\tMemMap\tSeconds" > $resultFile
+  runQueries $resultFile 10 90 1000
+  runQueries $resultFile 100 900 1000000
+  runQueries $resultFile 100000 900000 1000
+fi
 
 ############################################################
 # Build second version of fixed-width files that are more
@@ -133,13 +154,18 @@ function buildTestFiles2 {
   numContinuous=$2
   numRows=$3
 
-  python3 ConvertTsvToFixedWidthFile2.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2
+  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2
+
+  if [ ! -f $outFile ]
+  then
+    python3 ConvertTsvToFixedWidthFile2.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv $outFile
+  fi
 }
 
-#buildTestFiles2 10 90 1000 &
-#buildTestFiles2 100 900 1000000 &
-#buildTestFiles2 100000 900000 1000 &
-#wait
+buildTestFiles2 10 90 1000 &
+buildTestFiles2 100 900 1000000 &
+buildTestFiles2 100000 900000 1000 &
+wait
 
 ############################################################
 # Query every 100th column from second version of 
@@ -159,39 +185,49 @@ function runQueries2 {
   mcclFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.mccl
   colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
 
-#  echo -e "Python\tYes\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
-#  python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP
+  # Python FWF2 with memory mapping
+  echo -e "Python\tYes\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
+  #python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP
 
   masterOutFile=TestData/TempResults/TestSplit_${numDiscrete}_${numContinuous}_${numRows}_tsv_False.tsv.out
-#  python3 CheckOutput.py $outFile $masterOutFile
+  python3 CheckOutput.py $outFile $masterOutFile
+  rm -f $outFile
 
-#  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
-#  echo -e "Python\tNo\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows NO_MMAP > /dev/null; } 2>&1 )" >> $resultFile
-#  python3 CheckOutput.py $outFile $masterOutFile
+  # Python FWF2 without memory mapping
+  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
+  echo -e "Python\tNo\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows NO_MMAP > /dev/null; } 2>&1 )" >> $resultFile
+  python3 CheckOutput.py $outFile $masterOutFile
+  rm -f $outFile
 
-#  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
-#  echo -e "C++\tYes\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
-#  python3 CheckOutput.py $outFile $masterOutFile
+  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
+  echo -e "C++\tYes\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
+  python3 CheckOutput.py $outFile $masterOutFile
+  rm -f $outFile
 
-#  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}NM.fwf2.tmp
-#  echo -e "C++\tNo\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows NO_MMAP > /dev/null; } 2>&1 )" >> $resultFile
-#  python3 CheckOutput.py $outFile $masterOutFile
+  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}NM.fwf2.tmp
+  echo -e "C++\tNo\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows NO_MMAP > /dev/null; } 2>&1 )" >> $resultFile
+  python3 CheckOutput.py $outFile $masterOutFile
+  rm -f $outFile
+
+  #TODO: Add Rust without memory mapping
 
   outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.rust.tmp
   echo -e "Rust\tYes\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e /Rust/TestFixedWidth2/target/release/main $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows > /dev/null; } 2>&1 )" >> $resultFile
   #/Rust/TestFixedWidth2/target/release/main $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows
   python3 CheckOutput.py $outFile $masterOutFile
-
-  #TODO: Remove all outFiles that are created above.
   rm -f $outFile
 }
 
 resultFile=Results2/Query_Results_fwf2.tsv
-#echo -e "Language\tMemMapping\tDescription\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
 
-#runQueries2 $resultFile 10 90 1000
-#runQueries2 $resultFile 100 900 1000000
-#runQueries2 $resultFile 100000 900000 1000
+if [ !  -f $resultFile ]
+then
+  echo -e "Language\tMemMapping\tDescription\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
+
+  runQueries2 $resultFile 10 90 1000
+  runQueries2 $resultFile 100 900 1000000
+  runQueries2 $resultFile 100000 900000 1000
+fi
 
 function getMemUsed {
   resultFile=$1
@@ -205,54 +241,61 @@ function getMemUsed {
   ccFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.cc
   mcclFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.mccl
   colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
-  echo >> $resultFile
-  echo "Python Code--------------------------------------------------" >> $resultFile
-  { /usr/bin/time --verbose python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP  >> /dev/null ; } 2> tempOutput.txt
-  while read line; do
-        IFS=" " read -ra myList <<< "$line"
-        if [[ "${myList[0]}" == "Maximum" ]]; then
-        echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$line" >> $resultFile
-        fi
-  done <tempOutput.txt
 
-  echo >> $resultFile
-  echo "Python Code(No_MemoryMapping---------------------------------" >> $resultFile
-  { /usr/bin/time --verbose python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows NO_MMAP >> /dev/null ; } 2> tempOutput.txt
-  while read line; do
-        IFS=" " read -ra myList <<< "$line"
-        if [[ "${myList[0]}" == "Maximum" ]]; then
-	echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$line" >> $resultFile
-        fi
-  done <tempOutput.txt
+  # TODO: Combine this with runQueries2 so we don't have to test everything twice.
 
-  echo >> $resultFile
-  echo "C++ Code-----------------------------------------------------" >> $resultFile
-  { /usr/bin/time --verbose ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows MMAP >> /dev/null ; } 2> tempOutput.txt
-  while read line; do
-        IFS=" " read -ra myList <<< "$line"
-        if [[ "${myList[0]}" == "Maximum" ]]; then
-        echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$line" >> $resultFile
-        fi
-  done <tempOutput.txt
+  # Python FWF2 with memory mapping
+  memUsed=$({ /usr/bin/time --verbose python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP 2>&1; } | python3 ParseMemoryInfo.py)
+  echo -e "Python\tYes\tMemUsed\t$numDiscrete\t$numContinuous\t$numRows\t$memUsed" >> $resultFile
 
-  echo >> $resultFile
-  echo "C++ Code(No_MemoryMapping)-----------------------------------" >> $resultFile
-  { /usr/bin/time --verbose ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows NO_MMAP >> /dev/null ; } 2> tempOutput.txt
-  while read line; do
-        IFS=" " read -ra myList <<< "$line"
-        if [[ "${myList[0]}" == "Maximum" ]]; then
-        echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$line" >> $resultFile
-        fi
-  done <tempOutput.txt
-  rm -f $outFile
-  echo "Memory Test Finished for all 4 Program Types"
+#  echo >> $resultFile
+#  echo "Python Code(No_MemoryMapping---------------------------------" >> $resultFile
+#  { /usr/bin/time --verbose python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows NO_MMAP >> /dev/null ; } 2> tempOutput.txt
+#  while read line; do
+#        IFS=" " read -ra myList <<< "$line"
+#        if [[ "${myList[0]}" == "Maximum" ]]; then
+#	echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$line" >> $resultFile
+#        fi
+#  done <tempOutput.txt
+#
+#  echo >> $resultFile
+#  echo "C++ Code-----------------------------------------------------" >> $resultFile
+#  { /usr/bin/time --verbose ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows MMAP >> /dev/null ; } 2> tempOutput.txt
+#  while read line; do
+#        IFS=" " read -ra myList <<< "$line"
+#        if [[ "${myList[0]}" == "Maximum" ]]; then
+#        echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$line" >> $resultFile
+#        fi
+#  done <tempOutput.txt
+#
+#  echo >> $resultFile
+#  echo "C++ Code(No_MemoryMapping)-----------------------------------" >> $resultFile
+#  { /usr/bin/time --verbose ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows NO_MMAP >> /dev/null ; } 2> tempOutput.txt
+#  while read line; do
+#        IFS=" " read -ra myList <<< "$line"
+#        if [[ "${myList[0]}" == "Maximum" ]]; then
+#        echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$line" >> $resultFile
+#        fi
+#  done <tempOutput.txt
+#  rm -f $outFile
+#  echo "Memory Test Finished for all 4 Program Types"
+
+  #TODO: Add Rust without memory mapping
 }
 
-#echo >> $resultFile
-#echo -e "\t\t############### Memory Used ###############" >> $resultFile
-#getMemUsed $resultFile 10 90 1000
-#getMemUsed $resultFile 100 900 1000000
-#getMemUsed $resultFile 100000 900000 1000
+resultFile=Results2/Memory_Used_fwf2.tsv
+
+if [ !  -f $resultFile ]
+then
+  echo -e "Language\tMemMapping\tDescription\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
+
+  getMemUsed $resultFile 10 90 1000
+  #getMemUsed $resultFile 100 900 1000000
+  #getMemUsed $resultFile 100000 900000 1000
+fi
+
+echo "got here"
+exit
 
 ############################################################
 # Query second version of fixed-width files. This time 

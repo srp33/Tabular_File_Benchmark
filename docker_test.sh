@@ -22,14 +22,13 @@ cp *.cpp $tmpDir/
 cd $tmpDir
 ./build_docker
 
-#docker run -i -t --rm \
-docker run --rm \
+#docker run -d --rm \
+docker run -i -t --rm \
   -v $d/Results2:/Results2 \
   -v $d/TestData:/TestData \
   -v $tmpDir:/tmp \
   --user $(id -u):$(id -g) \
   srp33/tab_bench bash /test.sh
-#  srp33/tab_bench /bin/bash
 
 cd ..
 rm -rf $tmpDir

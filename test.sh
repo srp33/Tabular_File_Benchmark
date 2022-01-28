@@ -186,12 +186,13 @@ function runQueries2 {
   colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
 
   # Python FWF2 with memory mapping
-  echo -e "Python\tYes\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
-  #python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP
-
+  output=$({ /usr/bin/time --verbose python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP 2>&1; } | python3 ParseTimeMemoryInfo.py)
+  echo -e "Python\tYes\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$output" >> $resultFile
   masterOutFile=TestData/TempResults/TestSplit_${numDiscrete}_${numContinuous}_${numRows}_tsv_False.tsv.out
   python3 CheckOutput.py $outFile $masterOutFile
   rm -f $outFile
+
+  #TODO: Make these consistent with the above one
 
   # Python FWF2 without memory mapping
   outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
@@ -199,11 +200,13 @@ function runQueries2 {
   python3 CheckOutput.py $outFile $masterOutFile
   rm -f $outFile
 
+  # C++ with memory mapping
   outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
   echo -e "C++\tYes\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows MMAP > /dev/null; } 2>&1 )" >> $resultFile
   python3 CheckOutput.py $outFile $masterOutFile
   rm -f $outFile
 
+  # C++ without memory mapping
   outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}NM.fwf2.tmp
   echo -e "C++\tNo\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows NO_MMAP > /dev/null; } 2>&1 )" >> $resultFile
   python3 CheckOutput.py $outFile $masterOutFile
@@ -211,88 +214,23 @@ function runQueries2 {
 
   #TODO: Add Rust without memory mapping
 
+  # Rust with memory mapping
   outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.rust.tmp
   echo -e "Rust\tYes\tSelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e /Rust/TestFixedWidth2/target/release/main $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows > /dev/null; } 2>&1 )" >> $resultFile
-  #/Rust/TestFixedWidth2/target/release/main $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows
   python3 CheckOutput.py $outFile $masterOutFile
   rm -f $outFile
 }
 
 resultFile=Results2/Query_Results_fwf2.tsv
 
-if [ !  -f $resultFile ]
-then
-  echo -e "Language\tMemMapping\tDescription\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
+#if [ !  -f $resultFile ]
+#then
+  echo -e "Language\tMemMapping\tDescription\tNumDiscrete\tNumContinuous\tNumRows\tWallClockSeconds\tMaxMemoryKilobytes" > $resultFile
 
   runQueries2 $resultFile 10 90 1000
   runQueries2 $resultFile 100 900 1000000
   runQueries2 $resultFile 100000 900000 1000
-fi
-
-function getMemUsed {
-  resultFile=$1
-  numDiscrete=$2
-  numContinuous=$3
-  numRows=$4
-
-  dataFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2
-  outFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.tmp
-  llFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.ll
-  ccFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.cc
-  mcclFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2.mccl
-  colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
-
-  # TODO: Combine this with runQueries2 so we don't have to test everything twice.
-
-  # Python FWF2 with memory mapping
-  memUsed=$({ /usr/bin/time --verbose python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows MMAP 2>&1; } | python3 ParseMemoryInfo.py)
-  echo -e "Python\tYes\tMemUsed\t$numDiscrete\t$numContinuous\t$numRows\t$memUsed" >> $resultFile
-
-#  echo >> $resultFile
-#  echo "Python Code(No_MemoryMapping---------------------------------" >> $resultFile
-#  { /usr/bin/time --verbose python3 TestFixedWidth2_Updated.py $dataFile $colNamesFile $outFile $numRows NO_MMAP >> /dev/null ; } 2> tempOutput.txt
-#  while read line; do
-#        IFS=" " read -ra myList <<< "$line"
-#        if [[ "${myList[0]}" == "Maximum" ]]; then
-#	echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$line" >> $resultFile
-#        fi
-#  done <tempOutput.txt
-#
-#  echo >> $resultFile
-#  echo "C++ Code-----------------------------------------------------" >> $resultFile
-#  { /usr/bin/time --verbose ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows MMAP >> /dev/null ; } 2> tempOutput.txt
-#  while read line; do
-#        IFS=" " read -ra myList <<< "$line"
-#        if [[ "${myList[0]}" == "Maximum" ]]; then
-#        echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$line" >> $resultFile
-#        fi
-#  done <tempOutput.txt
-#
-#  echo >> $resultFile
-#  echo "C++ Code(No_MemoryMapping)-----------------------------------" >> $resultFile
-#  { /usr/bin/time --verbose ./TestFixedWidth2 $llFile $dataFile $ccFile $outFile $mcclFile $colNamesFile $numRows NO_MMAP >> /dev/null ; } 2> tempOutput.txt
-#  while read line; do
-#        IFS=" " read -ra myList <<< "$line"
-#        if [[ "${myList[0]}" == "Maximum" ]]; then
-#        echo -e "SelectColumns\t$numDiscrete\t$numContinuous\t$numRows\t$line" >> $resultFile
-#        fi
-#  done <tempOutput.txt
-#  rm -f $outFile
-#  echo "Memory Test Finished for all 4 Program Types"
-
-  #TODO: Add Rust without memory mapping
-}
-
-resultFile=Results2/Memory_Used_fwf2.tsv
-
-if [ !  -f $resultFile ]
-then
-  echo -e "Language\tMemMapping\tDescription\tNumDiscrete\tNumContinuous\tNumRows\tValue" > $resultFile
-
-  getMemUsed $resultFile 10 90 1000
-  #getMemUsed $resultFile 100 900 1000000
-  #getMemUsed $resultFile 100000 900000 1000
-fi
+#fi
 
 echo "got here"
 exit

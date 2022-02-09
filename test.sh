@@ -225,17 +225,14 @@ function runQueries2 {
 
 resultFile=Results2/Query_Results_fwf2.tsv
 
-#if [ !  -f $resultFile ]
-#then
+if [ !  -f $resultFile ]
+then
   echo -e "Language\tMemMapping\tDescription\tNumDiscrete\tNumContinuous\tNumRows\tWallClockSeconds\tMaxMemoryKilobytes" > $resultFile
 
   runQueries2 $resultFile 10 90 1000
   runQueries2 $resultFile 100 900 1000000
   runQueries2 $resultFile 100000 900000 1000
-#fi
-#TODO: detached mode?
-echo "got here"
-exit
+fi
 
 ############################################################
 # Query second version of fixed-width files. This time 
@@ -656,21 +653,21 @@ function runQuery4T {
 
   echo Query4T - $compressionMethod - $compressionLevel - $numDiscrete - $numContinuous - $numRows
   
-  rm -f $outFile
-  echo -e "$compressionMethod\t$compressionLevel\tPython\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
-  #python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
-  python3 CheckOutput.py $outFile $masterOutFile
-
-  ## I am getting a segmentation fault sometimes, so leave this out.
   #rm -f $outFile
-  #echo -e "$compressionMethod\t$compressionLevel\tC++\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
-  #./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
+  #echo -e "$compressionMethod\t$compressionLevel\tPython\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
+  python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
   #python3 CheckOutput.py $outFile $masterOutFile
+
+  ### I am getting a segmentation fault sometimes, so leave this out.
+  ##rm -f $outFile
+  ##echo -e "$compressionMethod\t$compressionLevel\tC++\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  ##./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
+  ##python3 CheckOutput.py $outFile $masterOutFile
   
-  rm -f $outFile
-  echo -e "$compressionMethod\t$compressionLevel\tRust\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e /Rust/TestFixedWidth4T/target/release/main $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  #rm -f $outFile
+  #echo -e "$compressionMethod\t$compressionLevel\tRust\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e /Rust/TestFixedWidth4T/target/release/main $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
   #/Rust/TestFixedWidth4T/target/release/main $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
-  python3 CheckOutput.py $outFile $masterOutFile
+  #python3 CheckOutput.py $outFile $masterOutFile
 }
 
 resultFile=Results2/Query_Results_fwf2_compressed_transposed.tsv
@@ -679,11 +676,12 @@ if [ ! -f $resultFile ]
 then
   echo -e "Method\tLevel\tLanguage\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
 
-  for level in 1 5 9 13 17 22
+  #for level in 1 5 9 13 17 22
+  for level in 22
   do
     runQuery4T $resultFile 10 90 1000 zstd ${level} zstd_${level}
-    runQuery4T $resultFile 100 900 1000000 zstd ${level} zstd_${level}
-    runQuery4T $resultFile 100000 900000 1000 zstd ${level} zstd_${level}
+    #runQuery4T $resultFile 100 900 1000000 zstd ${level} zstd_${level}
+    #runQuery4T $resultFile 100000 900000 1000 zstd ${level} zstd_${level}
   done
 fi
 
@@ -733,8 +731,8 @@ function runGenotypeTests {
 
 resultFile=Results2/Results_Genotypes.tsv
 
-#if [ ! -f $resultFile ]
-#then
+if [ ! -f $resultFile ]
+then
   echo -e "Description\tDimensions\tValue" > $resultFile
 
   runGenotypeTests $resultFile 10
@@ -747,7 +745,7 @@ resultFile=Results2/Results_Genotypes.tsv
   runGenotypeTests $resultFile 50000
   runGenotypeTests $resultFile 100000
   runGenotypeTests $resultFile 500000
-#fi
+fi
 
 #TODO: detached mode?
 echo "got here"

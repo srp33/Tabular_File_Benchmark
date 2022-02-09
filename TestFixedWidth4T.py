@@ -58,26 +58,12 @@ t_filter_variable_coords = parse_data_coords(query_col_indices, file_handles["t_
 
 # I'm not sure yet why I need to specify the end_offset, but it works...
 filter_lines = parse_data_values(0, t_line_length, t_filter_variable_coords, file_handles["t_data"], end_offset=1)
-#filter_lines = list(filter_lines)
-#print(cmpr.decompress(filter_lines[0]))
-#print(cmpr.decompress(filter_lines[1]))
-#print(len(filter_lines[1]))
-#cmpr.decompress(filter_lines[1])
-#filter_lines = [next(line) for line in filter_lines]
-#print(type(filter_lines))
-#print(len(filter_lines))
-#sys.exit()
 
 # Get the coordinates of all samples (before filtering)
 t_sample_coords = parse_data_coords(range(num_samples), file_handles["t_cc"], t_max_column_coord_length, t_line_length)
 
 # Iterate through each column that we want to use for filtering and filter the data
 for query_col_index in query_col_indices:
-    #line = next(filter_lines)
-    #print(query_col_index)
-    #print(len(line))
-    #print(line)
-    #t_sample_coords = filter_row(cmpr.decompress(line), t_sample_coords, query_col_index)
     t_sample_coords = filter_row(cmpr.decompress(next(filter_lines)), t_sample_coords, query_col_index)
 
 variable_indices = [x for x in getColIndicesToQuery(col_names_file_path, memory_map)]

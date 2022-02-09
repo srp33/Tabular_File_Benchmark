@@ -672,18 +672,26 @@ function runQuery4T {
 
 resultFile=Results2/Query_Results_fwf2_compressed_transposed.tsv
 
-if [ ! -f $resultFile ]
-then
+#if [ ! -f $resultFile ]
+#then
   echo -e "Method\tLevel\tLanguage\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
 
   #for level in 1 5 9 13 17 22
   for level in 22
   do
-    runQuery4T $resultFile 10 90 1000 zstd ${level} zstd_${level}
+    #runQuery4T $resultFile 10 90 1000 zstd ${level} zstd_${level}
     #runQuery4T $resultFile 100 900 1000000 zstd ${level} zstd_${level}
-    #runQuery4T $resultFile 100000 900000 1000 zstd ${level} zstd_${level}
+    runQuery4T $resultFile 100000 900000 1000 zstd ${level} zstd_${level}
   done
-fi
+#fi
+
+#NOTES:
+#  When parsing tall file (Python):
+#    About half of the time is used when calling parse_data_coords().
+#    About 35% of the time is used to decompress the relevant lines in the main file.
+#    About 10% of the time is used to write the output file.
+#  When parsing wide file (Python):
+#    Nearly all of the time is used to decompress the relevant lines in the main file.
 
 ############################################################
 # Clean up the test files created so far to save disk space.

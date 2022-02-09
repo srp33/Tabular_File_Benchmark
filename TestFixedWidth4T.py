@@ -69,7 +69,12 @@ for query_col_index in query_col_indices:
 variable_indices = [x for x in getColIndicesToQuery(col_names_file_path, memory_map)]
 variable_coords = list(parse_data_coords(variable_indices, file_handles["cc"], max_column_coord_length, line_length))
 
+import datetime
+print(datetime.datetime.now())
+
 sample_coords = parse_data_coords([0] + [i[0] + 1 for i in t_sample_coords], file_handles["rowstart"], max_row_start_length, len(file_handles["data"]))
+
+print(datetime.datetime.now())
 
 with open(out_file_path, 'wb') as out_file:
     chunk_size = 1000
@@ -90,3 +95,5 @@ with open(out_file_path, 'wb') as out_file:
 
 for handle in file_handles:
     file_handles[handle].close()
+
+print(datetime.datetime.now())

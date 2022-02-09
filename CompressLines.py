@@ -35,11 +35,14 @@ elif compression_method == "zstd":
 elif compression_method == "lz4":
     # See https://python-lz4.readthedocs.io/en/stable/quickstart.html#simple-usage
     import lz4.frame as cmpr
-    compression_code = "cmpr.compress(line)"
+    compression_code = f"cmpr.compress(line, compression_level={compression_level})"
     out_file_path = file_path + "." + compression_method + "_" + compression_level
 else:
     print("No matching compression method")
     sys.exit(1)
+
+#if os.path.exists(out_file_path):
+#    sys.exit(0)
 
 with open(file_path + ".ll", 'rb') as ll_file:
     line_length = int(ll_file.read().rstrip())

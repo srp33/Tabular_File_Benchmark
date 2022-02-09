@@ -571,7 +571,7 @@ int main(int argc, const char** argv)
     string pathToMrsl(dataPath);
     pathToMrsl += ".mrsl";
     int mrsl = readScalarFromFile(pathToMrsl);
-    cout << "Size of matchingRows : " << matchingRows.size() << endl;
+    //cout << "Size of matchingRows : " << matchingRows.size() << endl;
 
     for (unsigned long int i = 0; i < matchingRows.size(); i++)
     {

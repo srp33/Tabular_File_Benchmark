@@ -14,7 +14,7 @@ with open(file_path, 'rb') as data_file:
         num_rows += 1
 
 with open(file_path + ".cc", 'rb') as data_file:
-    num_cols = 0
+    num_cols = -1
     for line in data_file:
         num_cols += 1
 

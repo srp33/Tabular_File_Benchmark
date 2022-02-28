@@ -158,6 +158,7 @@ function buildTestFiles2 {
 
   if [ ! -f $outFile ]
   then
+    echo Creating $outFile
     python3 ConvertTsvToFixedWidthFile2.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv $outFile
   fi
 }
@@ -653,37 +654,36 @@ function runQuery4T {
 
   echo Query4T - $compressionMethod - $compressionLevel - $numDiscrete - $numContinuous - $numRows
   
-  #rm -f $outFile
-  #echo -e "$compressionMethod\t$compressionLevel\tPython\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
-  python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
-  #python3 CheckOutput.py $outFile $masterOutFile
+  rm -f $outFile
+  echo -e "$compressionMethod\t$compressionLevel\tPython\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
+  #python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
+  python3 CheckOutput.py $outFile $masterOutFile
 
-  ### I am getting a segmentation fault sometimes, so leave this out.
+  ### I am getting a segmentation fault sometimes.
   ##rm -f $outFile
   ##echo -e "$compressionMethod\t$compressionLevel\tC++\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
   ##./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
   ##python3 CheckOutput.py $outFile $masterOutFile
   
-  #rm -f $outFile
-  #echo -e "$compressionMethod\t$compressionLevel\tRust\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e /Rust/TestFixedWidth4T/target/release/main $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
+  rm -f $outFile
+  echo -e "$compressionMethod\t$compressionLevel\tRust\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e /Rust/TestFixedWidth4T/target/release/main $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
   #/Rust/TestFixedWidth4T/target/release/main $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
-  #python3 CheckOutput.py $outFile $masterOutFile
+  python3 CheckOutput.py $outFile $masterOutFile
 }
 
 resultFile=Results2/Query_Results_fwf2_compressed_transposed.tsv
 
-#if [ ! -f $resultFile ]
-#then
+if [ ! -f $resultFile ]
+then
   echo -e "Method\tLevel\tLanguage\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
 
-  #for level in 1 5 9 13 17 22
-  for level in 22
+  for level in 1 5 9 13 17 22
   do
-    #runQuery4T $resultFile 10 90 1000 zstd ${level} zstd_${level}
-    #runQuery4T $resultFile 100 900 1000000 zstd ${level} zstd_${level}
+    runQuery4T $resultFile 10 90 1000 zstd ${level} zstd_${level}
+    runQuery4T $resultFile 100 900 1000000 zstd ${level} zstd_${level}
     runQuery4T $resultFile 100000 900000 1000 zstd ${level} zstd_${level}
   done
-#fi
+fi
 
 #NOTES:
 #  When parsing tall file (Python):
@@ -697,6 +697,7 @@ resultFile=Results2/Query_Results_fwf2_compressed_transposed.tsv
 # Clean up the test files created so far to save disk space.
 ############################################################
 
+#TODO:
 #rm -rfv TestData/*
 
 ############################################################
@@ -755,16 +756,58 @@ then
   runGenotypeTests $resultFile 500000
 fi
 
-#TODO: detached mode?
-echo "got here"
-exit
-
 ############################################################
 # Download, parse, and query gnomad files.
 ############################################################
 
-#wget https://storage.googleapis.com/gnomad-public/release/2.1.1/vcf/genomes/gnomad.genomes.r2.1.1.sites.vcf.bgz
+#wget https://storage.googleapis.com/gnomad-public/release/2.1.1/liftover_grch38/vcf/genomes/gnomad.genomes.r2.1.1.sites.liftover_grch38.vcf.bgz
+#wget https://storage.googleapis.com/gnomad-public/release/2.1.1/liftover_grch38/vcf/genomes/gnomad.genomes.r2.1.1.sites.liftover_grch38.vcf.bgz.tbi
+#wget https://storage.googleapis.com/gnomad-public/release/3.0/vcf/genomes/gnomad.genomes.r3.0.sites.vcf.bgz
+#wget https://storage.googleapis.com/gnomad-public/release/3.0/vcf/genomes/gnomad.genomes.r3.0.sites.vcf.bgz.tbi
 
-#TODO: Copy stuff from gnomad.sh, cadd.sh
+#python3 ParseGnomad.py gnomad.genomes.r2.1.1.sites.liftover_grch38.vcf.bgz TestData/gnomad2.tsv.gz &
+#python3 ParseGnomad.py gnomad.genomes.r3.0.sites.vcf.bgz TestData/gnomad3.tsv.gz &
+#wait
+
+#rm -f gnomad.genomes.r2.1.1.sites.liftover_grch38.vcf.bgz gnomad.genomes.r3.0.sites.vcf.bgz
+
+#python3 ConvertTsvToFixedWidthFile2.py TestData/gnomad2.tsv.gz TestData/gnomad2.fwf2 &
+#python3 ConvertTsvToFixedWidthFile2.py TestData/gnomad3.tsv.gz TestData/gnomad3.fwf2 &
+#wait
 
 #git clone https://github.com/srp33/F4.git
+
+############################################################
+# Download, parse, and query CADD files.
+############################################################
+
+#wget -O TestData/whole_genome_SNVs_inclAnno.tsv.gz https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs_inclAnno.tsv.gz
+#wget -O TestData/whole_genome_SNVs_inclAnno.tsv.gz.tbi https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs_inclAnno.tsv.gz.tbi
+
+#zcat TestData/whole_genome_SNVs_inclAnno.tsv.gz | head -n 2 | tail -n +2 | cut -c2- | gzip > TestData/cadd.tsv.gz
+#zcat TestData/whole_genome_SNVs_inclAnno.tsv.gz | tail -n +3 | gzip >> TestData/cadd.tsv.gz
+
+#python3 ConvertTsvToFixedWidthFile2.py TestData/cadd.tsv.gz TestData/cadd.fwf2
+#python3 ConvertTsvToFixedWidthFile2.py TestData/cadd.tsv.gz /tmp/1.fwf2
+
+#TODO: detached mode?
+
+#TODO:
+#  Try tabix
+#    https://www.htslib.org/doc/tabix.html
+#    tabix sorted.gff.gz chr1:10,000,000-20,000,000
+#  Optimize search:
+#    Rust:
+#      https://dev-notes.eu/2020/03/Binary-Search-in-Rust/
+#      B-tree https://doc.rust-lang.org/std/collections/struct.BTreeMap.html
+#      https://docs.rs/sled/0.34.6/sled/struct.Tree.html
+#    Python:
+#      https://pypi.org/project/bplustree/
+
+#rm -f TestData/whole_genome_SNVs_inclAnno.tsv.gz TestData/whole_genome_SNVs_inclAnno.tsv.gz.tbi
+
+#python3 F4/Builder.py TestData/cadd.tsv.gz TestData/cadd.f4 "\t" 30
+
+# 12,221,577,960 rows in CADD file (excluding header).
+# 134 columns
+

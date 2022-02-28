@@ -38,19 +38,26 @@ tsv_file.close()
 
 # Iterate through the lines to find the max width and type of each column
 tsv_file = get_tsv_file_handle()
+line_count = 0
 for line in tsv_file:
-    line_items = line.rstrip(b"\n").split(b"\t")
+    line_count += 1
+    if line_count % 1000000000 == 0:
+        print(line_count)
+        import datetime
+        print(datetime.datetime.now())
+    #line_items = line.rstrip(b"\n").split(b"\t")
 
-    for i in range(len(line_items)):
-        column_size_dict[i] = max([column_size_dict[i], len(line_items[i])])
-
-        if not i in column_types_dict:
-            # This is the header line, so we don't need to check its type
-            column_types_dict[i] = set()
-        else:
-            column_types_dict[i].add(get_type(line_items[i]))
-
+    #for i in range(len(line_items)):
+    #    column_size_dict[i] = max([column_size_dict[i], len(line_items[i])])
+#
+#        if not i in column_types_dict:
+#            # This is the header line, so we don't need to check its type
+#            column_types_dict[i] = set()
+#        else:
+#            column_types_dict[i].add(get_type(line_items[i]))
+#
 tsv_file.close()
+sys.exit(0)
 
 # Calculate the length of the first line (and thus all the other lines)
 line_length = sum([column_size_dict[i] for i in range(len(header_items))])

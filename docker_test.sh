@@ -19,11 +19,14 @@ cp -r Rust $tmpDir/Rust/
 cp *.R $tmpDir/
 cp *.cpp $tmpDir/
 
+mkdir -p $tmpDir/F4/f4py
+cp F4/f4py/* $tmpDir/F4/f4py/
+
 cd $tmpDir
 ./build_docker
 
-#docker run -d --rm \
-docker run -i -t --rm \
+#docker run -i -t --rm \
+docker run -d --rm \
   -v $d/Results2:/Results2 \
   -v $d/TestData:/TestData \
   -v $tmpDir:/tmp \

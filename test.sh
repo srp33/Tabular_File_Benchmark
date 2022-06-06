@@ -145,6 +145,7 @@ then
   runQueries $resultFile 100 900 1000000
   runQueries $resultFile 100000 900000 1000
 fi
+exit
 
 ############################################################
 # Build second version of fixed-width files that are more
@@ -696,13 +697,6 @@ fi
 #    Nearly all of the time is used to decompress the relevant lines in the main file.
 
 ############################################################
-# Clean up the test files created so far to save disk space.
-############################################################
-
-#TODO:
-#rm -rfv TestData/*
-
-############################################################
 # Build pseudo-genotype files. Measure how long it takes to
 # build, query, and transpose these files (of increasing
 # size).
@@ -759,47 +753,8 @@ then
 fi
 
 ############################################################
-# Download, parse, and query CADD files.
+# Clean up the test files created so far to save disk space.
 ############################################################
 
-#wget -O TestData/whole_genome_SNVs_inclAnno.tsv.gz https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs_inclAnno.tsv.gz
-#wget -O TestData/whole_genome_SNVs_inclAnno.tsv.gz.tbi https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs_inclAnno.tsv.gz.tbi
-
-#zcat TestData/whole_genome_SNVs_inclAnno.tsv.gz | head -n 2 | tail -n +2 | cut -c2- | gzip > TestData/cadd.tsv.gz
-#zcat TestData/whole_genome_SNVs_inclAnno.tsv.gz | tail -n +3 | gzip >> TestData/cadd.tsv.gz
-
-# The cadd file has 12221577961 lines total.
-mkdir -p /tmp/cadd
-python3 BuildF4.py "TestData/cadd.tsv.gz" "TestData/cadd" 28 5 Chrom,Pos,Consequence,ConsScore /tmp/cadd
-
-
-
-#python3 ConvertTsvToFixedWidthFile2.py TestData/cadd.tsv.gz TestData/cadd.fwf2
-#python3 ConvertTsvToFixedWidthFile2.py TestData/cadd.tsv.gz /tmp/1.fwf2
-
-#rm -f TestData/whole_genome_SNVs_inclAnno.tsv.gz TestData/whole_genome_SNVs_inclAnno.tsv.gz.tbi
-
-#python3 F4/Builder.py TestData/cadd.tsv.gz TestData/cadd.f4 "\t" 30
-
-# 12,221,577,960 rows in CADD file (excluding header).
-# 134 columns
-
-
-############################################################
-# Download, parse, and query gnomad files.
-############################################################
-
-#wget https://storage.googleapis.com/gnomad-public/release/2.1.1/liftover_grch38/vcf/genomes/gnomad.genomes.r2.1.1.sites.liftover_grch38.vcf.bgz
-#wget https://storage.googleapis.com/gnomad-public/release/2.1.1/liftover_grch38/vcf/genomes/gnomad.genomes.r2.1.1.sites.liftover_grch38.vcf.bgz.tbi
-#wget https://storage.googleapis.com/gnomad-public/release/3.0/vcf/genomes/gnomad.genomes.r3.0.sites.vcf.bgz
-#wget https://storage.googleapis.com/gnomad-public/release/3.0/vcf/genomes/gnomad.genomes.r3.0.sites.vcf.bgz.tbi
-
-#python3 ParseGnomad.py gnomad.genomes.r2.1.1.sites.liftover_grch38.vcf.bgz TestData/gnomad2.tsv.gz &
-#python3 ParseGnomad.py gnomad.genomes.r3.0.sites.vcf.bgz TestData/gnomad3.tsv.gz &
-#wait
-
-#rm -f gnomad.genomes.r2.1.1.sites.liftover_grch38.vcf.bgz gnomad.genomes.r3.0.sites.vcf.bgz
-
-#python3 ConvertTsvToFixedWidthFile2.py TestData/gnomad2.tsv.gz TestData/gnomad2.fwf2 &
-#python3 ConvertTsvToFixedWidthFile2.py TestData/gnomad3.tsv.gz TestData/gnomad3.fwf2 &
-#wait
+#TODO:
+#rm -rfv TestData/*

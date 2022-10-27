@@ -45,10 +45,12 @@ function buildTestFiles {
 
   #https://www.danielecook.com/speeding-up-reading-and-writing-in-r/
   #https://data.nozav.org/post/2019-r-data-frame-benchmark/
-  #https://vroom.r-lib.org/articles/benchmarks.html
+  #https://pythonspeed.com/articles/pandas-read-csv-fast/ (shows examples of pyarrow and pyparquet)
+  #https://cran.r-project.org/web/packages/vroom/vignettes/benchmarks.html
   #fst R package
   #vroom R package
   #arrow?
+    # https://arrow.apache.org/docs/python/csv.html
   #hdf5
 }
 
@@ -132,8 +134,6 @@ function runQueries {
 #  runQuery $resultFile binary $numDiscrete $numContinuous $numRows "Rscript --vanilla" TestFeather.R fthr False
 #  runQuery $resultFile binary $numDiscrete $numContinuous $numRows "Rscript --vanilla" TestFst.R fst False
 #  runQuery $resultFile binary $numDiscrete $numContinuous $numRows python3 TestHDF5.py hdf5 False
-
-# TODO: https://arrow.apache.org/docs/python/csv.html
 }
 
 resultFile=Results2/Query_Results.tsv

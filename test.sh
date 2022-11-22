@@ -57,11 +57,11 @@ function buildTestFiles {
 mkdir -p TestData/TempResults
 
 ## Small files
-buildTestFiles 10 90 1000
+#buildTestFiles 10 90 1000
 ## Tall, narrow files
-buildTestFiles 100 900 1000000
+#buildTestFiles 100 900 1000000
 ## Short, wide files
-buildTestFiles 100000 900000 1000
+#buildTestFiles 100000 900000 1000
 
 ############################################################
 # Query every 100th column using a variety of methods.

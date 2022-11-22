@@ -1,14 +1,5 @@
-Archive
-TestData
+data
 nohup*
-*NOTES*
 tmp
 *.pyc
-Results2
 zstd-dev
-*_temp*
-*.bgz
-*.gz
-*.tbi
-F4
-Temp_*

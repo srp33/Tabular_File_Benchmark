@@ -1,9 +1,8 @@
-import sys, difflib
+import difflib
+import sys
 
 outputFilePath = sys.argv[1]
 expectedOutputFilePath = sys.argv[2]
-
-passed = True
 
 def formatNumber(num):
     if "." in num or "e-" in num:
@@ -11,35 +10,37 @@ def formatNumber(num):
 
     return num
 
-with open(outputFilePath) as outputFile:
-    with open(expectedOutputFilePath) as expectedOutputFile:
-        line_count = 0
+def readFile(filePath):
+    with open(filePath) as theFile:
+        lines = [[formatNumber(x) for x in line.rstrip("\n").split("\t")] for line in theFile]
+    return lines
 
-        for line in outputFile:
-            line_count += 1
-            line = line.rstrip("\n")
-            expected_line = next(expectedOutputFile).rstrip("\n")
+actual_lines = readFile(outputFilePath)
+expected_lines = readFile(expectedOutputFilePath)
 
-            line = "\t".join([formatNumber(x) for x in line.split("\t")])
-            expected_line = "\t".join([formatNumber(x) for x in expected_line.split("\t")])
-
-            if line != expected_line:
-                print("{} and {} are not equal.".format(outputFilePath, expectedOutputFilePath))
-                print("  Line {} of {}: {}".format(line_count, outputFilePath, line))
-                print("  Line {} of {}: {}".format(line_count, expectedOutputFilePath, expected_line))
-                passed = False
-                break
-
-        next_line = next(expectedOutputFile, "END_OF_FILE")
-        if next_line != "END_OF_FILE":
-            print("Some text was in {} that was not in {}.".format(expectedOutputFilePath, outputFilePath))
-            passed = False
-
-if line_count == 0:
-    print("{} was empty.".format(outputFilePath))
+if len(actual_lines) == 0:
+    print(f"  {outputFilePath} was empty.")
     sys.exit(1)
-else:
-    if passed:
-        print("Passed")
-    else:
+
+if len(expected_lines) == 0:
+    print(f"  {expectedOutputFilePath} was empty.")
+    sys.exit(1)
+
+if len(actual_lines) != len(expected_lines):
+    print(f"  {outputFilePath} and {expectedOutputFilePath} do not have the same number of lines.")
+    sys.exit(1)
+
+#actual_lines.sort()
+#expected_lines.sort()
+
+for line_count in range(1, len(actual_lines) + 1):
+    line = actual_lines[line_count-1]
+    expected_line = expected_lines[line_count-1]
+
+    if line != expected_line:
+        print(f"  {outputFilePath} and {expectedOutputFilePath} are not equal.")
+        print(f"    Line {line_count} of {outputFilePath}: {line}")
+        print(f"    Line {line_count} of {expectedOutputFilePath}: {expected_line}")
         sys.exit(1)
+
+print("  Passed")

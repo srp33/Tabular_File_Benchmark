@@ -1,30 +1,6 @@
 import mmap
 import os
 
-def getColIndicesToQuery(col_names_file_path, memory_map):
-    with open(col_names_file_path, "rb") as col_file:
-        if memory_map:
-            col_file = mmap.mmap(col_file.fileno(), 0, prot=mmap.PROT_READ)
-            index_range = [int(line.rstrip(b"\n").split(b"\t")[0]) for line in iter(col_file.readline, b"")]
-        else:
-            index_range = [int(line.rstrip(b"\n").split(b"\t")[0]) for line in col_file]
-
-    col_file.close()
-
-    return index_range
-
-def getColNamesToQuery(col_names_file_path, memory_map):
-    with open(col_names_file_path, "rb") as col_file:
-        if memory_map:
-            col_file = mmap.mmap(col_file.fileno(), 0, prot=mmap.PROT_READ)
-            col_names = [line.rstrip(b"\n").split(b"\t")[1] for line in iter(col_file.readline, b"")]
-        else:
-            col_names = [line.rstrip(b"\n").split(b"\t")[1] for line in col_file]
-
-    col_file.close()
-
-    return col_names
-
 def parse_data_coords(line_indices, coords_file, coords_file_max_length, full_str_length):
     coords_file_length = len(coords_file)
     #print(coords_file_length)

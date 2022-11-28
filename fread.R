@@ -18,12 +18,12 @@ col_names_to_keep = strsplit(args[7], ",")[[1]]
 
 data = fread(in_file_path, select=c(discrete_query_col_name, numeric_query_col_name, col_names_to_keep), sep="\t", nThread=num_threads)
 
-numeric_indices = which(data[[2]] >= 0.1)
+numeric_indices = which(data[[numeric_query_col_name]] >= 0.1)
 
 if (query_type == "simple") {
-    discrete_indices = which(data[[1]] %in% c('AM', 'NZ'))
+    discrete_indices = which(data[[discrete_query_col_name]] %in% c('AM', 'NZ'))
 } else {
-    discrete_values = data[[1]]
+    discrete_values = data[[discrete_query_col_name]]
     discrete_indices = which(grepl("A\\w", discrete_values) | grepl("\\wZ", discrete_values))
 }
 

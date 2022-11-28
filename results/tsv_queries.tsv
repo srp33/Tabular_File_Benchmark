@@ -1,1 +1,2 @@
 CommandPrefix	NumDiscrete	NumNumeric	NumRows	WallClockSeconds	UserSeconds	SystemSeconds	MaxMemoryUsed
+Rscript fread.R 8_threads	100	900	1000000	3.84	22.71	2.62	10080808

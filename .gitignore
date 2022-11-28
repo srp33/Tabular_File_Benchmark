@@ -3,3 +3,4 @@ nohup*
 tmp
 *.pyc
 zstd-dev
+core

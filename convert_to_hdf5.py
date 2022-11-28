@@ -18,10 +18,10 @@ for column_name in column_names:
     else:
         column_type_dict[column_name] = "str"
 
-print("Reading " + in_file_path, flush=True)
 df = pd.read_csv(in_file_path, sep="\t", header=0, dtype=column_type_dict, na_filter=False)
 
-## Tried using format="table" because it supports selecting specific columns,
-## but it threw an error saying we exceeded the column number limit.
-print("Writing " + out_file_path, flush=True)
-df.to_hdf(out_file_path, sep="\t", key="df", mode="w", format="fixed", complevel=complevel, dropna=False)
+## format="table" is necessary to support selecting specific columns.
+#df.to_hdf(out_file_path, key="df", mode="w", format="fixed", complevel=complevel, dropna=False)
+#PerformanceWarning: table /df/table is exceeding the recommended maximum number of columns (512); be ready to see PyTables asking for *lots* of memory and possibly slow I/O
+#df.to_hdf(out_file_path, key="df", mode="w", format="table", data_columns=True, complevel=complevel, dropna=False)
+df.to_hdf(out_file_path, key="df", mode="w", format="table", complevel=complevel, dropna=False)

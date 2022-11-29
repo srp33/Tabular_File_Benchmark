@@ -1,1 +1,6 @@
-*
+core
+data
+Dockerfiles
+__pycache__
+results
+zstd-dev

@@ -1,0 +1,15 @@
+FROM rust:1.65.0-slim-buster
+
+#RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y
+#RUN mkdir -p /Rust/TestFixedWidth2/src /Rust/TestFixedWidth3/src /Rust/TestFixedWidth4/src /Rust/TestFixedWidth4T/src
+
+COPY Rust/fwf2 /Rust/fwf2/
+RUN cd /Rust/fwf2; cargo build --release
+
+#COPY Rust/Cargo.toml /Rust/TestFixedWidth4/Cargo.toml
+#COPY Rust/TestFixedWidth4.rs /Rust/TestFixedWidth4/src/main.rs
+#RUN cd /Rust/TestFixedWidth4; /root/.cargo/bin/cargo build --release
+
+#COPY Rust/Cargo.toml /Rust/TestFixedWidth4T/Cargo.toml
+#COPY Rust/TestFixedWidth4T.rs /Rust/TestFixedWidth4T/src/main.rs
+#RUN cd /Rust/TestFixedWidth4T; /root/.cargo/bin/cargo build --release

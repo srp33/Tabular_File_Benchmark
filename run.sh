@@ -14,6 +14,7 @@
 
 pythonImage=tab_bench_python
 rImage=tab_bench_r
+rustImage=tab_bench_rust
 
 for dockerFile in Dockerfiles/tab_bench_*
 do
@@ -24,6 +25,7 @@ baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/san
 #baseDockerCommand="docker run -d --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 pythonDockerCommand="$baseDockerCommand $pythonImage"
 rDockerCommand="$baseDockerCommand $rImage"
+rustDockerCommand="$baseDockerCommand $rustImage"
 
 #######################################################
 # Create TSV files
@@ -118,27 +120,27 @@ function queryFile {
   
   command="${commandPrefix} $queryType $dataFile $outFile Discrete2 Numeric2 Discrete1,Discrete${numDiscrete},Numeric1,Numeric${numNumeric}"
 
-#  $dockerCommand $command
-  $dockerCommand /usr/bin/time --verbose $command &> /tmp/result
-  $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
-  echo >> $resultFile
+  $dockerCommand $command
+#  $dockerCommand /usr/bin/time --verbose $command &> /tmp/result
+#  $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
+#  echo >> $resultFile
 
-#  masterFile=/tmp/benchmark_files/${numDiscrete}_${numNumeric}_${numRows}_${queryType}_master
-#
-#  if [[ "$isMaster" == "False" ]]
-#  then
-#      if [ -f $outFile ]
-#      then
-#          echo Checking output for ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}
-#          python CheckOutput.py $outFile $masterFile
-#      else
-#          echo No output for ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}
-#      fi
-#  else
-#    echo Saving master file for ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}
-#    mv $outFile $masterFile
-#    echo "  Done"
-#  fi
+  masterFile=/tmp/benchmark_files/${numDiscrete}_${numNumeric}_${numRows}_${queryType}_master
+
+  if [[ "$isMaster" == "False" ]]
+  then
+      if [ -f $outFile ]
+      then
+          echo Checking output for ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}
+          python CheckOutput.py $outFile $masterFile
+      else
+          echo No output for ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}
+      fi
+  else
+    echo Saving master file for ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}
+    mv $outFile $masterFile
+    echo "  Done"
+  fi
 }
 
 #rm -rf /tmp/benchmark_files
@@ -172,7 +174,7 @@ do
 #        queryFile $size "${rDockerCommand}" "Rscript vroom.R 1_thread,altrep" $queryType False tsv $queryResultFile
 #        queryFile $size "${rDockerCommand}" "Rscript vroom.R 8_threads,altrep" $queryType False tsv $queryResultFile
 #        queryFile $size "${rDockerCommand}" "Rscript fread.R 1_thread" $queryType False tsv $queryResultFile
-        queryFile $size "${rDockerCommand}" "Rscript fread.R 8_threads" $queryType False tsv $queryResultFile
+#        queryFile $size "${rDockerCommand}" "Rscript fread.R 8_threads" $queryType False tsv $queryResultFile
 #        queryFile $size "${rDockerCommand}" "Rscript ff.R" $queryType False tsv $queryResultFile
 #        queryFile $size "${rDockerCommand}" "Rscript arrow_csv.R" $queryType False tsv $queryResultFile
 #        queryFile $size "${pythonDockerCommand}" "python pandas_csv.py c_engine,standard_io" $queryType False tsv $queryResultFile
@@ -187,9 +189,11 @@ do
 #        queryFile $size "${rDockerCommand}" "Rscript arrow.R feather2" $queryType False arw $queryResultFile
 #        queryFile $size "${rDockerCommand}" "Rscript arrow.R parquet" $queryType False prq $queryResultFile
 #        queryFile $size "${pythonDockerCommand}" "python fwf2.py" $queryType False fwf2 $queryResultFile
+        queryFile $size "${rustDockerCommand}" "/Rust/fwf2/target/release/main" $queryType False fwf2 $queryResultFile
 
-#TODO: convertTSV $size "${rDockerCommand}" "Rscript convert_to_fwf.R" fwf $conversionsResultFile
 #TODO: Rust
+#        Increase memmap2 version? https://docs.rs/memmap2/latest/memmap2/
+#TODO: Getting some "Error occurred" messages for feather.R and arrow.R parquet for startsendswith
 #TODO: Add tests to select all columns for the matching rows.
 
 # TODO: Update to python 3.11 when the pip installs will work properly.

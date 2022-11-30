@@ -46,7 +46,6 @@ file_handles = {
 line_length = readIntFromFile(in_file_path, ".ll")
 max_column_name_length = readIntFromFile(in_file_path, ".mcnl")
 max_column_coord_length = readIntFromFile(in_file_path, ".mccl")
-max_column_type_length = readIntFromFile(in_file_path, ".mctl")
 num_rows = int(len(file_handles["data"]) / line_length)
 
 column_name_indices = {}

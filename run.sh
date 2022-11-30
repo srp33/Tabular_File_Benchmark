@@ -193,6 +193,7 @@ do
 
 #TODO: Rust
 #        Increase memmap2 version? https://docs.rs/memmap2/latest/memmap2/
+#TODO: See whether chunk_size improves speed for Python or Rust.
 #TODO: Getting some "Error occurred" messages for feather.R and arrow.R parquet for startsendswith
 #TODO: Add tests to select all columns for the matching rows.
 

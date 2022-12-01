@@ -1,3 +1,4 @@
+import re
 import sys
 
 in_file_path = sys.argv[1]
@@ -5,7 +6,7 @@ in_file_path = sys.argv[1]
 error_message = ""
 with open(in_file_path) as in_file:
     for line in in_file:
-        if line.lstrip().startswith("Command being timed"):
+        if re.search(f"Command being timed:", line):
             break
 
         error_message += line

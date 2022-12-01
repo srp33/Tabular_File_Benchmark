@@ -70,7 +70,21 @@ fn filter_discrete_simple (row_indices: &Vec<usize>, query_col_coords: &Vec<usiz
     return return_rows;
 }
 
-fn filter_numeric_simple (row_indices: &Vec<usize>, query_col_coords: &Vec<usize>, file_handles: &HashMap<String, Mmap>, line_length: &usize) -> Vec<usize> {
+fn filter_discrete_startsendswith (row_indices: &Vec<usize>, query_col_coords: &Vec<usize>, file_handles: &HashMap<String, Mmap>, line_length: &usize) -> Vec<usize> {
+    let mut return_rows:Vec<usize> = Vec::new();
+
+    for row_index in row_indices {
+        let value = parse_data_values(row_index, line_length, query_col_coords, file_handles.get("data").unwrap());
+
+        if value.starts_with("A") || value.ends_with("Z") {
+            return_rows.push(*row_index);
+        }
+    }
+
+    return return_rows;
+}
+
+fn filter_numeric (row_indices: &Vec<usize>, query_col_coords: &Vec<usize>, file_handles: &HashMap<String, Mmap>, line_length: &usize) -> Vec<usize> {
     let mut return_rows:Vec<usize> = Vec::new();
 
     for row_index in row_indices {
@@ -84,30 +98,6 @@ fn filter_numeric_simple (row_indices: &Vec<usize>, query_col_coords: &Vec<usize
     return return_rows;
 }
 
-/*
-fn filter_rows (row_indices: &Vec<usize>, query_col_index: usize, query_col_coords: &Vec<usize>, file_handles: &HashMap<String, Mmap>, max_column_type_length: &usize, line_length: &usize) -> Vec<usize> {
-    let col_type = parse_data_values(&query_col_index, max_column_type_length, &vec![query_col_index, 0, 1], file_handles.get("ct").unwrap());
-    let mut return_rows:Vec<usize> = Vec::new();
-
-    if col_type.eq("n") {
-        for row_index in row_indices {
-            let float_value:f64 = parse_data_values(row_index, line_length, query_col_coords, file_handles.get("data").unwrap()).parse().unwrap();
-            if float_value >= 0.1 {
-                return_rows.push(*row_index);
-            }
-        }
-    }
-    else {
-        for row_index in row_indices {
-            let value = parse_data_values(row_index, line_length, query_col_coords, file_handles.get("data").unwrap());
-            if value.starts_with("A") || value.ends_with("Z") {
-                return_rows.push(*row_index);
-            }
-        }
-    }
-    return return_rows;
-}
-*/
 fn parse_data_values (start_offset: &usize, segment_length: &usize, data_coords: &Vec<usize>, str_like_object: &Mmap) -> String {
     let end_offset = 0;
     let start_pos = start_offset * segment_length;
@@ -131,7 +121,7 @@ fn parse_all_data_values (start_offset: &usize, segment_length: &usize, data_coo
 
 fn main () -> Result<(), Error>  {
     let args: Vec<String> = env::args().collect();
-//    let query_type = &args[1];
+    let query_type = &args[1];
     let in_file_path = &args[2];
     let out_file_path = &args[3];
     let discrete_query_col_name = &args[4];
@@ -175,8 +165,16 @@ fn main () -> Result<(), Error>  {
 
     let mut keep_row_indices:Vec<usize> = (0..num_rows).collect();
 
-    keep_row_indices = filter_discrete_simple(&keep_row_indices, &discrete_query_col_coords, &file_handles, &line_length);
-    keep_row_indices = filter_numeric_simple(&keep_row_indices, &numeric_query_col_coords, &file_handles, &line_length);
+    if query_type == "simple" {
+        keep_row_indices = filter_discrete_simple(&keep_row_indices, &discrete_query_col_coords, &file_handles, &line_length);
+    }
+    else {
+        if query_type == "startsendswith" {
+            keep_row_indices = filter_discrete_startsendswith(&keep_row_indices, &discrete_query_col_coords, &file_handles, &line_length);
+        }
+    }
+
+    keep_row_indices = filter_numeric(&keep_row_indices, &numeric_query_col_coords, &file_handles, &line_length);
 
     //let out_lines = Vec::<String>::new();
     //let chunk_size:usize = 1000;

@@ -6,6 +6,9 @@
   #https://cran.r-project.org/web/packages/vroom/vignettes/benchmarks.html
   #https://data.nozav.org/post/2019-r-data-frame-benchmark/ (multiple formats)
 
+# Interpreting output of time command:
+#   https://stackoverflow.com/questions/556405/what-do-real-user-and-sys-mean-in-the-output-of-time1
+
 #set -o errexit
 
 #######################################################
@@ -120,10 +123,10 @@ function queryFile {
   
   command="${commandPrefix} $queryType $dataFile $outFile Discrete2 Numeric2 Discrete1,Discrete${numDiscrete},Numeric1,Numeric${numNumeric}"
 
-  $dockerCommand $command
-#  $dockerCommand /usr/bin/time --verbose $command &> /tmp/result
-#  $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
-#  echo >> $resultFile
+#  $dockerCommand $command
+  $dockerCommand /usr/bin/time --verbose $command &> /tmp/result
+  $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
+  echo >> $resultFile
 
   masterFile=/tmp/benchmark_files/${numDiscrete}_${numNumeric}_${numRows}_${queryType}_master
 
@@ -151,12 +154,12 @@ queryResultFile=results/tsv_queries.tsv
 
 echo -e "CommandPrefix\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed" > $queryResultFile
 
-#for queryType in simple startsendswith
-for queryType in simple
+for queryType in simple startsendswith
+#for queryType in simple
 #for queryType in startsendswith
 do
-#    for size in "$small" "$tall" "$wide"
-    for size in "$small"
+    for size in "$small" "$tall" "$wide"
+#    for size in "$small"
 #    for size in "$tall"
 #    for size in "$wide"
     do
@@ -187,14 +190,10 @@ do
 #        queryFile $size "${rDockerCommand}" "Rscript fst.R" $queryType False fst $queryResultFile
 #        queryFile $size "${rDockerCommand}" "Rscript feather.R" $queryType False fthr $queryResultFile
 #        queryFile $size "${rDockerCommand}" "Rscript arrow.R feather2" $queryType False arw $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript arrow.R parquet" $queryType False prq $queryResultFile
 #        queryFile $size "${pythonDockerCommand}" "python fwf2.py" $queryType False fwf2 $queryResultFile
         queryFile $size "${rustDockerCommand}" "/Rust/fwf2/target/release/main" $queryType False fwf2 $queryResultFile
 
-#TODO: Rust
-#        Increase memmap2 version? https://docs.rs/memmap2/latest/memmap2/
 #TODO: See whether chunk_size improves speed for Python or Rust.
-#TODO: Getting some "Error occurred" messages for feather.R and arrow.R parquet for startsendswith
 #TODO: Add tests to select all columns for the matching rows.
 
 # TODO: Update to python 3.11 when the pip installs will work properly.
@@ -205,6 +204,7 @@ do
 #    do
 #        queryFile $size "${pythonDockerCommand}" "python DuckDB.py" $queryType False $queryResultFile
 #        queryFile $size "${pythonDockerCommand}" "python pandas_hdf5.py" $queryType False hdf5 $queryResultFile
+#        queryFile $size "${rDockerCommand}" "Rscript arrow.R parquet" $queryType False prq $queryResultFile
 #    done
 done
 echo $queryResultFile

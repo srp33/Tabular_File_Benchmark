@@ -1,2 +1,7 @@
 CommandPrefix	NumDiscrete	NumNumeric	NumRows	WallClockSeconds	UserSeconds	SystemSeconds	MaxMemoryUsed
-/Rust/fwf2/target/release/main	10	90	1000	
+/Rust/fwf2/target/release/main	10	90	1000	0.03	0.00	0.03	2052
+/Rust/fwf2/target/release/main	100	900	1000000	0.76	0.18	0.58	9004540
+/Rust/fwf2/target/release/main	100000	900000	1000	0.56	0.42	0.13	178476
+/Rust/fwf2/target/release/main	10	90	1000	0.04	0.00	0.04	2900
+/Rust/fwf2/target/release/main	100	900	1000000	0.97	0.27	0.69	9005024
+/Rust/fwf2/target/release/main	100000	900000	1000	0.55	0.43	0.11	182684

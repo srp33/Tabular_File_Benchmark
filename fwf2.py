@@ -72,19 +72,11 @@ with open(out_file_path, 'wb') as out_file:
 
     keep_row_indices = filter_numeric(keep_row_indices, [next(numeric_col_coords)])
 
-    #chunk_size = 1000
     out_lines = []
 
     for row_index in keep_row_indices:
         out_line = b"\t".join(parse_data_values(row_index, line_length, out_col_coords, file_handles["data"]))
         out_file.write(out_line + b"\n")
-
-#        if len(out_lines) % chunk_size == 0:
-#            out_file.write(b"\n".join(out_lines) + b"\n")
-#            out_lines = []
-
-#    if len(out_lines) > 0:
-#        out_file.write(b"\n".join(out_lines) + b"\n")
 
 for handle in file_handles:
     file_handles[handle].close()

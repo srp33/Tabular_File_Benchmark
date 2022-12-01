@@ -176,30 +176,11 @@ fn main () -> Result<(), Error>  {
 
     keep_row_indices = filter_numeric(&keep_row_indices, &numeric_query_col_coords, &file_handles, &line_length);
 
-    //let out_lines = Vec::<String>::new();
-    //let chunk_size:usize = 1000;
-
     out_file.write((col_names_to_keep.join("\t") + "\n").as_bytes()).unwrap();
 
     for row_index in keep_row_indices {
-        //out_lines.push(parse_all_data_values(&row_index, &line_length, &out_col_coords, file_handles.get("data").unwrap()));
         out_file.write((parse_all_data_values(&row_index, &line_length, &out_col_coords, file_handles.get("data").unwrap()) + "\n").as_bytes()).unwrap();
-
-        //if out_lines.len() % chunk_size as usize == 0 {
-            //let out_string = out_lines.join("\n");
-            //out_file.write(out_string.as_bytes())?;
-            //out_file.write("\n".as_bytes())?;
-            //out_lines = Vec::new();
-        //}
     }
-
-    /*
-    if out_lines.len() > 0 {
-        let out_string = out_lines.join("\n");
-        out_file.write(out_string.as_bytes())?;
-        out_file.write("\n".as_bytes())?;
-    }
-    */
 
     Ok(())
 }

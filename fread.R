@@ -14,9 +14,14 @@ in_file_path = args[3]
 out_file_path = args[4]
 discrete_query_col_name = args[5]
 numeric_query_col_name = args[6]
-col_names_to_keep = strsplit(args[7], ",")[[1]]
+col_names_to_keep = args[7]
 
-data = fread(in_file_path, select=c(discrete_query_col_name, numeric_query_col_name, col_names_to_keep), sep="\t", nThread=num_threads)
+if (col_names_to_keep == "all_columns") {
+    data = fread(in_file_path, sep="\t", nThread=num_threads)
+} else {
+    col_names_to_keep2 = strsplit(col_names_to_keep, ",")[[1]]
+    data = fread(in_file_path, select=c(discrete_query_col_name, numeric_query_col_name, col_names_to_keep2), sep="\t", nThread=num_threads)
+}
 
 numeric_indices = which(data[[numeric_query_col_name]] >= 0.1)
 
@@ -29,4 +34,10 @@ if (query_type == "simple") {
 
 row_indices = intersect(discrete_indices, numeric_indices)
 
-fwrite(data[row_indices, ..col_names_to_keep], out_file_path, sep="\t", nThread=num_threads, quote=FALSE, na="NA")
+if (col_names_to_keep == "all_columns") {
+    output = data[row_indices,]
+} else {
+    output = data[row_indices, ..col_names_to_keep2]
+}
+
+fwrite(output, out_file_path, sep="\t", nThread=num_threads, quote=FALSE, na="NA")

@@ -5,7 +5,7 @@ in_file_path = args[2]
 out_file_path = args[3]
 discrete_query_col_name = args[4]
 numeric_query_col_name = args[5]
-col_names_to_keep = strsplit(args[6], ",")[[1]]
+col_names_to_keep = args[6]
 
 library(rlang)
 data = read.table(in_file_path, header=TRUE, check.names=FALSE, sep="\t")
@@ -22,4 +22,9 @@ if (query_type == "simple") {
 
 row_indices = intersect(discrete_indices, numeric_indices)
 
-write.table(data[row_indices, col_names_to_keep], out_file_path, sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
+if (col_names_to_keep == "all_columns") {
+    write.table(data[row_indices,], out_file_path, sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
+} else {
+    col_names_to_keep = strsplit(col_names_to_keep, ",")[[1]]
+    write.table(data[row_indices, col_names_to_keep], out_file_path, sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
+}

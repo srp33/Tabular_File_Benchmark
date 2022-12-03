@@ -19,10 +19,10 @@ pythonImage=tab_bench_python
 rImage=tab_bench_r
 rustImage=tab_bench_rust
 
-for dockerFile in Dockerfiles/tab_bench_*
-do
-    docker build -t $(basename $dockerFile) -f $dockerFile .
-done
+#for dockerFile in Dockerfiles/tab_bench_*
+#do
+#    docker build -t $(basename $dockerFile) -f $dockerFile .
+#done
 
 baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 #baseDockerCommand="docker run -d --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
@@ -110,37 +110,44 @@ function queryFile {
   dockerCommand="$4"
   commandPrefix="$5"
   queryType=$6
-  isMaster=$7
-  inFileExtension=$8
-  resultFile=$9
+  columns=$7
+  isMaster=$8
+  inFileExtension=$9
+  resultFile=${10}
 
   dataFile=data/${numDiscrete}_${numNumeric}_${numRows}.${inFileExtension}
-  outFile=/tmp/benchmark_files/${numDiscrete}_${numNumeric}_${numRows}_${queryType}
+  outFile=/tmp/benchmark_files/${numDiscrete}_${numNumeric}_${numRows}_${queryType}_${columns}
 
   rm -f $outFile
 
   echo -n -e "${commandPrefix}\t$numDiscrete\t$numNumeric\t$numRows\t" >> $resultFile
+
+  colNamesToKeep="all_columns"
+  if [[ "$columns" == "first_last" ]]
+  then
+      colNamesToKeep="Discrete1,Discrete${numDiscrete},Numeric1,Numeric${numNumeric}"
+  fi
   
-  command="${commandPrefix} $queryType $dataFile $outFile Discrete2 Numeric2 Discrete1,Discrete${numDiscrete},Numeric1,Numeric${numNumeric}"
+  command="${commandPrefix} $queryType $dataFile $outFile Discrete2 Numeric2 $colNamesToKeep"
 
-#  $dockerCommand $command
-  $dockerCommand /usr/bin/time --verbose $command &> /tmp/result
-  $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
-  echo >> $resultFile
+  $dockerCommand $command
+#  $dockerCommand /usr/bin/time --verbose $command &> /tmp/result
+#  $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
+#  echo >> $resultFile
 
-  masterFile=/tmp/benchmark_files/${numDiscrete}_${numNumeric}_${numRows}_${queryType}_master
+  masterFile=/tmp/benchmark_files/${numDiscrete}_${numNumeric}_${numRows}_${queryType}_${columns}_master
 
   if [[ "$isMaster" == "False" ]]
   then
       if [ -f $outFile ]
       then
-          echo Checking output for ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}
+          echo Checking output for ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}, ${columns}
           python CheckOutput.py $outFile $masterFile
       else
-          echo No output for ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}
+          echo No output for ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}, ${columns}
       fi
   else
-    echo Saving master file for ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}
+    echo Saving master file for ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}, ${columns}
     mv $outFile $masterFile
     echo "  Done"
   fi
@@ -154,49 +161,54 @@ queryResultFile=results/tsv_queries.tsv
 
 echo -e "CommandPrefix\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed" > $queryResultFile
 
-for queryType in simple startsendswith
-#for queryType in simple
+#for queryType in simple startsendswith
+for queryType in simple
 #for queryType in startsendswith
 do
-    for size in "$small" "$tall" "$wide"
+#    for size in "$small" "$tall" "$wide"
 #    for size in "$small"
-#    for size in "$tall"
+    for size in "$tall"
 #    for size in "$wide"
     do
-#        queryFile $size "${pythonDockerCommand}" "python line_by_line.py standard_io" $queryType True tsv $queryResultFile
-#        queryFile $size "${pythonDockerCommand}" "python line_by_line.py memory_map" $queryType False tsv $queryResultFile
-#        queryFile $size "${pythonDockerCommand}" "python awk.py awk" $queryType False tsv $queryResultFile
-#        queryFile $size "${pythonDockerCommand}" "python awk.py gawk" $queryType False tsv $queryResultFile
-#        queryFile $size "${pythonDockerCommand}" "python awk.py nawk" $queryType False tsv $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript base.R" $queryType False tsv $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript readr.R 1_thread,not_lazy" $queryType False tsv $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript readr.R 8_threads,notlazy" $queryType False tsv $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript readr.R 8_threads,lazy" $queryType False tsv $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript vroom.R 1_thread,no_altrep" $queryType False tsv $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript vroom.R 8_threads,no_altrep" $queryType False tsv $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript vroom.R 1_thread,altrep" $queryType False tsv $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript vroom.R 8_threads,altrep" $queryType False tsv $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript fread.R 1_thread" $queryType False tsv $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript fread.R 8_threads" $queryType False tsv $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript ff.R" $queryType False tsv $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript arrow_csv.R" $queryType False tsv $queryResultFile
-#        queryFile $size "${pythonDockerCommand}" "python pandas_csv.py c_engine,standard_io" $queryType False tsv $queryResultFile
-#        queryFile $size "${pythonDockerCommand}" "python pandas_csv.py c_engine,memory_map" $queryType False tsv $queryResultFile
-#        queryFile $size "${pythonDockerCommand}" "python pandas_csv.py python_engine,standard_io" $queryType False tsv $queryResultFile
-#        queryFile $size "${pythonDockerCommand}" "python pandas_csv.py python_engine,memory_map" $queryType False tsv $queryResultFile
-#        queryFile $size "${pythonDockerCommand}" "python pandas_csv.py pyarrow_engine,standard_io" $queryType False tsv $queryResultFile
-        # INFO: pyarrow does not support the 'memory_map' option.
+        for columns in first_last #all_columns
+        do
+#            queryFile $size "${pythonDockerCommand}" "python line_by_line.py standard_io" $queryType $columns True tsv $queryResultFile
+#            queryFile $size "${pythonDockerCommand}" "python line_by_line.py memory_map" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${pythonDockerCommand}" "python awk.py awk" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${pythonDockerCommand}" "python awk.py gawk" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${pythonDockerCommand}" "python awk.py nawk" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${rDockerCommand}" "Rscript base.R" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${rDockerCommand}" "Rscript readr.R 1_thread,not_lazy" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${rDockerCommand}" "Rscript readr.R 8_threads,notlazy" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${rDockerCommand}" "Rscript readr.R 8_threads,lazy" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${rDockerCommand}" "Rscript vroom.R 1_thread,no_altrep" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${rDockerCommand}" "Rscript vroom.R 8_threads,no_altrep" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${rDockerCommand}" "Rscript vroom.R 1_thread,altrep" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${rDockerCommand}" "Rscript vroom.R 8_threads,altrep" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${rDockerCommand}" "Rscript fread.R 1_thread" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${rDockerCommand}" "Rscript fread.R 8_threads" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${rDockerCommand}" "Rscript ff.R" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${rDockerCommand}" "Rscript arrow_csv.R" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${pythonDockerCommand}" "python pandas_csv.py c_engine,standard_io" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${pythonDockerCommand}" "python pandas_csv.py c_engine,memory_map" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${pythonDockerCommand}" "python pandas_csv.py python_engine,standard_io" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${pythonDockerCommand}" "python pandas_csv.py python_engine,memory_map" $queryType $columns False tsv $queryResultFile
+#            queryFile $size "${pythonDockerCommand}" "python pandas_csv.py pyarrow_engine,standard_io" $queryType $columns False tsv $queryResultFile
+            # INFO: pyarrow does not support the 'memory_map' option.
 
-#        queryFile $size "${rDockerCommand}" "Rscript fst.R" $queryType False fst $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript feather.R" $queryType False fthr $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript arrow.R feather2" $queryType False arw $queryResultFile
-#        queryFile $size "${pythonDockerCommand}" "python fwf2.py" $queryType False fwf2 $queryResultFile
-        queryFile $size "${rustDockerCommand}" "/Rust/fwf2/target/release/main" $queryType False fwf2 $queryResultFile
+#            queryFile $size "${rDockerCommand}" "Rscript fst.R" $queryType $columns False fst $queryResultFile
+            queryFile $size "${rDockerCommand}" "Rscript feather.R" $queryType $columns False fthr $queryResultFile
+#            queryFile $size "${rDockerCommand}" "Rscript arrow.R feather2" $queryType $columns False arw $queryResultFile
+#            queryFile $size "${pythonDockerCommand}" "python fwf2.py" $queryType $columns False fwf2 $queryResultFile
+#            queryFile $size "${rustDockerCommand}" "/Rust/fwf2/target/release/main" $queryType $columns False fwf2 $queryResultFile
 
-#TODO: See whether chunk_size improves speed for Python or Rust.
-#TODO: Add tests to select all columns for the matching rows.
+#TODO: Add test to select all columns for the matching rows.
+#TODO: Add tests to filter based on many columns:
+#        20 AND conditions
+#        20 OR conditions
 
 # TODO: Update to python 3.11 when the pip installs will work properly.
+        done
     done
 
     # An error is thrown when processing wide files in some cases, so we only test on small and tall files.

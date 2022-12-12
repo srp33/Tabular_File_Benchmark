@@ -24,7 +24,7 @@ else:
 # NOTE: Specifying the dtype of each column makes it somewhat faster, especially for very wide files.
 dtypes = {discrete_query_col_name: "str", numeric_query_col_name: np.float64}
 for col_name in all_col_names:
-    if col_name.startswith("Discrete"):
+    if col_name == "ID" or col_name.startswith("Discrete"):
         dtypes[col_name] = "str"
     else:
         dtypes[col_name] = np.float64

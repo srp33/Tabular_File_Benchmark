@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use std::cmp;
 use std::str::FromStr;
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 fn open_read_file(file_path: &String, file_extension: &str) -> Mmap {
     let the_file = File::open(file_path.clone() + file_extension).unwrap();
@@ -24,6 +25,7 @@ fn parse_data_coords(line_indices: &Vec<usize>, coords_file: &Mmap, coords_file_
     let out_dict: Vec<usize> = Vec::new();
     let mut data_start_pos:usize;
     let mut data_end_pos:usize;
+    //print!("{:#?}", line_indices);
 
     for index in line_indices {
         let start_pos = index * (coords_file_max_length + 1);
@@ -62,6 +64,7 @@ fn filter_discrete_simple (row_indices: &Vec<usize>, query_col_coords: &Vec<usiz
 
     for row_index in row_indices {
         let value = parse_data_values(row_index, line_length, query_col_coords, file_handles.get("data").unwrap());
+
         if value == "AM" || value == "NZ" {
             return_rows.push(*row_index);
         }
@@ -88,6 +91,7 @@ fn filter_numeric (row_indices: &Vec<usize>, query_col_coords: &Vec<usize>, file
     let mut return_rows:Vec<usize> = Vec::new();
 
     for row_index in row_indices {
+        //print!("{:#?}", parse_data_values(row_index, line_length, query_col_coords, file_handles.get("data").unwrap()));
         let value:f64 = parse_data_values(row_index, line_length, query_col_coords, file_handles.get("data").unwrap()).parse().unwrap();
 
         if value >= 0.1 {
@@ -126,7 +130,7 @@ fn main () -> Result<(), Error>  {
     let out_file_path = &args[3];
     let discrete_query_col_name = &args[4];
     let numeric_query_col_name = &args[5];
-    let col_names_to_keep = args[6].split(",").map(|x| FromStr::from_str(x).unwrap()).collect::<Vec<String>>();
+    let col_names_to_keep = &args[6];
 
     let mut file_handles = HashMap::new();
     file_handles.insert(String::from("cc"), open_read_file(in_file_path, ".cc"));
@@ -138,29 +142,84 @@ fn main () -> Result<(), Error>  {
     let max_column_coord_length: usize = read_int_from_file(in_file_path, ".mccl");
     let max_column_name_length: usize = read_int_from_file(in_file_path, ".mcnl");
     let num_rows: usize = file_handles.get("data").unwrap().len() / line_length;
-
-    let mut column_name_indices = HashMap::<String, usize>::new();
-    for i in (0..file_handles.get("cn").unwrap().len()).step_by(max_column_name_length + 1) {
-        let column_name = std::str::from_utf8(&file_handles.get("cn").unwrap()[i..(i + max_column_name_length)]).unwrap().trim_end().to_owned();
-        column_name_indices.insert(column_name, (i / (max_column_name_length + 1)) as usize);
-    }
-
-    let mut out_col_indices: Vec<usize> = Vec::new();
-    for name in col_names_to_keep.iter() {
-        out_col_indices.push(*column_name_indices.get(name).unwrap());
-    }
-
-    let out_col_coords = parse_data_coords(&out_col_indices, file_handles.get("cc").unwrap(), max_column_coord_length, line_length);
+    let cn_length: usize = file_handles.get("cn").unwrap().len();
 
     let path: PathBuf = PathBuf::from(out_file_path);
     let mut out_file =  OpenOptions::new().read(true).write(true).create(true).open(&path)?;
 
+    let mut discrete_query_col_index = 0;
+    let mut numeric_query_col_index = 0;
+    let out_col_coords: Vec<Vec<usize>>;
+
+    if col_names_to_keep == "all_columns" {
+        let num_cols = file_handles.get("cn").unwrap().len() / (max_column_name_length + 1);
+        let mut out_col_indices: Vec<usize> = Vec::new();
+        for i in 0..num_cols {
+            out_col_indices.push(i);
+        }
+
+        let mut column_names: Vec<String> = Vec::new();
+
+        for i in out_col_indices.iter() {
+            let start_i = i * (max_column_name_length + 1) as usize;
+            let end_i = start_i + max_column_name_length + 1 as usize;
+            let column_name = std::str::from_utf8(&file_handles.get("cn").unwrap()[start_i..end_i]).unwrap().trim_end().to_string();
+            column_names.push(column_name.clone());
+
+            if &column_name == discrete_query_col_name {
+                discrete_query_col_index = *i;
+            }
+            else {
+                if &column_name == numeric_query_col_name {
+                    numeric_query_col_index = *i;
+                }
+            }
+        }
+
+        out_col_coords = parse_data_coords(&out_col_indices, file_handles.get("cc").unwrap(), max_column_coord_length, line_length);
+
+        out_file.write((column_names.join("\t") + "\n").as_bytes()).unwrap();
+    }
+    else {
+        let col_names_to_keep2: Vec<String> = col_names_to_keep.split(",").map(|x| FromStr::from_str(x).unwrap()).collect::<Vec<String>>();
+
+        let mut column_names_to_find: HashSet<String> = HashSet::new(); 
+        column_names_to_find.insert(discrete_query_col_name.clone());
+        column_names_to_find.insert(numeric_query_col_name.clone());
+        for column_name in col_names_to_keep2.iter() {
+            column_names_to_find.insert(column_name.to_string());
+        }
+
+        let mut column_name_indices = HashMap::<String, usize>::new();
+
+        for i in (0..cn_length).step_by(max_column_name_length + 1) {
+            let column_name = std::str::from_utf8(&file_handles.get("cn").unwrap()[i..(i + max_column_name_length)]).unwrap().trim_end().to_owned();
+
+            if column_names_to_find.contains(&column_name) {
+                column_name_indices.insert(column_name, (i / (max_column_name_length + 1)) as usize);
+            }
+        }
+
+        discrete_query_col_index = *column_name_indices.get(discrete_query_col_name).unwrap();
+        numeric_query_col_index = *column_name_indices.get(numeric_query_col_name).unwrap();
+
+        let mut out_col_indices: Vec<usize> = Vec::new();
+        for name in col_names_to_keep2.iter() {
+            out_col_indices.push(*column_name_indices.get(name).unwrap());
+        }
+
+        out_col_coords = parse_data_coords(&out_col_indices, file_handles.get("cc").unwrap(), max_column_coord_length, line_length);
+
+        out_file.write((col_names_to_keep2.join("\t") + "\n").as_bytes()).unwrap();
+    }
+
     let mut discrete_query_col_indices: Vec<usize> = Vec::new();
-    discrete_query_col_indices.push(*column_name_indices.get(discrete_query_col_name).unwrap());
+    discrete_query_col_indices.push(discrete_query_col_index);
     let discrete_query_col_coords = &parse_data_coords(&discrete_query_col_indices, file_handles.get("cc").unwrap(), max_column_coord_length, line_length)[0];
 
     let mut numeric_query_col_indices: Vec<usize> = Vec::new();
-    numeric_query_col_indices.push(*column_name_indices.get(numeric_query_col_name).unwrap());
+    numeric_query_col_indices.push(numeric_query_col_index);
+
     let numeric_query_col_coords = &parse_data_coords(&numeric_query_col_indices, file_handles.get("cc").unwrap(), max_column_coord_length, line_length)[0];
 
     let mut keep_row_indices:Vec<usize> = (0..num_rows).collect();
@@ -175,8 +234,6 @@ fn main () -> Result<(), Error>  {
     }
 
     keep_row_indices = filter_numeric(&keep_row_indices, &numeric_query_col_coords, &file_handles, &line_length);
-
-    out_file.write((col_names_to_keep.join("\t") + "\n").as_bytes()).unwrap();
 
     for row_index in keep_row_indices {
         out_file.write((parse_all_data_values(&row_index, &line_length, &out_col_coords, file_handles.get("data").unwrap()) + "\n").as_bytes()).unwrap();

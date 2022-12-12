@@ -8,12 +8,22 @@ in_file_path = args[3]
 out_file_path = args[4]
 discrete_query_col_name = args[5]
 numeric_query_col_name = args[6]
-col_names_to_keep = strsplit(args[7], ",")[[1]]
+col_names_to_keep = args[7]
 
-if (file_format == "feather2") {
-  data = read_feather(in_file_path, col_select = all_of(c(discrete_query_col_name, numeric_query_col_name, col_names_to_keep)))
+if (col_names_to_keep == "all_columns") {
+    if (file_format == "feather2") {
+        data = read_feather(in_file_path)
+    } else {
+        data = read_parquet(in_file_path)
+    }
 } else {
-  data = read_parquet(in_file_path, col_select = all_of(c(discrete_query_col_name, numeric_query_col_name, col_names_to_keep)))
+    col_names_to_keep2 = strsplit(col_names_to_keep, ",")[[1]]
+
+    if (file_format == "feather2") {
+        data = read_feather(in_file_path, col_select = all_of(c(discrete_query_col_name, numeric_query_col_name, col_names_to_keep2)))
+    } else {
+        data = read_parquet(in_file_path, col_select = all_of(c(discrete_query_col_name, numeric_query_col_name, col_names_to_keep2)))
+    }
 }
 
 numeric_indices = which(data[,numeric_query_col_name] >= 0.1)
@@ -29,4 +39,8 @@ if (query_type == "simple") {
 
 row_indices = intersect(discrete_indices, numeric_indices)
 
-write.table(data[row_indices, col_names_to_keep], out_file_path, sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
+if (col_names_to_keep == "all_columns") {
+    write.table(data[row_indices, ], out_file_path, sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
+} else {
+    write.table(data[row_indices, col_names_to_keep2], out_file_path, sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
+}

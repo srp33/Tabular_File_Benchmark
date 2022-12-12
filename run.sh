@@ -19,10 +19,10 @@ pythonImage=tab_bench_python
 rImage=tab_bench_r
 rustImage=tab_bench_rust
 
-#for dockerFile in Dockerfiles/tab_bench_*
-#do
-#    docker build -t $(basename $dockerFile) -f $dockerFile .
-#done
+for dockerFile in Dockerfiles/tab_bench_*
+do
+    docker build -t $(basename $dockerFile) -f $dockerFile .
+done
 
 baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 #baseDockerCommand="docker run -d --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
@@ -120,20 +120,22 @@ function queryFile {
 
   rm -f $outFile
 
-  echo -n -e "${commandPrefix}\t$numDiscrete\t$numNumeric\t$numRows\t" >> $resultFile
+  echo -n -e "${commandPrefix}\t$queryType\t$columns\t$numDiscrete\t$numNumeric\t$numRows\t" >> $resultFile
 
   colNamesToKeep="all_columns"
-  if [[ "$columns" == "first_last" ]]
+  if [[ "$columns" == "firstlast_columns" ]]
   then
       colNamesToKeep="Discrete1,Discrete${numDiscrete},Numeric1,Numeric${numNumeric}"
   fi
   
   command="${commandPrefix} $queryType $dataFile $outFile Discrete2 Numeric2 $colNamesToKeep"
 
-  $dockerCommand $command
-#  $dockerCommand /usr/bin/time --verbose $command &> /tmp/result
-#  $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
-#  echo >> $resultFile
+  echo Running query for ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}, ${columns}
+
+#  $dockerCommand $command
+  $dockerCommand /usr/bin/time --verbose $command &> /tmp/result
+  $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
+  echo >> $resultFile
 
   masterFile=/tmp/benchmark_files/${numDiscrete}_${numNumeric}_${numRows}_${queryType}_${columns}_master
 
@@ -159,7 +161,7 @@ mkdir -p /tmp/benchmark_files
 mkdir -p results
 queryResultFile=results/tsv_queries.tsv
 
-echo -e "CommandPrefix\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed" > $queryResultFile
+echo -e "CommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed" > $queryResultFile
 
 #for queryType in simple startsendswith
 for queryType in simple
@@ -170,7 +172,9 @@ do
     for size in "$tall"
 #    for size in "$wide"
     do
-        for columns in first_last #all_columns
+#        for columns in firstlast_columns all_columns
+#        for columns in firstlast_columns
+        for columns in all_columns
         do
 #            queryFile $size "${pythonDockerCommand}" "python line_by_line.py standard_io" $queryType $columns True tsv $queryResultFile
 #            queryFile $size "${pythonDockerCommand}" "python line_by_line.py memory_map" $queryType $columns False tsv $queryResultFile
@@ -196,16 +200,20 @@ do
 #            queryFile $size "${pythonDockerCommand}" "python pandas_csv.py pyarrow_engine,standard_io" $queryType $columns False tsv $queryResultFile
             # INFO: pyarrow does not support the 'memory_map' option.
 
-#            queryFile $size "${rDockerCommand}" "Rscript fst.R" $queryType $columns False fst $queryResultFile
-            queryFile $size "${rDockerCommand}" "Rscript feather.R" $queryType $columns False fthr $queryResultFile
+            queryFile $size "${rDockerCommand}" "Rscript fst.R" $queryType $columns False fst $queryResultFile
+#            queryFile $size "${rDockerCommand}" "Rscript feather.R" $queryType $columns False fthr $queryResultFile
 #            queryFile $size "${rDockerCommand}" "Rscript arrow.R feather2" $queryType $columns False arw $queryResultFile
-#            queryFile $size "${pythonDockerCommand}" "python fwf2.py" $queryType $columns False fwf2 $queryResultFile
-#            queryFile $size "${rustDockerCommand}" "/Rust/fwf2/target/release/main" $queryType $columns False fwf2 $queryResultFile
+            queryFile $size "${pythonDockerCommand}" "python fwf2.py" $queryType $columns False fwf2 $queryResultFile
+            queryFile $size "${rustDockerCommand}" "/Rust/fwf2/target/release/main" $queryType $columns False fwf2 $queryResultFile
 
 #TODO: Add test to select all columns for the matching rows.
+#      Depending on how fwf2 performs, do more optimization, such as where we store col name indices in a dictionary.
+#      Check packages and make sure there's no way to randomly access rows, especially arrow/parquet.
 #TODO: Add tests to filter based on many columns:
 #        20 AND conditions
 #        20 OR conditions
+#TODO: Move up the ones that throw an error on wide files so that they show "Error occurred" rather than are missing from the results.
+#TODO: Do 5 iterations
 
 # TODO: Update to python 3.11 when the pip installs will work properly.
         done

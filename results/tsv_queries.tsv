@@ -1,2 +1,4 @@
-CommandPrefix	NumDiscrete	NumNumeric	NumRows	WallClockSeconds	UserSeconds	SystemSeconds	MaxMemoryUsed
-Rscript fst.R	100	900	1000000	
+CommandPrefix	QueryType	Columns	NumDiscrete	NumNumeric	NumRows	WallClockSeconds	UserSeconds	SystemSeconds	MaxMemoryUsed
+Rscript fst.R	simple	all_columns	100	900	1000000	101.94	75.95	30.07	143428
+python fwf2.py	simple	all_columns	100	900	1000000	4.54	3.84	0.70	9004420
+/Rust/fwf2/target/release/main	simple	all_columns	100	900	1000000	1.3	0.39	0.91	9004288

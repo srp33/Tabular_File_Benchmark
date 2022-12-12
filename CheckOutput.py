@@ -11,8 +11,17 @@ def formatNumber(num):
     return num
 
 def readFile(filePath):
+    lines = []
+
     with open(filePath) as theFile:
-        lines = [[formatNumber(x) for x in line.rstrip("\n").split("\t")] for line in theFile]
+        header_line = theFile.readline().rstrip("\n").split("\t")
+        lines.append(header_line)
+
+        for line in theFile:
+            lines.append([formatNumber(x) for x in line.rstrip("\n").split("\t")])
+
+    lines.sort()
+
     return lines
 
 actual_lines = readFile(outputFilePath)

@@ -19,10 +19,10 @@ pythonImage=tab_bench_python
 rImage=tab_bench_r
 rustImage=tab_bench_rust
 
-for dockerFile in Dockerfiles/tab_bench_*
-do
-    docker build -t $(basename $dockerFile) -f $dockerFile .
-done
+#for dockerFile in Dockerfiles/tab_bench_*
+#do
+#    docker build -t $(basename $dockerFile) -f $dockerFile .
+#done
 
 baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 #baseDockerCommand="docker run -d --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
@@ -77,7 +77,7 @@ function convertTSV {
 
 conversionsResultFile=results/conversions.tsv
 
-#echo -e "Extension\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed" > $conversionsResultFile
+#echo -e "Extension\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kilobytes" > $conversionsResultFile
 
 #for size in "$small" "$tall" "$wide"
 #for size in "$small"
@@ -135,6 +135,7 @@ function queryFile {
 #  $dockerCommand $command
   $dockerCommand /usr/bin/time --verbose $command &> /tmp/result
   $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
+  $pythonDockerCommand python ParseFileSize.py $outFile >> $resultFile
   echo >> $resultFile
 
   masterFile=/tmp/benchmark_files/${numDiscrete}_${numNumeric}_${numRows}_${queryType}_${columns}_master
@@ -161,7 +162,7 @@ mkdir -p /tmp/benchmark_files
 mkdir -p results
 queryResultFile=results/tsv_queries.tsv
 
-echo -e "CommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed" > $queryResultFile
+echo -e "CommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $queryResultFile
 
 #for queryType in simple startsendswith
 for queryType in simple
@@ -169,12 +170,12 @@ for queryType in simple
 do
 #    for size in "$small" "$tall" "$wide"
 #    for size in "$small"
-    for size in "$tall"
-#    for size in "$wide"
+#    for size in "$tall"
+    for size in "$wide"
     do
 #        for columns in firstlast_columns all_columns
-#        for columns in firstlast_columns
-        for columns in all_columns
+        for columns in firstlast_columns
+#        for columns in all_columns
         do
 #            queryFile $size "${pythonDockerCommand}" "python line_by_line.py standard_io" $queryType $columns True tsv $queryResultFile
 #            queryFile $size "${pythonDockerCommand}" "python line_by_line.py memory_map" $queryType $columns False tsv $queryResultFile
@@ -198,33 +199,26 @@ do
 #            queryFile $size "${pythonDockerCommand}" "python pandas_csv.py python_engine,standard_io" $queryType $columns False tsv $queryResultFile
 #            queryFile $size "${pythonDockerCommand}" "python pandas_csv.py python_engine,memory_map" $queryType $columns False tsv $queryResultFile
 #            queryFile $size "${pythonDockerCommand}" "python pandas_csv.py pyarrow_engine,standard_io" $queryType $columns False tsv $queryResultFile
-            # INFO: pyarrow does not support the 'memory_map' option.
+#            # INFO: pyarrow does not support the 'memory_map' option.
+            queryFile $size "${pythonDockerCommand}" "python duck_db.py" $queryType $columns False tsv $queryResultFile
+            queryFile $size "${pythonDockerCommand}" "python pandas_hdf5.py" $queryType $columns False hdf5 $queryResultFile
 
             queryFile $size "${rDockerCommand}" "Rscript fst.R" $queryType $columns False fst $queryResultFile
 #            queryFile $size "${rDockerCommand}" "Rscript feather.R" $queryType $columns False fthr $queryResultFile
 #            queryFile $size "${rDockerCommand}" "Rscript arrow.R feather2" $queryType $columns False arw $queryResultFile
-            queryFile $size "${pythonDockerCommand}" "python fwf2.py" $queryType $columns False fwf2 $queryResultFile
+            queryFile $size "${rDockerCommand}" "Rscript arrow.R parquet" $queryType $columns False prq $queryResultFile
+#            queryFile $size "${pythonDockerCommand}" "python fwf2.py" $queryType $columns False fwf2 $queryResultFile
             queryFile $size "${rustDockerCommand}" "/Rust/fwf2/target/release/main" $queryType $columns False fwf2 $queryResultFile
 
-#TODO: Add test to select all columns for the matching rows.
-#      Depending on how fwf2 performs, do more optimization, such as where we store col name indices in a dictionary.
-#      Check packages and make sure there's no way to randomly access rows, especially arrow/parquet.
-#TODO: Add tests to filter based on many columns:
-#        20 AND conditions
-#        20 OR conditions
-#TODO: Move up the ones that throw an error on wide files so that they show "Error occurred" rather than are missing from the results.
+#TODO: Check other packages and make sure there's no way to randomly access rows, especially arrow.
 #TODO: Do 5 iterations
 
 # TODO: Update to python 3.11 when the pip installs will work properly.
         done
     done
 
-    # An error is thrown when processing wide files in some cases, so we only test on small and tall files.
 #    for size in "$small" "$tall"
 #    do
-#        queryFile $size "${pythonDockerCommand}" "python DuckDB.py" $queryType False $queryResultFile
-#        queryFile $size "${pythonDockerCommand}" "python pandas_hdf5.py" $queryType False hdf5 $queryResultFile
-#        queryFile $size "${rDockerCommand}" "Rscript arrow.R parquet" $queryType False prq $queryResultFile
 #    done
 done
 echo $queryResultFile

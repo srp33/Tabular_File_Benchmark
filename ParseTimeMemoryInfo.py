@@ -38,4 +38,4 @@ if error_message == "":
 
     print(f"{wall_seconds}\t{user_seconds}\t{system_seconds}\t{memory}", end="")
 else:
-    print(f"Error occurred\tError occurred\tError occurred\tError occurred", end="")
+    print(f"Error\tError\tError\tError", end="")

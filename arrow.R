@@ -21,6 +21,8 @@ if (col_names_to_keep == "all_columns") {
 
     if (file_format == "feather2") {
         data = read_feather(in_file_path, col_select = all_of(c(discrete_query_col_name, numeric_query_col_name, col_names_to_keep2)))
+        # This appears to be equivalent:
+        #data = read_ipc_file(in_file_path, col_select = all_of(c(discrete_query_col_name, numeric_query_col_name, col_names_to_keep2)))
     } else {
         data = read_parquet(in_file_path, col_select = all_of(c(discrete_query_col_name, numeric_query_col_name, col_names_to_keep2)))
     }

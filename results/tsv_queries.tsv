@@ -1,6 +1,7 @@
-CommandPrefix	QueryType	Columns	NumDiscrete	NumNumeric	NumRows	WallClockSeconds	UserSeconds	SystemSeconds	MaxMemoryUsed_kb	OutputFileSize_kb
-python duck_db.py	simple	firstlast_columns	100000	900000	1000	Error	Error	Error	Error	Error
-python pandas_hdf5.py	simple	firstlast_columns	100000	900000	1000	Error	Error	Error	Error	Error
-Rscript fst.R	simple	firstlast_columns	100000	900000	1000	1.0	1.64	2.33	158400	1
-Rscript arrow.R parquet	simple	firstlast_columns	100000	900000	1000	Error	Error	Error	Error	Error
-/Rust/fwf2/target/release/main	simple	firstlast_columns	100000	900000	1000	0.15	0.10	0.04	80244	1
+Iteration	CommandPrefix	QueryType	Columns	NumDiscrete	NumNumeric	NumRows	WallClockSeconds	UserSeconds	SystemSeconds	MaxMemoryUsed_kb	OutputFileSize_kb
+1	python line_by_line.py standard_io	simple	firstlast_columns	10	90	1000	0.05	0.04	0.00	7724	1
+1	python fwf2.py	simple	firstlast_columns	10	90	1000	0.04	0.03	0.00	9660	1
+1	/Rust/fwf2/target/release/main	simple	firstlast_columns	10	90	1000	0.04	0.00	0.04	3040	1
+2	python line_by_line.py standard_io	simple	firstlast_columns	10	90	1000	0.03	0.01	0.01	7716	1
+2	python fwf2.py	simple	firstlast_columns	10	90	1000	0.04	0.03	0.01	9756	1
+2	/Rust/fwf2/target/release/main	simple	firstlast_columns	10	90	1000	0.04	0.00	0.04	2904	1

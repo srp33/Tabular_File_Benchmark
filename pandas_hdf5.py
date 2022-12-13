@@ -20,3 +20,23 @@ elif query_type == "startsendswith":
     df = df[((df[discrete_query_col_name].str.startswith("A")) | (df[discrete_query_col_name].str.endswith("Z"))) & (df[numeric_query_col_name] >= 0.1)][col_names_to_keep]
 
 df.to_csv(out_file_path, sep="\t", header=True, index=False, float_format='%.8f')
+
+# INFO: I tried this alternative way, but it was slower.
+
+#df = pd.read_hdf(in_file_path, key="df", mode="r", columns = [discrete_query_col_name, numeric_query_col_name])
+#
+#if query_type == "simple":
+#    matching_indices = df[(df[discrete_query_col_name].isin(['AM', 'NZ'])) & (df[numeric_query_col_name] >= 0.1)].index.tolist()
+#elif query_type == "startsendswith":
+#    matching_indices = df[((df[discrete_query_col_name].str.startswith("A")) | (df[discrete_query_col_name].str.endswith("Z"))) & (df[numeric_query_col_name] >= 0.1)].index
+#
+### This could be optimized further by looking for consecutive row indices,
+## but it would likely not overcome the performance problems.
+#
+#i = matching_indices[0]
+#df = pd.read_hdf(in_file_path, key="df", mode="r", columns = col_names_to_keep, start = i, stop = (i + 1))
+#df.to_csv(out_file_path, sep="\t", header=True, index=False, float_format='%.8f', compression=None)
+#
+#for i in matching_indices[1:]:
+#    df = pd.read_hdf(in_file_path, key="df", mode="r", columns = col_names_to_keep, start = i, stop = (i + 1))
+#    df.to_csv(out_file_path, sep="\t", header=False, index=False, float_format='%.8f', mode="a", compression=None)

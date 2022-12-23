@@ -8,3 +8,6 @@ RUN cd /Rust/fwf2; cargo build --release
 
 COPY Rust/fwf2_cmpr /Rust/fwf2_cmpr/
 RUN cd /Rust/fwf2_cmpr; cargo build --release
+
+COPY Rust/fwf2_cmpr_trps /Rust/fwf2_cmpr_trps/
+RUN cd /Rust/fwf2_cmpr_trps; cargo build --release

@@ -19,10 +19,10 @@ pythonImage=tab_bench_python
 rImage=tab_bench_r
 rustImage=tab_bench_rust
 
-#for dockerFile in Dockerfiles/tab_bench_*
-#do
-#    docker build -t $(basename $dockerFile) -f $dockerFile .
-#done
+for dockerFile in Dockerfiles/tab_bench_*
+do
+    docker build -t $(basename $dockerFile) -f $dockerFile .
+done
 
 #baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 baseDockerCommand="docker run -i --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
@@ -134,11 +134,11 @@ function queryFile {
 
   echo Running query for ${iteration}, ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}, ${columns}
 
-#  $dockerCommand $command
-  $dockerCommand /usr/bin/time --verbose $command &> /tmp/result
-  $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
-  $pythonDockerCommand python ParseFileSize.py $outFile >> $resultFile
-  echo >> $resultFile
+  $dockerCommand $command
+#  $dockerCommand /usr/bin/time --verbose $command &> /tmp/result
+#  $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
+#  $pythonDockerCommand python ParseFileSize.py $outFile >> $resultFile
+#  echo >> $resultFile
 
   masterFile=/tmp/benchmark_files/${numDiscrete}_${numNumeric}_${numRows}_${queryType}_${columns}_master
 
@@ -390,18 +390,47 @@ tcResultFile=results/transposed_compressed.tsv
 #done
 
 #cat $tcResultFile
-exit
-
-#TODO: Create Python code for querying transposed_and_compressed files.
-#TODO: Create Rust code for querying transposed_and_compressed files.
-#TODO: Generate test files that have discrete values with varying lengths. See how well compression works (probably don't need to test query speeds, but you could).
 
 ############################################################
 # Measure how quickly we can query the files that have
 # been compressed line-by-line. This time use the transposed
-# versions of the files in addition to the non-transposed
-# versions.
+# version of the data for filtering.
 ############################################################
+
+#for iteration in {1..5}
+for iteration in {1..1}
+do
+    #for queryType in simple startsendswith
+    for queryType in simple
+    #for queryType in startsendswith
+    do
+        #for size in "$small" "$tall" "$wide"
+        for size in "$small"
+        #for size in "$tall"
+        #for size in "$wide"
+        do
+            #for columns in firstlast_columns all_columns
+            for columns in firstlast_columns
+            #for columns in all_columns
+            do
+                #for level in 1 5 9 22
+                for level in 1
+                do
+                    #queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr_trps.py zstd ${level}" $queryType $columns False fwf2 $queryResultFile
+                    queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr_trps/target/release/main zstd ${level}" $queryType $columns False fwf2 $queryResultFile
+                done
+            done
+        done
+    done
+done
+
+#echo $queryResultFile
+#cat $queryResultFile
+
+exit
+#TODO: Create Python code for querying transposed_and_compressed files.
+#TODO: Create Rust code for querying transposed_and_compressed files.
+#TODO: Generate test files that have discrete values with varying lengths? See how well compression works (probably don't need to test query speeds, but you could).
 
 function transposeCompressTestFile {
   sizeFile=$1
@@ -493,6 +522,8 @@ then
     runQuery4T $resultFile 100000 900000 1000 zstd ${level} zstd_${level}
   done
 fi
+
+exit
 
 #NOTES:
 #  When parsing tall file (Python):

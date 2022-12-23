@@ -19,10 +19,10 @@ pythonImage=tab_bench_python
 rImage=tab_bench_r
 rustImage=tab_bench_rust
 
-for dockerFile in Dockerfiles/tab_bench_*
-do
-    docker build -t $(basename $dockerFile) -f $dockerFile .
-done
+#for dockerFile in Dockerfiles/tab_bench_*
+#do
+#    docker build -t $(basename $dockerFile) -f $dockerFile .
+#done
 
 #baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 baseDockerCommand="docker run -i --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
@@ -301,35 +301,48 @@ compressLinesResultFile=results/compress_lines.tsv
 ############################################################
 
 ##for iteration in {1..5}
-for iteration in {1..1}
-do
-    #for queryType in simple startsendswith
-    for queryType in simple
-    #for queryType in startsendswith
-    do
-        for size in "$small" "$tall" "$wide"
-        #for size in "$small"
-        #for size in "$tall"
-        #for size in "$wide"
-        do
-            #for columns in firstlast_columns all_columns
-            for columns in firstlast_columns
-            #for columns in all_columns
-            do
-                #for level in 1 5 9 22
-                for level in 1
-                do
-                    queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py zstd $level" $queryType $columns False fwf2 $queryResultFile
-                    queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr/target/release/main zstd $level" $queryType $columns False fwf2 $queryResultFile
-                done
-            done
-        done
-    done
-done
+#for iteration in {1..1}
+#do
+#    #for queryType in simple startsendswith
+#    for queryType in simple
+#    #for queryType in startsendswith
+#    do
+#        for size in "$small" "$tall" "$wide"
+#        #for size in "$small"
+#        #for size in "$tall"
+#        #for size in "$wide"
+#        do
+#            #for columns in firstlast_columns all_columns
+#            for columns in firstlast_columns
+#            #for columns in all_columns
+#            do
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py bz2 1" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py bz2 5" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py bz2 9" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py gz 1" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py gz 5" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py gz 9" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py lzma NA" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py snappy NA" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py zstd 1" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr/target/release/main zstd 1" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py zstd 5" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr/target/release/main zstd 5" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py zstd 9" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr/target/release/main zstd 9" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py zstd 22" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr/target/release/main zstd 22" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py lz4 0" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py lz4 5" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py lz4 10" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py lz4 16" $queryType $columns False fwf2 $queryResultFile
+#            done
+#        done
+#    done
+#done
 
-echo $queryResultFile
-cat $queryResultFile
-exit
+#echo $queryResultFile
+#cat $queryResultFile
 
 ############################################################
 # Build compressed versions of the fixed-width files that
@@ -379,9 +392,6 @@ tcResultFile=results/transposed_compressed.tsv
 #cat $tcResultFile
 exit
 
-#TODO: Query all of the different compression methods for compressed (not transposed) files.
-#        The code should already be in place.
-#        Only do zstandard for Rust.
 #TODO: Create Python code for querying transposed_and_compressed files.
 #TODO: Create Rust code for querying transposed_and_compressed files.
 #TODO: Generate test files that have discrete values with varying lengths. See how well compression works (probably don't need to test query speeds, but you could).

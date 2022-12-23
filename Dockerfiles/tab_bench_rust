@@ -5,3 +5,6 @@ RUN apt-get update \
 
 COPY Rust/fwf2 /Rust/fwf2/
 RUN cd /Rust/fwf2; cargo build --release
+
+COPY Rust/fwf2_cmpr /Rust/fwf2_cmpr/
+RUN cd /Rust/fwf2_cmpr; cargo build --release

@@ -19,12 +19,13 @@ pythonImage=tab_bench_python
 rImage=tab_bench_r
 rustImage=tab_bench_rust
 
-#for dockerFile in Dockerfiles/tab_bench_*
-#do
-#    docker build -t $(basename $dockerFile) -f $dockerFile .
-#done
+for dockerFile in Dockerfiles/tab_bench_*
+do
+    docker build -t $(basename $dockerFile) -f $dockerFile .
+done
 
-baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
+#baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
+baseDockerCommand="docker run -i --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 #baseDockerCommand="docker run -d --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 pythonDockerCommand="$baseDockerCommand $pythonImage"
 rDockerCommand="$baseDockerCommand $rImage"
@@ -161,150 +162,229 @@ function queryFile {
 mkdir -p /tmp/benchmark_files
 
 mkdir -p results
-resultFile=results/queries_uncompressed.tsv
+queryResultFile=results/queries_uncompressed.tsv
 
-echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $resultFile
+echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $queryResultFile
 
-#for iteration in 1..5
-for iteration in {1..2}
-do
-    #for queryType in simple startsendswith
-    for queryType in simple
-    #for queryType in startsendswith
-    do
-#        for size in "$small" "$tall" "$wide"
-        for size in "$small"
+#for iteration in {1..5}
+#for iteration in {1..1}
+#do
+#    #for queryType in simple startsendswith
+#    for queryType in simple
+#    #for queryType in startsendswith
+#    do
+##        for size in "$small" "$tall" "$wide"
+#        for size in "$small"
 #        for size in "$tall"
-#        for size in "$wide"
-        do
+##        for size in "$wide"
+#        do
 #            for columns in firstlast_columns all_columns
-            for columns in firstlast_columns
-#            for columns in all_columns
-            do
-                isMaster=False
-                if [[ "$iteration" == "1" ]]
-                then
-                    isMaster=True
-                fi
+#            for columns in firstlast_columns
+##            for columns in all_columns
+#            do
+#                isMaster=False
+#                if [[ "$iteration" == "1" ]]
+#                then
+#                    isMaster=True
+#                fi
+#
+#                queryFile $iteration $size "${pythonDockerCommand}" "python line_by_line.py standard_io" $queryType $columns $isMaster tsv $queryResultFile
+#
+##                queryFile $iteration $size "${pythonDockerCommand}" "python line_by_line.py memory_map" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python awk.py awk" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python awk.py gawk" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python awk.py nawk" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript base.R" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript readr.R 1_thread,not_lazy" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript readr.R 8_threads,notlazy" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript readr.R 8_threads,lazy" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 1_thread,no_altrep" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 8_threads,no_altrep" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 1_thread,altrep" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 8_threads,altrep" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript fread.R 1_thread" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript fread.R 8_threads" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript ff.R" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript arrow_csv.R" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py c_engine,standard_io" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py c_engine,memory_map" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py python_engine,standard_io" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py python_engine,memory_map" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py pyarrow_engine,standard_io" $queryType $columns False tsv $queryResultFile
+##                # INFO: pyarrow does not support the 'memory_map' option.
+##                queryFile $iteration $size "${pythonDockerCommand}" "python duck_db.py" $queryType $columns False tsv $queryResultFile
+#
+##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_hdf5.py" $queryType $columns False hdf5 $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript fst.R" $queryType $columns False fst $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript feather.R" $queryType $columns False fthr $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript arrow.R feather2" $queryType $columns False arw $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript arrow.R parquet" $queryType $columns False prq $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2.py" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2/target/release/main" $queryType $columns False fwf2 $queryResultFile
+## TODO: Update to python 3.11 when the pip installs will work properly.
+#            done
+#        done
+#    done
+#done
 
-                queryFile $iteration $size "${pythonDockerCommand}" "python line_by_line.py standard_io" $queryType $columns $isMaster tsv $resultFile
+############################################################
+# Build compressed versions of the fixed-width files using
+# a variety of compression algorithms. Each line in the data
+# is compressed individually.
+############################################################
 
-#                queryFile $iteration $size "${pythonDockerCommand}" "python line_by_line.py memory_map" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python awk.py awk" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python awk.py gawk" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python awk.py nawk" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript base.R" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript readr.R 1_thread,not_lazy" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript readr.R 8_threads,notlazy" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript readr.R 8_threads,lazy" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 1_thread,no_altrep" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 8_threads,no_altrep" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 1_thread,altrep" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 8_threads,altrep" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript fread.R 1_thread" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript fread.R 8_threads" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript ff.R" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript arrow_csv.R" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py c_engine,standard_io" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py c_engine,memory_map" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py python_engine,standard_io" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py python_engine,memory_map" $queryType $columns False tsv $resultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py pyarrow_engine,standard_io" $queryType $columns False tsv $resultFile
-#                # INFO: pyarrow does not support the 'memory_map' option.
-#                queryFile $iteration $size "${pythonDockerCommand}" "python duck_db.py" $queryType $columns False tsv $resultFile
+function compressLines {
+  resultFile=$1
+  numDiscrete=$2
+  numNumeric=$3
+  numRows=$4
+  method=$5
+  level=$6
 
-#                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_hdf5.py" $queryType $columns False hdf5 $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript fst.R" $queryType $columns False fst $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript feather.R" $queryType $columns False fthr $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript arrow.R feather2" $queryType $columns False arw $resultFile
-#                queryFile $iteration $size "${rDockerCommand}" "Rscript arrow.R parquet" $queryType $columns False prq $resultFile
-                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2.py" $queryType $columns False fwf2 $resultFile
-                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2/target/release/main" $queryType $columns False fwf2 $resultFile
-# TODO: Update to python 3.11 when the pip installs will work properly.
-            done
-        done
-    done
-done
+  inFile=data/${numDiscrete}_${numNumeric}_${numRows}.fwf2
+  outFile=data/compressed/${numDiscrete}_${numNumeric}_${numRows}.fwf2.${method}
 
-echo $resultFile
-cat $resultFile
+  if [[ "$level" != "NA" ]]
+  then
+    outFile=${outFile}_${level}
+  fi
 
+  command="python3 compress_lines.py $inFile $numRows $method $level $outFile"
+  echo Running "$command"
 
+  echo -n -e "${numDiscrete}\t${numNumeric}\t${numRows}\t${method}\t${level}\t" >> $resultFile
 
-# TODO: Repeat the benchmarks when the files are compressed.
-exit
+#  $pythonDockerCommand $command
+  $pythonDockerCommand /usr/bin/time --verbose $command &> /tmp/result
+  $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
+  $pythonDockerCommand python ParseFileSize.py ${outFile}* >> $resultFile
+  echo >> $resultFile
+}
 
+function compressLinesAll {
+    resultFile=$1
+    size="$2"
 
+    compressLines $resultFile $size bz2 1
+    compressLines $resultFile $size bz2 5
+    compressLines $resultFile $size bz2 9
+    compressLines $resultFile $size gz 1
+    compressLines $resultFile $size gz 5
+    compressLines $resultFile $size gz 9
+    compressLines $resultFile $size lzma NA
+    compressLines $resultFile $size snappy NA
+    compressLines $resultFile $size zstd 1
+    compressLines $resultFile $size zstd 5
+    compressLines $resultFile $size zstd 9
+    compressLines $resultFile $size zstd 22
+    compressLines $resultFile $size lz4 0
+    compressLines $resultFile $size lz4 5
+    compressLines $resultFile $size lz4 10
+    compressLines $resultFile $size lz4 16
+}
 
+mkdir -p data/compressed
+
+compressLinesResultFile=results/compress_lines.tsv
+
+#echo -e "NumDiscrete\tNumNumeric\tNumRows\tMethod\tLevel\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $compressLinesResultFile
+
+#compressLinesAll $compressLinesResultFile "$small"
+#compressLinesAll $compressLinesResultFile "$tall"
+#compressLinesAll $compressLinesResultFile "$wide"
+
+#cat $compressLinesResultFile
 
 ############################################################
 # Measure how quickly we can query the files that have
 # been compressed line-by-line.
 ############################################################
 
-function runQueries4 {
+##for iteration in {1..5}
+for iteration in {1..1}
+do
+    #for queryType in simple startsendswith
+    for queryType in simple
+    #for queryType in startsendswith
+    do
+        for size in "$small" "$tall" "$wide"
+        #for size in "$small"
+        #for size in "$tall"
+        #for size in "$wide"
+        do
+            #for columns in firstlast_columns all_columns
+            for columns in firstlast_columns
+            #for columns in all_columns
+            do
+                #for level in 1 5 9 22
+                for level in 1
+                do
+                    queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py zstd $level" $queryType $columns False fwf2 $queryResultFile
+                    queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr/target/release/main zstd $level" $queryType $columns False fwf2 $queryResultFile
+                done
+            done
+        done
+    done
+done
+
+echo $queryResultFile
+cat $queryResultFile
+exit
+
+############################################################
+# Build compressed versions of the fixed-width files that
+# have a transposed version of the data. Each line is 
+# compressed individually.
+############################################################
+
+function transposeAndCompressLines {
   resultFile=$1
   numDiscrete=$2
-  numContinuous=$3
+  numNumeric=$3
   numRows=$4
-  compressionMethod=$5
-  compressionLevel=$6
-  compressionSuffix=$7
+  method=$5
+  level=$6
 
-  dataFile=TestData/${numDiscrete}_${numContinuous}_$numRows.fwf2.$compressionSuffix
-  numDataPoints=$(($numDiscrete + $numContinuous))
-  colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
-  masterOutFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3_master.tsv
-  outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3.$compressionSuffix
+  inFile1=data/${numDiscrete}_${numNumeric}_${numRows}.fwf2
+  inFile2=data/compressed/${numDiscrete}_${numNumeric}_${numRows}.fwf2.${method}_${level}
+  outFile1=data/transposed/${numDiscrete}_${numNumeric}_${numRows}.fwf2
+  outFile2=data/transposed_and_compressed/${numDiscrete}_${numNumeric}_${numRows}.fwf2.${method}_${level}
 
-  rm -f $outFile
+  echo Transpose $inFile1 to $outFile1
+  $pythonDockerCommand python3 transpose_fwf2.py $inFile1 $outFile1
 
-  echo -e "$compressionMethod\t$compressionLevel\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4.py $dataFile $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
-  #python3 TestFixedWidth4.py $dataFile $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
+  echo Compressing $outFile1 to $outFile2
+  $pythonDockerCommand python3 compress_lines.py $outFile1 $numRows $method $level $outFile2
 
-  # We are not using this version in our tests, but it does work (for zstd=1).
-  #time /Rust/TestFixedWidth4/target/release/main $dataFile $colNamesFile $outFile $numRows $numDiscrete,$numDataPoints $compressionMethod
-
-  python3 CheckOutput.py $outFile $masterOutFile
+  echo -n -e "${numDiscrete}\t${numNumeric}\t${numRows}\t${method}\t${level}" >> $resultFile
+  $pythonDockerCommand python ParseFileSize.py ${inFile1}* >> $resultFile
+  $pythonDockerCommand python ParseFileSize.py ${inFile2}* >> $resultFile
+  $pythonDockerCommand python ParseFileSize.py ${outFile2}* >> $resultFile
+  echo >> $resultFile
 }
 
-function runAllQueries4 {
-  resultFile=$1
-  numDiscrete=$2
-  numContinuous=$3
-  numRows=$4
+mkdir -p data/transposed data/transposed_and_compressed
 
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows bz2 1 bz2_1
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows bz2 5 bz2_5
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows bz2 9 bz2_9
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows gz 1 gz_1
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows gz 5 gz_5
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows gz 9 gz_9
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows lzma NA lzma
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows snappy NA snappy
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows zstd 1 zstd_1
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows zstd 5 zstd_5
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows zstd 9 zstd_9
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows zstd 13 zstd_13
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows zstd 17 zstd_17
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows zstd 22 zstd_22
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows lz4 0 lz4_0
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows lz4 4 lz4_4
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows lz4 8 lz4_8
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows lz4 12 lz4_12
-  runQueries4 $resultFile $numDiscrete $numContinuous $numRows lz4 16 lz4_16
-}
+tcResultFile=results/transposed_compressed.tsv
 
-resultFile=Results2/Query_Results_fwf2_compressed.tsv
+#echo -e "NumDiscrete\tNumNumeric\tNumRows\tMethod\tLevel\tUncompressedSize_kb\tPortraitCompressedSize_kb\tLandscapeCompressedSize_kb" > $tcResultFile
 
-if [ ! -f $resultFile ]
-then
-  echo -e "Method\tLevel\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
+#for level in 1 5 9 22
+#do
+#    #transposeAndCompressLines $tcResultFile $small zstd $level
+#    transposeAndCompressLines $tcResultFile $tall zstd $level
+#    transposeAndCompressLines $tcResultFile $wide zstd $level
+#done
 
-  runAllQueries4 $resultFile 10 90 1000
-  runAllQueries4 $resultFile 100 900 1000000
-  runAllQueries4 $resultFile 100000 900000 1000
-fi
+#cat $tcResultFile
+exit
+
+#TODO: Query all of the different compression methods for compressed (not transposed) files.
+#        The code should already be in place.
+#        Only do zstandard for Rust.
+#TODO: Create Python code for querying transposed_and_compressed files.
+#TODO: Create Rust code for querying transposed_and_compressed files.
+#TODO: Generate test files that have discrete values with varying lengths. See how well compression works (probably don't need to test query speeds, but you could).
 
 ############################################################
 # Measure how quickly we can query the files that have
@@ -418,6 +498,7 @@ fi
 # size).
 ############################################################
 
+#TODO: Move this up before we do anything with compression?
 function runGenotypeTests {
   resultFile=$1
   dimensions=$2

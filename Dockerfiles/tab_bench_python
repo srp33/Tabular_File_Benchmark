@@ -4,4 +4,4 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated build-essential libssl-dev time gawk
 
 RUN python -m pip install --upgrade pip \
- && pip install duckdb==0.5.1 fastnumbers==3.2.1 numpy==1.23.4 pandas==1.5.1 pyarrow==10.0.0 tables==3.7.0
+ && pip install duckdb==0.5.1 fastnumbers==3.2.1 lz4==4.0.2 numpy==1.23.4 pandas==1.5.1 pyarrow==10.0.0 python-snappy==0.6.1 tables==3.7.0 zstandard==0.19.0

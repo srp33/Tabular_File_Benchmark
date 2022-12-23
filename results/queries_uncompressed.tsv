@@ -1,7 +1,7 @@
 Iteration	CommandPrefix	QueryType	Columns	NumDiscrete	NumNumeric	NumRows	WallClockSeconds	UserSeconds	SystemSeconds	MaxMemoryUsed_kb	OutputFileSize_kb
-1	python line_by_line.py standard_io	simple	firstlast_columns	10	90	1000	0.05	0.03	0.01	7512	1
-1	python fwf2.py	simple	firstlast_columns	10	90	1000	0.07	0.05	0.02	9844	1
-1	/Rust/fwf2/target/release/main	simple	firstlast_columns	10	90	1000	0.08	0.00	0.08	2936	1
-2	python line_by_line.py standard_io	simple	firstlast_columns	10	90	1000	0.05	0.03	0.01	7580	1
-2	python fwf2.py	simple	firstlast_columns	10	90	1000	0.03	0.01	0.01	9704	1
-2	/Rust/fwf2/target/release/main	simple	firstlast_columns	10	90	1000	0.04	0.00	0.03	2056	1
+1	python fwf2_cmpr.py zstd 1	simple	firstlast_columns	10	90	1000	0.07	0.04	0.01	11364	1
+1	/Rust/fwf2_cmpr/target/release/main zstd 1	simple	firstlast_columns	10	90	1000	0.05	0.00	0.04	2876	1
+1	python fwf2_cmpr.py zstd 1	simple	firstlast_columns	100	900	1000000	21.1	20.69	0.41	4389484	72
+1	/Rust/fwf2_cmpr/target/release/main zstd 1	simple	firstlast_columns	100	900	1000000	16.99	16.62	0.37	4247324	72
+1	python fwf2_cmpr.py zstd 1	simple	firstlast_columns	100000	900000	1000	18.71	11.01	7.69	3994788	1
+1	/Rust/fwf2_cmpr/target/release/main zstd 1	simple	firstlast_columns	100000	900000	1000	11.11	7.94	3.17	3973544	1

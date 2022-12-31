@@ -31,7 +31,6 @@ def filter_discrete_startsendswith(row_indices, query_values):
 
 def filter_numeric(row_indices, query_values):
     for i, row_index in enumerate(row_indices):
-        print(query_values[i])
         if fastnumbers.float(query_values[i]) >= 0.1:
             yield row_index
 
@@ -111,7 +110,6 @@ with open(out_file_path, 'wb') as out_file:
         keep_row_indices = list(filter_discrete_simple(range(portrait_num_rows), discrete_col_values))
     elif query_type == "startsendswith":
         keep_row_indices = list(filter_discrete_startsendswith(range(portrait_num_rows), discrete_col_values))
-    print(keep_row_indices)
 
     numeric_col_coords = parse_data_coords([numeric_query_col_index], landscape_file_handles["rowstart"], landscape_max_row_start_length, len(landscape_file_handles["data"]))
     numeric_col_line = parse_data_values(0, landscape_line_length, numeric_col_coords, landscape_file_handles["data"], end_offset=1)
@@ -123,9 +121,7 @@ with open(out_file_path, 'wb') as out_file:
 
     numeric_col_values = list(parse_data_values(0, 0, landscape_col_coords2, numeric_col_line))
 
-    #keep_row_indices = filter_numeric(keep_row_indices, numeric_col_values)
-    keep_row_indices = list(filter_numeric(keep_row_indices, numeric_col_values))
-    print(keep_row_indices)
+    keep_row_indices = filter_numeric(keep_row_indices, numeric_col_values)
 
     portrait_row_coords = parse_data_coords(keep_row_indices, portrait_file_handles["rowstart"], portrait_max_row_start_length, len(portrait_file_handles["data"]))
 

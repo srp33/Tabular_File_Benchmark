@@ -43,7 +43,7 @@ function buildDockerImage {
     cd $currentDir
 }
 
-#buildDockerImage tab_bench_python
+buildDockerImage tab_bench_python
 #buildDockerImage tab_bench_r
 buildDockerImage tab_bench_rust $currentDir/Rust
 
@@ -157,11 +157,11 @@ function queryFile {
 
   echo Running query for ${iteration}, ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}, ${columns}
 
-  $dockerCommand $command
-#  $dockerCommand /usr/bin/time --verbose $command &> /tmp/result
-#  $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
-#  $pythonDockerCommand python ParseFileSize.py $outFile >> $resultFile
-#  echo >> $resultFile
+#  $dockerCommand $command
+  $dockerCommand /usr/bin/time --verbose $command &> /tmp/result
+  $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
+  $pythonDockerCommand python ParseFileSize.py $outFile >> $resultFile
+  echo >> $resultFile
 
   masterFile=/tmp/benchmark_files/${numDiscrete}_${numNumeric}_${numRows}_${queryType}_${columns}_master
 
@@ -183,8 +183,8 @@ function queryFile {
 
 #rm -rf /tmp/benchmark_files
 mkdir -p /tmp/benchmark_files
-
 mkdir -p results
+
 queryResultFile=results/queries_uncompressed.tsv
 
 echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $queryResultFile
@@ -424,40 +424,40 @@ tcResultFile=results/transposed_compressed.tsv
 # version of the data for filtering.
 ############################################################
 
-#for iteration in {1..5}
-for iteration in {1..1}
-do
-    #for queryType in simple startsendswith
-    for queryType in simple
-    #for queryType in startsendswith
-    do
-        #for size in "$small" "$tall" "$wide"
-        for size in "$small"
-        #for size in "$tall"
-        #for size in "$wide"
-        do
-            #for columns in firstlast_columns all_columns
-            for columns in firstlast_columns
-            #for columns in all_columns
-            do
-                #for level in 1 5 9 22
-                for level in 1
-                do
-                    #queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr_trps.py zstd ${level}" $queryType $columns False fwf2 $queryResultFile
-                    queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr_trps/target/release/main zstd ${level}" $queryType $columns False fwf2 $queryResultFile
-                done
-            done
-        done
-    done
-done
+queryResultFile=results/queries_compressed_transposed.tsv
+echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $queryResultFile
 
-echo $queryResultFile
-cat $queryResultFile
+#for iteration in {1..5}
+#for iteration in {1..1}
+#do
+#    for queryType in simple startsendswith
+#    #for queryType in simple
+#    #for queryType in startsendswith
+#    do
+#        for size in "$small" "$tall" "$wide"
+#        #for size in "$small"
+#        #for size in "$tall"
+#        #for size in "$wide"
+#        do
+#            for columns in firstlast_columns all_columns
+#            #for columns in firstlast_columns
+#            #for columns in all_columns
+#            do
+#                for level in 1 5 9 22
+#                #for level in 1
+#                do
+#                    queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr_trps.py zstd ${level}" $queryType $columns False fwf2 $queryResultFile
+#                    queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr_trps/target/release/main zstd ${level}" $queryType $columns False fwf2 $queryResultFile
+#                done
+#            done
+#        done
+#    done
+#done
+
+#echo $queryResultFile
+#cat $queryResultFile
 exit
 
-#TODO: Create Python code for querying transposed_and_compressed files.
-#      TODO: Use a generator?
-#TODO: Create Rust code for querying transposed_and_compressed files.
 #TODO: Generate test files that have discrete values with varying lengths? See how well compression works (probably don't need to test query speeds, but you could).
 
 function transposeCompressTestFile {

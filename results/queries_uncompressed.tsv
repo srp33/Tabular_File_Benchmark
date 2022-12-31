@@ -1,2 +1,97 @@
 Iteration	CommandPrefix	QueryType	Columns	NumDiscrete	NumNumeric	NumRows	WallClockSeconds	UserSeconds	SystemSeconds	MaxMemoryUsed_kb	OutputFileSize_kb
-1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	simple	firstlast_columns	10	90	1000	
+1	python fwf2_cmpr_trps.py zstd 1	simple	firstlast_columns	10	90	1000	0.05	0.03	0.02	11600	1
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	simple	firstlast_columns	10	90	1000	0.04	0.00	0.03	2800	1
+1	python fwf2_cmpr_trps.py zstd 5	simple	firstlast_columns	10	90	1000	0.05	0.04	0.01	11368	1
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 5	simple	firstlast_columns	10	90	1000	0.04	0.00	0.04	2768	1
+1	python fwf2_cmpr_trps.py zstd 9	simple	firstlast_columns	10	90	1000	0.05	0.02	0.03	11660	1
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 9	simple	firstlast_columns	10	90	1000	0.04	0.00	0.04	2700	1
+1	python fwf2_cmpr_trps.py zstd 22	simple	firstlast_columns	10	90	1000	0.05	0.04	0.01	11296	1
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 22	simple	firstlast_columns	10	90	1000	0.03	0.00	0.03	2824	1
+1	python fwf2_cmpr_trps.py zstd 1	simple	all_columns	10	90	1000	0.05	0.04	0.01	11696	6
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	simple	all_columns	10	90	1000	0.04	0.00	0.04	2716	6
+1	python fwf2_cmpr_trps.py zstd 5	simple	all_columns	10	90	1000	0.05	0.04	0.01	11532	6
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 5	simple	all_columns	10	90	1000	0.04	0.00	0.04	2828	6
+1	python fwf2_cmpr_trps.py zstd 9	simple	all_columns	10	90	1000	0.05	0.05	0.00	11456	6
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 9	simple	all_columns	10	90	1000	0.04	0.00	0.04	2760	6
+1	python fwf2_cmpr_trps.py zstd 22	simple	all_columns	10	90	1000	0.05	0.03	0.01	11412	6
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 22	simple	all_columns	10	90	1000	0.04	0.00	0.04	2776	6
+1	python fwf2_cmpr_trps.py zstd 1	simple	firstlast_columns	100	900	1000000	2.52	2.34	0.17	476732	72
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	simple	firstlast_columns	100	900	1000000	0.39	0.29	0.10	339788	72
+1	python fwf2_cmpr_trps.py zstd 5	simple	firstlast_columns	100	900	1000000	2.51	2.32	0.19	477396	72
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 5	simple	firstlast_columns	100	900	1000000	0.43	0.27	0.16	339196	72
+1	python fwf2_cmpr_trps.py zstd 9	simple	firstlast_columns	100	900	1000000	2.47	2.34	0.12	476548	72
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 9	simple	firstlast_columns	100	900	1000000	0.44	0.29	0.14	339400	72
+1	python fwf2_cmpr_trps.py zstd 22	simple	firstlast_columns	100	900	1000000	2.46	2.35	0.11	474980	72
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 22	simple	firstlast_columns	100	900	1000000	0.42	0.25	0.16	337324	72
+1	python fwf2_cmpr_trps.py zstd 1	simple	all_columns	100	900	1000000	3.49	3.32	0.16	477036	25895
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	simple	all_columns	100	900	1000000	0.64	0.47	0.16	339572	25895
+1	python fwf2_cmpr_trps.py zstd 5	simple	all_columns	100	900	1000000	3.48	3.29	0.19	476884	25895
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 5	simple	all_columns	100	900	1000000	0.67	0.53	0.14	339184	25895
+1	python fwf2_cmpr_trps.py zstd 9	simple	all_columns	100	900	1000000	3.52	3.33	0.18	477816	25895
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 9	simple	all_columns	100	900	1000000	0.69	0.52	0.17	342912	25895
+1	python fwf2_cmpr_trps.py zstd 22	simple	all_columns	100	900	1000000	3.61	3.47	0.13	476052	25895
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 22	simple	all_columns	100	900	1000000	0.67	0.50	0.16	337156	25895
+1	python fwf2_cmpr_trps.py zstd 1	simple	firstlast_columns	100000	900000	1000	0.64	0.59	0.04	69016	1
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	simple	firstlast_columns	100000	900000	1000	0.2	0.13	0.06	48440	1
+1	python fwf2_cmpr_trps.py zstd 5	simple	firstlast_columns	100000	900000	1000	0.67	0.63	0.04	69608	1
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 5	simple	firstlast_columns	100000	900000	1000	0.24	0.18	0.06	50656	1
+1	python fwf2_cmpr_trps.py zstd 9	simple	firstlast_columns	100000	900000	1000	0.65	0.62	0.03	69608	1
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 9	simple	firstlast_columns	100000	900000	1000	0.24	0.19	0.05	52300	1
+1	python fwf2_cmpr_trps.py zstd 22	simple	firstlast_columns	100000	900000	1000	0.64	0.60	0.04	68568	1
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 22	simple	firstlast_columns	100000	900000	1000	0.24	0.16	0.07	47232	1
+1	python fwf2_cmpr_trps.py zstd 1	simple	all_columns	100000	900000	1000	4.23	3.88	0.35	472948	43436
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	simple	all_columns	100000	900000	1000	0.75	0.56	0.18	165412	43436
+1	python fwf2_cmpr_trps.py zstd 5	simple	all_columns	100000	900000	1000	4.45	4.05	0.39	473480	43436
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 5	simple	all_columns	100000	900000	1000	0.8	0.61	0.18	165732	43436
+1	python fwf2_cmpr_trps.py zstd 9	simple	all_columns	100000	900000	1000	4.21	3.87	0.33	473180	43436
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 9	simple	all_columns	100000	900000	1000	0.8	0.61	0.19	165752	43436
+1	python fwf2_cmpr_trps.py zstd 22	simple	all_columns	100000	900000	1000	4.17	3.79	0.37	472448	43436
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 22	simple	all_columns	100000	900000	1000	0.8	0.61	0.19	165096	43436
+1	python fwf2_cmpr_trps.py zstd 1	startsendswith	firstlast_columns	10	90	1000	0.05	0.04	0.01	11676	3
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	startsendswith	firstlast_columns	10	90	1000	0.04	0.00	0.04	3108	3
+1	python fwf2_cmpr_trps.py zstd 5	startsendswith	firstlast_columns	10	90	1000	0.05	0.03	0.02	11720	3
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 5	startsendswith	firstlast_columns	10	90	1000	0.04	0.00	0.04	3064	3
+1	python fwf2_cmpr_trps.py zstd 9	startsendswith	firstlast_columns	10	90	1000	0.05	0.04	0.00	11888	3
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 9	startsendswith	firstlast_columns	10	90	1000	0.04	0.00	0.04	2928	3
+1	python fwf2_cmpr_trps.py zstd 22	startsendswith	firstlast_columns	10	90	1000	0.05	0.04	0.01	11920	3
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 22	startsendswith	firstlast_columns	10	90	1000	0.04	0.00	0.04	3096	3
+1	python fwf2_cmpr_trps.py zstd 1	startsendswith	all_columns	10	90	1000	0.05	0.04	0.01	11540	79
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	startsendswith	all_columns	10	90	1000	0.04	0.00	0.04	3156	79
+1	python fwf2_cmpr_trps.py zstd 5	startsendswith	all_columns	10	90	1000	0.06	0.04	0.01	11932	79
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 5	startsendswith	all_columns	10	90	1000	0.04	0.00	0.03	3108	79
+1	python fwf2_cmpr_trps.py zstd 9	startsendswith	all_columns	10	90	1000	0.05	0.03	0.02	11696	79
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 9	startsendswith	all_columns	10	90	1000	0.04	0.00	0.04	3096	79
+1	python fwf2_cmpr_trps.py zstd 22	startsendswith	all_columns	10	90	1000	0.05	0.04	0.01	11656	79
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 22	startsendswith	all_columns	10	90	1000	0.04	0.00	0.04	3004	79
+1	python fwf2_cmpr_trps.py zstd 1	startsendswith	firstlast_columns	100	900	1000000	4.77	4.35	0.42	2986228	1849
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	startsendswith	firstlast_columns	100	900	1000000	2.14	1.66	0.47	2839212	1849
+1	python fwf2_cmpr_trps.py zstd 5	startsendswith	firstlast_columns	100	900	1000000	5.31	4.75	0.56	3033900	1849
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 5	startsendswith	firstlast_columns	100	900	1000000	2.6	2.09	0.51	2888928	1849
+1	python fwf2_cmpr_trps.py zstd 9	startsendswith	firstlast_columns	100	900	1000000	5.01	4.74	0.27	3028236	1849
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 9	startsendswith	firstlast_columns	100	900	1000000	2.62	2.09	0.53	2892512	1849
+1	python fwf2_cmpr_trps.py zstd 22	startsendswith	firstlast_columns	100	900	1000000	5.07	4.77	0.29	2889356	1849
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 22	startsendswith	firstlast_columns	100	900	1000000	2.64	2.16	0.48	2746276	1849
+1	python fwf2_cmpr_trps.py zstd 1	startsendswith	all_columns	100	900	1000000	30.89	29.77	1.11	2988088	673914
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	startsendswith	all_columns	100	900	1000000	8.54	7.52	1.02	2840384	673914
+1	python fwf2_cmpr_trps.py zstd 5	startsendswith	all_columns	100	900	1000000	30.46	29.27	1.18	3030384	673914
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 5	startsendswith	all_columns	100	900	1000000	9.09	7.91	1.17	2893444	673914
+1	python fwf2_cmpr_trps.py zstd 9	startsendswith	all_columns	100	900	1000000	30.33	29.18	1.14	3024788	673914
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 9	startsendswith	all_columns	100	900	1000000	9.13	7.96	1.16	2893448	673914
+1	python fwf2_cmpr_trps.py zstd 22	startsendswith	all_columns	100	900	1000000	31.76	30.57	1.18	2889112	673914
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 22	startsendswith	all_columns	100	900	1000000	9.06	8.01	1.05	2757340	673914
+1	python fwf2_cmpr_trps.py zstd 1	startsendswith	firstlast_columns	100000	900000	1000	1.78	1.33	0.27	353728	3
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	startsendswith	firstlast_columns	100000	900000	1000	0.88	0.79	0.08	332864	3
+1	python fwf2_cmpr_trps.py zstd 5	startsendswith	firstlast_columns	100000	900000	1000	3.05	2.48	0.38	363836	3
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 5	startsendswith	firstlast_columns	100000	900000	1000	2.14	2.04	0.10	345760	3
+1	python fwf2_cmpr_trps.py zstd 9	startsendswith	firstlast_columns	100000	900000	1000	3.0	2.38	0.39	366512	3
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 9	startsendswith	firstlast_columns	100000	900000	1000	2.12	2.02	0.10	345348	3
+1	python fwf2_cmpr_trps.py zstd 22	startsendswith	firstlast_columns	100000	900000	1000	2.91	2.37	0.35	344288	3
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 22	startsendswith	firstlast_columns	100000	900000	1000	2.52	2.42	0.10	332296	3
+1	python fwf2_cmpr_trps.py zstd 1	startsendswith	all_columns	100000	900000	1000	37.46	32.80	4.65	759244	750663
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	startsendswith	all_columns	100000	900000	1000	9.89	7.96	1.91	449816	750663
+1	python fwf2_cmpr_trps.py zstd 5	startsendswith	all_columns	100000	900000	1000	39.01	34.23	4.77	770340	750663
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 5	startsendswith	all_columns	100000	900000	1000	11.21	9.14	2.07	460940	750663
+1	python fwf2_cmpr_trps.py zstd 9	startsendswith	all_columns	100000	900000	1000	38.92	34.26	4.65	768048	750663
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 9	startsendswith	all_columns	100000	900000	1000	11.47	9.43	2.04	458656	750663
+1	python fwf2_cmpr_trps.py zstd 22	startsendswith	all_columns	100000	900000	1000	39.03	34.47	4.55	746720	750663
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 22	startsendswith	all_columns	100000	900000	1000	11.56	9.47	2.08	441100	750663

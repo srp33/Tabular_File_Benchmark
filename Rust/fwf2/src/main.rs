@@ -135,7 +135,6 @@ fn main () -> Result<(), Error>  {
     let mut file_handles = HashMap::new();
     file_handles.insert(String::from("cc"), open_read_file(in_file_path, ".cc"));
     file_handles.insert(String::from("cn"), open_read_file(in_file_path, ".cn"));
-    file_handles.insert(String::from("ct"), open_read_file(in_file_path, ".ct"));
     file_handles.insert(String::from("data"), open_read_file(in_file_path, ""));
 
     let line_length: usize = read_int_from_file(in_file_path, ".ll");

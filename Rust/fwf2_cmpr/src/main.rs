@@ -69,10 +69,6 @@ fn filter_discrete_simple (row_indices: &Vec<usize>, query_col_coords: &Vec<usiz
         let line = line_vec.deref();
         let value = parse_data_values(&0usize, &0usize, &query_col_coords, line);
 
-        //let value = parse_data_values(row_index, line_length, query_col_coords, file_handles.get("data").unwrap());
-        //let value = parse_data_values(0, line_length, query_col_coords, file_handles.get("data").unwrap());
-        //value = next(parse_data_values(0, 0, query_col_coords, parse_compressed_row(row_coords[row_index])))
-
         if value == "AM" || value == "NZ" {
             return_rows.push(*row_index);
         }
@@ -85,7 +81,6 @@ fn filter_discrete_startsendswith (row_indices: &Vec<usize>, query_col_coords: &
     let mut return_rows:Vec<usize> = Vec::new();
 
     for row_index in row_indices {
-        //let value = parse_data_values(row_index, line_length, query_col_coords, file_handles.get("data").unwrap());
         let line_vec = parse_compressed_row(&row_coords[*row_index], &file_handles);
         let line = line_vec.deref();
         let value = parse_data_values(&0usize, &0usize, &query_col_coords, line);
@@ -102,8 +97,6 @@ fn filter_numeric (row_indices: &Vec<usize>, query_col_coords: &Vec<usize>, row_
     let mut return_rows:Vec<usize> = Vec::new();
 
     for row_index in row_indices {
-        //print!("{:#?}", parse_data_values(row_index, line_length, query_col_coords, file_handles.get("data").unwrap()));
-        //let value:f64 = parse_data_values(row_index, line_length, query_col_coords, file_handles.get("data").unwrap()).parse().unwrap();
         let line_vec = parse_compressed_row(&row_coords[*row_index], &file_handles);
         let line = line_vec.deref();
         let value:f64 = parse_data_values(&0usize, &0usize, &query_col_coords, line).parse().unwrap();
@@ -124,14 +117,14 @@ fn parse_compressed_row(row_coord_0: &Vec<usize>, file_handles: &HashMap<String,
     return decompressed_vector;
 }
 
-fn parse_data_values (start_offset: &usize, segment_length: &usize, data_coords: &Vec<usize>, str_like_object: &[u8]) -> String {
+fn parse_data_values(start_offset: &usize, segment_length: &usize, data_coords: &Vec<usize>, str_like_object: &[u8]) -> String {
     let end_offset = 0;
     let start_pos = start_offset * segment_length;
     let result = &str_like_object[(start_pos + data_coords[1]) as usize..(start_pos + data_coords[2] + end_offset) as usize];
     return std::str::from_utf8(result).unwrap().trim_end().to_owned();
 }
 
-fn parse_all_data_values (start_offset: &usize, segment_length: &usize, data_coords: &Vec<Vec<usize>>, str_like_object: &[u8]) -> String {
+fn parse_all_data_values(start_offset: &usize, segment_length: &usize, data_coords: &Vec<Vec<usize>>, str_like_object: &[u8]) -> String {
     let mut current_line: Vec<&str> = Vec::new();
     let end_offset = 0;
     let start_pos = start_offset * segment_length;
@@ -164,7 +157,6 @@ fn main () -> Result<(), Error>  {
     let mut file_handles = HashMap::new();
     file_handles.insert(String::from("cc"), open_read_file(in_file_path2, ".cc"));
     file_handles.insert(String::from("cn"), open_read_file(in_file_path2, ".cn"));
-    file_handles.insert(String::from("ct"), open_read_file(in_file_path2, ".ct"));
     file_handles.insert(String::from("data"), open_read_file(in_file_path2, ""));
     file_handles.insert(String::from("rowstart"), open_read_file(in_file_path2, ".rowstart"));
 

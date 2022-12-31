@@ -61,7 +61,6 @@ if compression_level != "NA":
 file_handles = {
     "cc": openReadFile(in_file_path, ".cc"),
     "cn": openReadFile(in_file_path, ".cn"),
-    "ct": openReadFile(in_file_path, ".ct"),
     "data": openReadFile(in_file_path, ""),
     "rowstart": openReadFile(in_file_path, ".rowstart")
 }

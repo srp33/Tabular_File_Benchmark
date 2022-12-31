@@ -9,7 +9,6 @@ use std::cmp;
 use std::str::FromStr;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::ops::Deref;
 
 fn open_read_file(file_path: &String, file_extension: &str) -> Mmap {
     let the_file = File::open(file_path.clone() + file_extension).unwrap();
@@ -27,7 +26,6 @@ fn parse_data_coords(line_indices: &Vec<usize>, coords_file: &Mmap, coords_file_
     let out_dict: Vec<usize> = Vec::new();
     let mut data_start_pos:usize;
     let mut data_end_pos:usize;
-    //print!("{:#?}", line_indices);
 
     for index in line_indices {
         let start_pos = index * (coords_file_max_length + 1);
@@ -61,88 +59,79 @@ fn parse_data_coords(line_indices: &Vec<usize>, coords_file: &Mmap, coords_file_
     return results;
 }
 
-fn filter_discrete_simple (row_indices: &Vec<usize>, query_col_coords: &Vec<usize>, row_coords: &Vec<Vec<usize>>, file_handles: &HashMap<String, Mmap>) -> Vec<usize> {
-    let mut return_rows:Vec<usize> = Vec::new();
+fn filter_discrete_simple(row_indices: &Vec<usize>, data_values: &Vec<String>) -> Vec<usize> {
+    let mut return_values:Vec<usize> = Vec::new();
 
-    for row_index in row_indices {
-        let line_vec = parse_compressed_row(&row_coords[*row_index], &file_handles);
-        let line = line_vec.deref();
-        let value = parse_data_values(&0usize, &0usize, &query_col_coords, line);
-
-        //let value = parse_data_values(row_index, line_length, query_col_coords, file_handles.get("data").unwrap());
-        //let value = parse_data_values(0, line_length, query_col_coords, file_handles.get("data").unwrap());
-        //value = next(parse_data_values(0, 0, query_col_coords, parse_compressed_row(row_coords[row_index])))
+    for (i, &row_index) in row_indices.iter().enumerate() {
+        let value = &data_values[i];
 
         if value == "AM" || value == "NZ" {
-            return_rows.push(*row_index);
+            return_values.push(row_index);
         }
     }
 
-    return return_rows;
+    return return_values;
 }
 
-fn filter_discrete_startsendswith (row_indices: &Vec<usize>, query_col_coords: &Vec<usize>, row_coords: &Vec<Vec<usize>>, file_handles: &HashMap<String, Mmap>) -> Vec<usize> {
-    let mut return_rows:Vec<usize> = Vec::new();
+fn filter_discrete_startsendswith(row_indices: &Vec<usize>, data_values: &Vec<String>) -> Vec<usize> {
+    let mut return_values:Vec<usize> = Vec::new();
 
-    for row_index in row_indices {
-        //let value = parse_data_values(row_index, line_length, query_col_coords, file_handles.get("data").unwrap());
-        let line_vec = parse_compressed_row(&row_coords[*row_index], &file_handles);
-        let line = line_vec.deref();
-        let value = parse_data_values(&0usize, &0usize, &query_col_coords, line);
+    for (i, &row_index) in row_indices.iter().enumerate() {
+        let value = &data_values[i];
 
         if value.starts_with("A") || value.ends_with("Z") {
-            return_rows.push(*row_index);
+            return_values.push(row_index);
         }
     }
 
-    return return_rows;
+    return return_values;
 }
 
-fn filter_numeric (row_indices: &Vec<usize>, query_col_coords: &Vec<usize>, row_coords: &Vec<Vec<usize>>, file_handles: &HashMap<String, Mmap>) -> Vec<usize> {
-    let mut return_rows:Vec<usize> = Vec::new();
+fn filter_numeric(row_indices: &Vec<usize>, data_values: &Vec<String>) -> Vec<usize> {
+    let mut return_values:Vec<usize> = Vec::new();
 
-    for row_index in row_indices {
-        //print!("{:#?}", parse_data_values(row_index, line_length, query_col_coords, file_handles.get("data").unwrap()));
-        //let value:f64 = parse_data_values(row_index, line_length, query_col_coords, file_handles.get("data").unwrap()).parse().unwrap();
-        let line_vec = parse_compressed_row(&row_coords[*row_index], &file_handles);
-        let line = line_vec.deref();
-        let value:f64 = parse_data_values(&0usize, &0usize, &query_col_coords, line).parse().unwrap();
+    for (i, &row_index) in row_indices.iter().enumerate() {
+        let value:f64 = data_values[i].parse().unwrap();
 
         if value >= 0.1 {
-            return_rows.push(*row_index);
+            return_values.push(row_index);
         }
     }
 
-    return return_rows;
+    return return_values;
 }
 
-fn parse_compressed_row(row_coord_0: &Vec<usize>, file_handles: &HashMap<String, Mmap>) -> Vec<u8> {
-    let result =  &file_handles["data"][row_coord_0[1] as usize..row_coord_0[2] as usize];
-    let max_decompressed_size: usize = (row_coord_0[2] as usize - row_coord_0[1] as usize + 1) * 100;
-    let decompressed_vector: Vec<u8> = zstd::bulk::decompress(&result, max_decompressed_size).unwrap();
-
-    return decompressed_vector;
-}
-
-fn parse_data_values (start_offset: &usize, segment_length: &usize, data_coords: &Vec<usize>, str_like_object: &[u8]) -> String {
+fn get_compressed_line(start_offset: &usize, segment_length: &usize, data_coords: &Vec<usize>, str_like_object: &[u8]) -> String {
     let end_offset = 0;
     let start_pos = start_offset * segment_length;
     let result = &str_like_object[(start_pos + data_coords[1]) as usize..(start_pos + data_coords[2] + end_offset) as usize];
-    return std::str::from_utf8(result).unwrap().trim_end().to_owned();
+
+    return decompress_to_string(result);
 }
 
-fn parse_all_data_values (start_offset: &usize, segment_length: &usize, data_coords: &Vec<Vec<usize>>, str_like_object: &[u8]) -> String {
-    let mut current_line: Vec<&str> = Vec::new();
-    let end_offset = 0;
+fn parse_data_values<'a>(start_offset: &'a usize, segment_length: &'a usize, data_coords: &'a Vec<Vec<usize>>, str_like_object: &'a [u8]) -> Vec<String> {
+    let mut values: Vec<String> = Vec::new();
     let start_pos = start_offset * segment_length;
 
     for coords in data_coords {
-        let result = &str_like_object[(start_pos + coords[1]) as usize..(start_pos + coords[2] + end_offset) as usize];
-        let result_string = std::str::from_utf8(result).unwrap().trim_end();
-        current_line.push(result_string);
+        let result = &str_like_object[(start_pos + coords[1]) as usize..(start_pos + coords[2]) as usize];
+        let result_string = std::str::from_utf8(result).unwrap().trim_end().to_owned();
+        values.push(result_string);
     }
 
-    return current_line.join("\t");
+    return values;
+
+}
+
+fn decompress_to_string(input: &[u8]) -> String {
+    let decompressed_bytes = zstd::stream::decode_all(input).unwrap();
+    let decompressed_line_str = convert_bytes_to_string(&decompressed_bytes);
+    decompressed_line_str
+}
+
+fn convert_bytes_to_string(col_type: &[u8]) -> String {
+    let col_type_string = std::str::from_utf8(col_type).unwrap().to_owned();
+    col_type_string
 }
 
 fn main () -> Result<(), Error>  {
@@ -159,23 +148,30 @@ fn main () -> Result<(), Error>  {
     let path = Path::new(in_file_path);
     let in_dir_name = path.parent().expect("That path does not exist").to_string_lossy();
     let in_file_name = path.file_name().expect("That path does not exist").to_string_lossy();
-    let in_file_path2 = &format!("{in_dir_name}/compressed/{in_file_name}.{compression_method}_{compression_level}");
 
-    let mut file_handles = HashMap::new();
-    file_handles.insert(String::from("cc"), open_read_file(in_file_path2, ".cc"));
-    file_handles.insert(String::from("cn"), open_read_file(in_file_path2, ".cn"));
-    file_handles.insert(String::from("ct"), open_read_file(in_file_path2, ".ct"));
-    file_handles.insert(String::from("data"), open_read_file(in_file_path2, ""));
-    file_handles.insert(String::from("rowstart"), open_read_file(in_file_path2, ".rowstart"));
+    let portrait_file_path = &format!("{in_dir_name}/compressed/{in_file_name}.{compression_method}_{compression_level}");
+    let landscape_file_path = &format!("{in_dir_name}/transposed_and_compressed/{in_file_name}.{compression_method}_{compression_level}");
 
-    let line_length: usize = read_int_from_file(in_file_path2, ".ll");
-    let max_column_coord_length: usize = read_int_from_file(in_file_path2, ".mccl");
-    let max_column_name_length: usize = read_int_from_file(in_file_path2, ".mcnl");
-    let max_row_start_length: usize = read_int_from_file(in_file_path2, ".mrsl");
-    let num_rows: usize = file_handles.get("rowstart").unwrap().len() / (max_row_start_length + 1) - 1;
-    let cn_length: usize = file_handles.get("cn").unwrap().len();
+    let mut portrait_file_handles = HashMap::new();
+    portrait_file_handles.insert(String::from("cc"), open_read_file(portrait_file_path, ".cc"));
+    portrait_file_handles.insert(String::from("cn"), open_read_file(portrait_file_path, ".cn"));
+    portrait_file_handles.insert(String::from("data"), open_read_file(portrait_file_path, ""));
+    portrait_file_handles.insert(String::from("rowstart"), open_read_file(portrait_file_path, ".rowstart"));
 
-    let all_row_coord = parse_data_coords(&(0..(num_rows)).collect(), file_handles.get("rowstart").unwrap(), max_row_start_length, file_handles.get("data").unwrap().len());
+    let mut landscape_file_handles = HashMap::new();
+    landscape_file_handles.insert(String::from("cc"), open_read_file(landscape_file_path, ".cc"));
+    landscape_file_handles.insert(String::from("data"), open_read_file(landscape_file_path, ""));
+    landscape_file_handles.insert(String::from("rowstart"), open_read_file(landscape_file_path, ".rowstart"));
+
+    let portrait_line_length: usize = read_int_from_file(portrait_file_path, ".ll");
+    let portrait_max_column_coord_length: usize = read_int_from_file(portrait_file_path, ".mccl");
+    let portrait_max_column_name_length: usize = read_int_from_file(portrait_file_path, ".mcnl");
+    let portrait_max_row_start_length: usize = read_int_from_file(portrait_file_path, ".mrsl");
+    let portrait_num_rows: usize = portrait_file_handles.get("rowstart").unwrap().len() / (portrait_max_row_start_length + 1) - 1;
+
+    let landscape_line_length: usize = read_int_from_file(landscape_file_path, ".ll");
+    let landscape_max_column_coord_length: usize = read_int_from_file(landscape_file_path, ".mccl");
+    let landscape_max_row_start_length: usize = read_int_from_file(landscape_file_path, ".mrsl");
 
     let path: PathBuf = PathBuf::from(out_file_path);
     let mut out_file =  OpenOptions::new().read(true).write(true).create(true).open(&path)?;
@@ -185,7 +181,7 @@ fn main () -> Result<(), Error>  {
     let out_col_coords: Vec<Vec<usize>>;
 
     if col_names_to_keep == "all_columns" {
-        let num_cols = file_handles.get("cn").unwrap().len() / (max_column_name_length + 1);
+        let num_cols = portrait_file_handles.get("cn").unwrap().len() / (portrait_max_column_name_length + 1);
         let mut out_col_indices: Vec<usize> = Vec::new();
         for i in 0..num_cols {
             out_col_indices.push(i);
@@ -194,9 +190,9 @@ fn main () -> Result<(), Error>  {
         let mut column_names: Vec<String> = Vec::new();
 
         for i in out_col_indices.iter() {
-            let start_i = i * (max_column_name_length + 1) as usize;
-            let end_i = start_i + max_column_name_length + 1 as usize;
-            let column_name = std::str::from_utf8(&file_handles.get("cn").unwrap()[start_i..end_i]).unwrap().trim_end().to_string();
+            let start_i = i * (portrait_max_column_name_length + 1) as usize;
+            let end_i = start_i + portrait_max_column_name_length + 1 as usize;
+            let column_name = std::str::from_utf8(&portrait_file_handles.get("cn").unwrap()[start_i..end_i]).unwrap().trim_end().to_string();
             column_names.push(column_name.clone());
 
             if &column_name == discrete_query_col_name {
@@ -209,7 +205,7 @@ fn main () -> Result<(), Error>  {
             }
         }
 
-        out_col_coords = parse_data_coords(&out_col_indices, file_handles.get("cc").unwrap(), max_column_coord_length, line_length);
+        out_col_coords = parse_data_coords(&out_col_indices, portrait_file_handles.get("cc").unwrap(), portrait_max_column_coord_length, portrait_line_length);
 
         out_file.write((column_names.join("\t") + "\n").as_bytes()).unwrap();
     }
@@ -225,11 +221,12 @@ fn main () -> Result<(), Error>  {
 
         let mut column_name_indices = HashMap::<String, usize>::new();
 
-        for i in (0..cn_length).step_by(max_column_name_length + 1) {
-            let column_name = std::str::from_utf8(&file_handles.get("cn").unwrap()[i..(i + max_column_name_length)]).unwrap().trim_end().to_owned();
+        let cn_length: usize = portrait_file_handles.get("cn").unwrap().len();
+        for i in (0..cn_length).step_by(portrait_max_column_name_length + 1) {
+            let column_name = std::str::from_utf8(&portrait_file_handles.get("cn").unwrap()[i..(i + portrait_max_column_name_length)]).unwrap().trim_end().to_owned();
 
             if column_names_to_find.contains(&column_name) {
-                column_name_indices.insert(column_name, (i / (max_column_name_length + 1)) as usize);
+                column_name_indices.insert(column_name, (i / (portrait_max_column_name_length + 1)) as usize);
             }
         }
 
@@ -241,40 +238,51 @@ fn main () -> Result<(), Error>  {
             out_col_indices.push(*column_name_indices.get(name).unwrap());
         }
 
-        out_col_coords = parse_data_coords(&out_col_indices, file_handles.get("cc").unwrap(), max_column_coord_length, line_length);
+        out_col_coords = parse_data_coords(&out_col_indices, portrait_file_handles.get("cc").unwrap(), portrait_max_column_coord_length, portrait_line_length);
 
         out_file.write((col_names_to_keep2.join("\t") + "\n").as_bytes()).unwrap();
     }
 
+    let landscape_num_cols = landscape_file_handles.get("cc").unwrap().len() / (landscape_max_column_coord_length + 1);
+    let landscape_col_coords = parse_data_coords(&(0..(landscape_num_cols)).collect(), landscape_file_handles.get("cc").unwrap(), landscape_max_column_coord_length, landscape_line_length);
+
     let mut discrete_query_col_indices: Vec<usize> = Vec::new();
     discrete_query_col_indices.push(discrete_query_col_index);
-    let discrete_query_col_coords = &parse_data_coords(&discrete_query_col_indices, file_handles.get("cc").unwrap(), max_column_coord_length, line_length)[0];
+    let discrete_query_col_coords = &parse_data_coords(&discrete_query_col_indices, landscape_file_handles.get("rowstart").unwrap(), landscape_max_row_start_length, landscape_file_handles.get("data").unwrap().len());
+    let discrete_col_string = get_compressed_line(&0usize, &landscape_line_length, &discrete_query_col_coords[0], landscape_file_handles.get("data").unwrap());
+    let discrete_col_values = parse_data_values(&0usize, &0usize, &landscape_col_coords, discrete_col_string.as_ref());
 
-    let mut numeric_query_col_indices: Vec<usize> = Vec::new();
-    numeric_query_col_indices.push(numeric_query_col_index);
-
-    let numeric_query_col_coords = &parse_data_coords(&numeric_query_col_indices, file_handles.get("cc").unwrap(), max_column_coord_length, line_length)[0];
-
-    let mut keep_row_indices:Vec<usize> = (0..num_rows).collect();
+    let mut keep_row_indices:Vec<usize> = (0..portrait_num_rows).collect();
 
     if query_type == "simple" {
-        keep_row_indices = filter_discrete_simple(&keep_row_indices, &discrete_query_col_coords, &all_row_coord, &file_handles);
+        keep_row_indices = filter_discrete_simple(&keep_row_indices, &discrete_col_values);
     }
     else {
         if query_type == "startsendswith" {
-            keep_row_indices = filter_discrete_startsendswith(&keep_row_indices, &discrete_query_col_coords, &all_row_coord, &file_handles);
+            keep_row_indices = filter_discrete_startsendswith(&keep_row_indices, &discrete_col_values);
         }
     }
-    //print!("{:#?}", keep_row_indices);
+    //print!("{:#?}\n", keep_row_indices);
 
-    keep_row_indices = filter_numeric(&keep_row_indices, &numeric_query_col_coords, &all_row_coord, &file_handles);
+    let mut landscape_col_coords2: Vec<Vec<usize>> = Vec::new();
+    for row_index in keep_row_indices.iter() {
+        landscape_col_coords2.push(landscape_col_coords[*row_index].clone());
+    }
 
-    //print!("{:#?}", keep_row_indices);
+    let mut numeric_query_col_indices: Vec<usize> = Vec::new();
+    numeric_query_col_indices.push(numeric_query_col_index);
+    let numeric_query_col_coords = &parse_data_coords(&numeric_query_col_indices, landscape_file_handles.get("rowstart").unwrap(), landscape_max_row_start_length, landscape_file_handles.get("data").unwrap().len());
+    let numeric_col_string = get_compressed_line(&0usize, &landscape_line_length, &numeric_query_col_coords[0], landscape_file_handles.get("data").unwrap());
+    let numeric_col_values = parse_data_values(&0usize, &0usize, &landscape_col_coords2, numeric_col_string.as_ref());
 
-    for row_index in keep_row_indices {
-        let line_vec = parse_compressed_row(&all_row_coord[row_index], &file_handles);
-        let line = line_vec.deref();
-        out_file.write((parse_all_data_values(&0usize, &0usize, &out_col_coords, line) + "\n").as_bytes()).unwrap();
+    keep_row_indices = filter_numeric(&keep_row_indices, &numeric_col_values);
+
+    let portrait_row_coords = parse_data_coords(&keep_row_indices, portrait_file_handles.get("rowstart").unwrap(), portrait_max_row_start_length, portrait_file_handles.get("data").unwrap().len());
+
+    for row_coords in portrait_row_coords {
+        let line_string = get_compressed_line(&0usize, &portrait_line_length, &row_coords, portrait_file_handles.get("data").unwrap());
+        let out_line = parse_data_values(&0usize, &0usize, &out_col_coords, line_string.as_ref()).join("\t") + "\n";
+        out_file.write(out_line.as_bytes()).unwrap();
     }
 
     Ok(())

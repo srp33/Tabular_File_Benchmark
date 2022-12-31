@@ -40,7 +40,7 @@ with open(in_file_path + ".ll", 'rb') as ll_file:
 
 in_row_indices = list(range(num_rows + 1))
 
-out_row_starts = []
+out_rowstarts = []
 cumulative_position = 0
 
 with open(in_file_path, 'rb') as my_file:
@@ -59,11 +59,11 @@ with open(in_file_path, 'rb') as my_file:
             compressed_line = eval(compression_code)
 
             out_file.write(compressed_line)
-            out_row_starts.append(cumulative_position)
+            out_rowstarts.append(cumulative_position)
             cumulative_position += len(compressed_line)
 
 # Serialize and save values that indicate where each row starts
-out_string, max_length = buildStringMap(out_row_starts)
+out_string, max_length = buildStringMap(out_rowstarts)
 
 with open(out_file_path + ".rowstart", 'wb') as rowstart_file:
     rowstart_file.write(out_string)

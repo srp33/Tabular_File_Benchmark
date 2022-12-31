@@ -36,7 +36,7 @@ with open(in_file_path + ".cc", 'rb') as cc_file:
     with open(in_file_path, 'rb') as data_file:
         data_map_file = mmap.mmap(data_file.fileno(), 0, prot=mmap.PROT_READ)
 
-        for row_index in row_indices[1:]:
+        for row_index in row_indices:
             if row_index > 0 and row_index % 1000 == 0:
                 print("Finding the sizes of the output columns for row {}.".format(row_index), flush=True)
 
@@ -54,7 +54,7 @@ with open(in_file_path + ".cc", 'rb') as cc_file:
                     print("Parsing and saving the transposed data to the output file for column {}.".format(col_index), flush=True)
 
                 out_items = []
-                for row_index in row_indices[1:]:
+                for row_index in row_indices:
                     value = parse_data_values(row_index, line_length, col_coords[col_index:(col_index+1)], data_map_file)
                     out_items.append(out_column_formatter_dict[row_index].format(next(value).decode()))
 
@@ -73,10 +73,12 @@ with open(out_file_path + ".ll", 'wb') as out_ll_file:
 # Calculate the positions where each column starts
 out_column_start_coords = []
 cumulative_position = 0
-for row_index in row_indices[1:]:
+for row_index in row_indices:
     column_size = out_column_size_dict[row_index]
     out_column_start_coords.append(str(cumulative_position))
     cumulative_position += column_size
+
+#out_column_start_coords.append(str(cumulative_position))
 
 # Calculate the column coordinates and max length of these coordinates
 out_column_coords_string, out_max_column_coord_length = buildStringMap(out_column_start_coords)

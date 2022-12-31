@@ -3,11 +3,11 @@ FROM rust:1.65.0-slim-buster
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated time
 
-COPY Rust/fwf2 /Rust/fwf2/
+COPY fwf2 /Rust/fwf2/
 RUN cd /Rust/fwf2; cargo build --release
 
-COPY Rust/fwf2_cmpr /Rust/fwf2_cmpr/
+COPY fwf2_cmpr /Rust/fwf2_cmpr/
 RUN cd /Rust/fwf2_cmpr; cargo build --release
 
-COPY Rust/fwf2_cmpr_trps /Rust/fwf2_cmpr_trps/
+COPY fwf2_cmpr_trps /Rust/fwf2_cmpr_trps/
 RUN cd /Rust/fwf2_cmpr_trps; cargo build --release

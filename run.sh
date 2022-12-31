@@ -19,10 +19,33 @@ pythonImage=tab_bench_python
 rImage=tab_bench_r
 rustImage=tab_bench_rust
 
-for dockerFile in Dockerfiles/tab_bench_*
-do
-    docker build -t $(basename $dockerFile) -f $dockerFile .
-done
+currentDir="$(pwd)"
+tmpDir=/tmp/build_docker
+
+function buildDockerImage {
+    dockerFileName=$1
+    otherDir="$2"
+
+    rm -rf $tmpDir
+    mkdir -p $tmpDir
+
+    dockerFilePath=Dockerfiles/$dockerFileName
+
+    cp $dockerFilePath $tmpDir/
+
+    if [[ "$otherDir" != "" ]]
+    then
+        cp -r "$otherDir"/* $tmpDir/
+    fi
+
+    cd $tmpDir
+    docker build -t $dockerFileName -f $dockerFileName .
+    cd $currentDir
+}
+
+#buildDockerImage tab_bench_python
+#buildDockerImage tab_bench_r
+buildDockerImage tab_bench_rust $currentDir/Rust
 
 #baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 baseDockerCommand="docker run -i --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
@@ -362,12 +385,16 @@ function transposeAndCompressLines {
   inFile2=data/compressed/${numDiscrete}_${numNumeric}_${numRows}.fwf2.${method}_${level}
   outFile1=data/transposed/${numDiscrete}_${numNumeric}_${numRows}.fwf2
   outFile2=data/transposed_and_compressed/${numDiscrete}_${numNumeric}_${numRows}.fwf2.${method}_${level}
+  transposedNumRows=$((numDiscrete + numNumeric))
 
-  echo Transpose $inFile1 to $outFile1
-  $pythonDockerCommand python3 transpose_fwf2.py $inFile1 $outFile1
+  if [ ! -f $outFile1 ]
+  then
+    echo Transpose $inFile1 to $outFile1
+    $pythonDockerCommand python3 transpose_fwf2.py $inFile1 $outFile1
+  fi
 
   echo Compressing $outFile1 to $outFile2
-  $pythonDockerCommand python3 compress_lines.py $outFile1 $numRows $method $level $outFile2
+  $pythonDockerCommand python3 compress_lines.py $outFile1 $transposedNumRows $method $level $outFile2
 
   echo -n -e "${numDiscrete}\t${numNumeric}\t${numRows}\t${method}\t${level}" >> $resultFile
   $pythonDockerCommand python ParseFileSize.py ${inFile1}* >> $resultFile
@@ -384,7 +411,7 @@ tcResultFile=results/transposed_compressed.tsv
 
 #for level in 1 5 9 22
 #do
-#    #transposeAndCompressLines $tcResultFile $small zstd $level
+#    transposeAndCompressLines $tcResultFile $small zstd $level
 #    transposeAndCompressLines $tcResultFile $tall zstd $level
 #    transposeAndCompressLines $tcResultFile $wide zstd $level
 #done
@@ -424,11 +451,12 @@ do
     done
 done
 
-#echo $queryResultFile
-#cat $queryResultFile
-
+echo $queryResultFile
+cat $queryResultFile
 exit
+
 #TODO: Create Python code for querying transposed_and_compressed files.
+#      TODO: Use a generator?
 #TODO: Create Rust code for querying transposed_and_compressed files.
 #TODO: Generate test files that have discrete values with varying lengths? See how well compression works (probably don't need to test query speeds, but you could).
 

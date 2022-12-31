@@ -37,7 +37,6 @@ def filter_numeric(row_indices, query_col_coords):
 file_handles = {
     "cc": openReadFile(in_file_path, ".cc"),
     "cn": openReadFile(in_file_path, ".cn"),
-    "ct": openReadFile(in_file_path, ".ct"),
     "data": openReadFile(in_file_path, ""),
 }
 

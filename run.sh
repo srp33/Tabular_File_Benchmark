@@ -45,7 +45,7 @@ function buildDockerImage {
 
 buildDockerImage tab_bench_python
 #buildDockerImage tab_bench_r
-buildDockerImage tab_bench_rust $currentDir/Rust
+#buildDockerImage tab_bench_rust $currentDir/Rust
 
 #baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 baseDockerCommand="docker run -i --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
@@ -456,102 +456,41 @@ echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\t
 
 #echo $queryResultFile
 #cat $queryResultFile
+
+############################################################
+# Real-world data: ARCHS4
+############################################################
+
+mkdir -p data/archs4
+
+#$pythonDockerCommand wget -O data/archs4/human_tpm_v11.h5 https://s3.amazonaws.com/mssm-seq-matrix/human_tpm_v11.h5
+#$pythonDockerCommand python convert_archs4_hdf5_to_tsv.py data/archs4/human_tpm_v11.h5 data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_expr.tsv.gz
+$pythonDockerCommand python convert_to_fwf2.py data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_sample.fwf2
+$pythonDockerCommand python convert_to_fwf2.py data/archs4/human_tpm_v11_expr.tsv.gz data/archs4/human_tpm_v11_expr.fwf2
+#TODO: Use F4 instead?
 exit
 
-#TODO: Generate test files that have discrete values with varying lengths? See how well compression works (probably don't need to test query speeds, but you could).
-
-function transposeCompressTestFile {
-  sizeFile=$1
-  numDiscrete=$2
-  numContinuous=$3
-  numRows=$4
-  numRowsTransposed=$5
-
-  mkdir -p TestData/Transposed
-
-  dataFile=TestData/${numDiscrete}_${numContinuous}_${numRows}.fwf2
-  transposedFile=TestData/Transposed/${numDiscrete}_${numContinuous}_${numRows}.fwf2
-
-  echo Transposing $dataFile to $transposedFile
-  python3 TransposeFixedWidth.py $dataFile $transposedFile
-  echo -e "Uncompressed\t$numDiscrete\t$numContinuous\t$numRows\t$(python3 PrintFileSize.py $transposedFile)" >> $sizeFile
-
-  method=zstd
-
-  for level in 1 5 9 13 17 22
-  do
-    echo Compressing $transposed file using $method and $level
-    python3 CompressLines.py $transposedFile $numRowsTransposed $method $level True
-
-    file1=$(python3 PrintFileSize.py $dataFile.${method}_${level})
-    file2=$(python3 PrintFileSize.py $transposedFile.${method}_${level})
-    totalSize=$((file1 + file2))
-    echo -e "${method}_${level}\t$numDiscrete\t$numContinuous\t$numRows\t$totalSize" >> $sizeFile
-  done
-}
-
-sizeFile=Results2/File_Sizes_transposed.tsv
-
-if [ ! -f $sizeFile ]
-then
-  echo -e "Description\tNumDiscrete\tNumContinuous\tNumRows\tSize" > $sizeFile
-
-  transposeCompressTestFile $sizeFile 10 90 1000 100
-  transposeCompressTestFile $sizeFile 100 900 1000000 1000
-  transposeCompressTestFile $sizeFile 100000 900000 1000 1000000
-fi
-
-function runQuery4T {
-  resultFile=$1
-  numDiscrete=$2
-  numContinuous=$3
-  numRows=$4
-  compressionMethod=$5
-  compressionLevel=$6
-  compressionSuffix=$7
-
-  dataFile=TestData/${numDiscrete}_${numContinuous}_$numRows.fwf2.$compressionSuffix
-  transposedFile=TestData/Transposed/${numDiscrete}_${numContinuous}_$numRows.fwf2.$compressionSuffix
-  transposedFileC=TestData/Transposed/${numDiscrete}_${numContinuous}_$numRows.fwf2
-  numDataPoints=$(($numDiscrete + $numContinuous))
-  colNamesFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_columns.tsv
-  masterOutFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries3_master.tsv
-  outFile=TestData/TempResults/${numDiscrete}_${numContinuous}_${numRows}_queries4.$compressionSuffix
-
-  echo Query4T - $compressionMethod - $compressionLevel - $numDiscrete - $numContinuous - $numRows
-  
-  rm -f $outFile
-  echo -e "$compressionMethod\t$compressionLevel\tPython\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel > /dev/null; } 2>&1 )" >> $resultFile
-  #python3 TestFixedWidth4T.py $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints $compressionMethod $compressionLevel
-  python3 CheckOutput.py $outFile $masterOutFile
-
-  ### I am getting a segmentation fault sometimes.
-  ##rm -f $outFile
-  ##echo -e "$compressionMethod\t$compressionLevel\tC++\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e ./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
-  ##./TestFixedWidth4T $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
-  ##python3 CheckOutput.py $outFile $masterOutFile
-  
-  rm -f $outFile
-  echo -e "$compressionMethod\t$compressionLevel\tRust\t$numDiscrete\t$numContinuous\t$numRows\t$( { /usr/bin/time -f %e /Rust/TestFixedWidth4T/target/release/main $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints > /dev/null; } 2>&1 )" >> $resultFile
-  #/Rust/TestFixedWidth4T/target/release/main $dataFile $transposedFile $colNamesFile $outFile $numDiscrete,$numDataPoints
-  python3 CheckOutput.py $outFile $masterOutFile
-}
-
-resultFile=Results2/Query_Results_fwf2_compressed_transposed.tsv
-
-if [ ! -f $resultFile ]
-then
-  echo -e "Method\tLevel\tLanguage\tNumDiscrete\tNumContinuous\tNumRows\tSeconds" > $resultFile
-
-  for level in 1 5 9 13 17 22
-  do
-    runQuery4T $resultFile 10 90 1000 zstd ${level} zstd_${level}
-    runQuery4T $resultFile 100 900 1000000 zstd ${level} zstd_${level}
-    runQuery4T $resultFile 100000 900000 1000 zstd ${level} zstd_${level}
-  done
-fi
-
-exit
+#TODO: Try two levels of compression with fst (and next fastest).
+#      First, compress.
+#      Second, query.
+#TODO: Real-world biology data
+#        Find a suitable file and replace genotype tests with that?
+#        Make sure some columns have discrete values with varying lengths.
+#        Convert it to fwf2, cmpr, trps.
+#          See how well compression works.
+#          - ARCHS4 Version 2 (Ensembl 107), TPM (transcript level, human, 101 GB, 11-16-2021)
+#            https://maayanlab.cloud/archs4/download.html
+#            Transpose.
+#          - CADD files
+#            https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/
+#            Show that it is fast here but that compression is poor. Address compression in F4 paper.
+#        Do queries that are biologically relevant.
+#          Different query complexity and/or output file sizes (but keep it simple!).
+#      Build a simple web-server container (fastAPI?) to demonstrate remote queries.
+#        Peek
+#        Filter/query
+#TODO: Clean up scripts.
+#TODO: Run everything from beginning to end (sensei? miyagi?).
 
 #NOTES:
 #  When parsing tall file (Python):
@@ -602,21 +541,21 @@ function runGenotypeTests {
 
 resultFile=Results2/Results_Genotypes.tsv
 
-if [ ! -f $resultFile ]
-then
+#if [ ! -f $resultFile ]
+#then
   echo -e "Description\tDimensions\tValue" > $resultFile
 
   runGenotypeTests $resultFile 10
-  runGenotypeTests $resultFile 50
-  runGenotypeTests $resultFile 100
-  runGenotypeTests $resultFile 500
-  runGenotypeTests $resultFile 1000
-  runGenotypeTests $resultFile 5000
-  runGenotypeTests $resultFile 10000
-  runGenotypeTests $resultFile 50000
-  runGenotypeTests $resultFile 100000
-  runGenotypeTests $resultFile 500000
-fi
+#  runGenotypeTests $resultFile 50
+#  runGenotypeTests $resultFile 100
+#  runGenotypeTests $resultFile 500
+#  runGenotypeTests $resultFile 1000
+#  runGenotypeTests $resultFile 5000
+#  runGenotypeTests $resultFile 10000
+#  runGenotypeTests $resultFile 50000
+#  runGenotypeTests $resultFile 100000
+#  runGenotypeTests $resultFile 500000
+#fi
 
 ############################################################
 # Clean up the test files created so far to save disk space.

@@ -464,11 +464,9 @@ echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\t
 mkdir -p data/archs4
 
 #$pythonDockerCommand wget -O data/archs4/human_tpm_v11.h5 https://s3.amazonaws.com/mssm-seq-matrix/human_tpm_v11.h5
-#$pythonDockerCommand python convert_archs4_hdf5_to_tsv.py data/archs4/human_tpm_v11.h5 data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_expr.tsv.gz
-$pythonDockerCommand python convert_to_fwf2.py data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_sample.fwf2
-$pythonDockerCommand python convert_to_fwf2.py data/archs4/human_tpm_v11_expr.tsv.gz data/archs4/human_tpm_v11_expr.fwf2
-#TODO: Use F4 instead? Leaning away from it.
-#TODO: Look up paper(s) about memory mapping to explain why it is so fast.
+$pythonDockerCommand python convert_archs4_hdf5_to_tsv.py data/archs4/human_tpm_v11.h5 data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_expr.tsv.gz
+#$pythonDockerCommand python convert_to_fwf2.py data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_sample.fwf2
+#$pythonDockerCommand python convert_to_fwf2.py data/archs4/human_tpm_v11_expr.tsv.gz data/archs4/human_tpm_v11_expr.fwf2
 exit
 
 #TODO: Try two levels of compression with fst (and next fastest).
@@ -488,6 +486,7 @@ exit
 #            Show that it is fast here but that compression is poor. Address compression in F4 paper?
 #            Go with the file that doesn't include the annotations?
 #            Transposing doesn't really make sense for this one.
+#TODO: Use F4 instead? Leaning away from it.
 #      Build a simple web-server container (fastAPI?) to demonstrate remote queries.
 #        Peek
 #        Filter/query

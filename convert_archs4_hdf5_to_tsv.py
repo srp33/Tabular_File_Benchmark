@@ -20,6 +20,14 @@ samples_h5 = h5py.File(in_file_path)["meta"]["samples"]
 #    x = sorted(list(set([x for x in samples_h5[key]])))
 #    print(x[:min(50, len(x))], flush=True)
 
+#prefixes = set()
+#for x in sample_dict["characteristics_ch1"]:
+#    y = x.split(b"\t")
+#    for a in y:
+#        prefixes.add(a.split(b": ")[0])
+#print(len(list(prefixes)))
+# INFO: There are 6151 unique prefixes
+
 sample_keys_to_keep = ["characteristics_ch1", "geo_accession", "instrument_model", "molecule_ch1", "readstotal", "series_id", "singlecellprobability", "source_name_ch1", "taxid_ch1", "title", "type"]
 
 sample_dict = {}
@@ -27,6 +35,8 @@ for key in sample_keys_to_keep:
     print(f"Retrieving metadata for {key}", flush=True)
     if key in ["readstotal", "singlecellprobability"]:
         sample_dict[key] = [str(x).encode() for x in samples_h5[key]]
+    elif key == "characteristics_ch1":
+        sample_dict[key] = [x.replace(b"\t", b";") for x in samples_h5[key]]
     else:
         sample_dict[key] = [x for x in samples_h5[key]]
 

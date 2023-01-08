@@ -35,6 +35,7 @@ for line in tsv_file:
     line_items = line.rstrip(b"\n").split(b"\t")
 
     for i in range(len(line_items)):
+        print(line_items)
         column_size_dict[i] = max([column_size_dict[i], len(line_items[i])])
 
 tsv_file.close()

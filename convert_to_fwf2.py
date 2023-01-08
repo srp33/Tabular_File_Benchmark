@@ -9,16 +9,6 @@ out_file_path = sys.argv[2]
 
 column_size_dict = {}
 column_start_coords = []
-column_types_dict = {}
-
-def get_type(a_string):
-    return ("s", "n")[isfloat(a_string)] #string or number
-
-def get_most_generic_type(types_set):
-    if len(types_set) > 1:
-        return "s" # string
-
-    return list(types_set)[0]
 
 def get_tsv_file_handle():
     if file_path.endswith(".gz"):
@@ -37,7 +27,7 @@ with open(out_file_path + ".cn", 'wb') as col_names_file:
 with open(out_file_path + ".mcnl", 'wb') as mcnl_file:
     mcnl_file.write(max_column_name_length)
 
-# Iterate through the lines to find the max width and type of each column
+# Iterate through the lines to find the max width of each column
 for i in range(len(column_names)):
     column_size_dict[i] = 0
 
@@ -46,12 +36,6 @@ for line in tsv_file:
 
     for i in range(len(line_items)):
         column_size_dict[i] = max([column_size_dict[i], len(line_items[i])])
-
-        if not i in column_types_dict:
-            # This is the header line, so we don't need to check its type
-            column_types_dict[i] = set()
-        else:
-            column_types_dict[i].add(get_type(line_items[i]))
 
 tsv_file.close()
 
@@ -80,22 +64,6 @@ with open(out_file_path + ".cc", 'wb') as cc_file:
 # Save value that indicates maximum length of column coords string
 with open(out_file_path + ".mccl", 'wb') as mccl_file:
     mccl_file.write(max_column_coord_length)
-
-# Find most generic data type for each column
-column_types = []
-for i, types in sorted(column_types_dict.items()):
-    column_types.append(get_most_generic_type(types))
-
-# Calculate the column types and max length of these types
-column_types_string, max_column_types_length = buildStringMap(column_types)
-
-# Save column types
-with open(out_file_path + ".ct", 'wb') as ct_file:
-    ct_file.write(column_types_string)
-
-# Save value that indicates maximum length of column types
-with open(out_file_path + ".mctl", 'wb') as mctl_file:
-    mctl_file.write(max_column_types_length)
 
 # Save the data to output file
 tsv_file = get_tsv_file_handle()

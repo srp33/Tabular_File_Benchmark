@@ -467,7 +467,8 @@ mkdir -p data/archs4
 #$pythonDockerCommand python convert_archs4_hdf5_to_tsv.py data/archs4/human_tpm_v11.h5 data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_expr.tsv.gz
 $pythonDockerCommand python convert_to_fwf2.py data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_sample.fwf2
 $pythonDockerCommand python convert_to_fwf2.py data/archs4/human_tpm_v11_expr.tsv.gz data/archs4/human_tpm_v11_expr.fwf2
-#TODO: Use F4 instead?
+#TODO: Use F4 instead? Leaning away from it.
+#TODO: Look up paper(s) about memory mapping to explain why it is so fast.
 exit
 
 #TODO: Try two levels of compression with fst (and next fastest).
@@ -480,16 +481,18 @@ exit
 #          See how well compression works.
 #          - ARCHS4 Version 2 (Ensembl 107), TPM (transcript level, human, 101 GB, 11-16-2021)
 #            https://maayanlab.cloud/archs4/download.html
-#            Transpose.
+#            Show that we can transpose such a large file.
 #          - CADD files
 #            https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/
-#            Show that it is fast here but that compression is poor. Address compression in F4 paper.
-#        Do queries that are biologically relevant.
-#          Different query complexity and/or output file sizes (but keep it simple!).
+#            What query would be biologically relevant?
+#            Show that it is fast here but that compression is poor. Address compression in F4 paper?
+#            Go with the file that doesn't include the annotations?
+#            Transposing doesn't really make sense for this one.
 #      Build a simple web-server container (fastAPI?) to demonstrate remote queries.
 #        Peek
 #        Filter/query
 #TODO: Clean up scripts.
+#        Remove ct stuff when building fwf2.
 #TODO: Run everything from beginning to end (sensei? miyagi?).
 
 #NOTES:

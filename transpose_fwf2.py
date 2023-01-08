@@ -91,6 +91,6 @@ with open(out_file_path + ".cc", 'wb') as out_cc_file:
 with open(out_file_path + ".mccl", 'wb') as out_mccl_file:
     out_mccl_file.write(out_max_column_coord_length)
 
-#for file_extension in [".ll", ".cc", ".mccl", ".cn", ".mcnl", ".ct", ".mctl"]:
-for file_extension in [".cn", ".mcnl", ".ct", ".mctl"]:
+#for file_extension in [".ll", ".cc", ".mccl", ".cn", ".mcnl"]:
+for file_extension in [".cn", ".mcnl"]:
     shutil.copyfile(in_file_path + file_extension, out_file_path + file_extension)

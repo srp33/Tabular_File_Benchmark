@@ -1,0 +1,4 @@
+Iteration	NumDiscrete	NumNumeric	NumRows	Threads	WallClockSeconds	UserSeconds	SystemSeconds	MaxMemoryUsed_kb	OutputFileSize_kb
+1	10	90	1000	16	1.0	7.51	4.66	38984	908
+1	100	900	1000000	16	277.53	2467.97	167.03	18026964	8994161
+1	100000	900000	1000	16	400.78	4371.86	446.97	18276784	9012703

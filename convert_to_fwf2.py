@@ -4,17 +4,17 @@ import sys
 from Helper import *
 from fastnumbers import *
 
-file_path = sys.argv[1]
+tsv_file_path = sys.argv[1]
 out_file_path = sys.argv[2]
 
 column_size_dict = {}
 column_start_coords = []
 
 def get_tsv_file_handle():
-    if file_path.endswith(".gz"):
-        return gzip.open(file_path)
+    if tsv_file_path.endswith(".gz"):
+        return gzip.open(tsv_file_path)
     else:
-        return open(file_path, 'rb')
+        return open(tsv_file_path, 'rb')
 
 # Initialize a dictionary with the column index as key and width of the column as value
 tsv_file = get_tsv_file_handle()
@@ -35,7 +35,6 @@ for line in tsv_file:
     line_items = line.rstrip(b"\n").split(b"\t")
 
     for i in range(len(line_items)):
-        print(line_items)
         column_size_dict[i] = max([column_size_dict[i], len(line_items[i])])
 
 tsv_file.close()

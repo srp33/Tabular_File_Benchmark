@@ -35,10 +35,8 @@ for key in sample_keys_to_keep:
     print(f"Retrieving metadata for {key}", flush=True)
     if key in ["readstotal", "singlecellprobability"]:
         sample_dict[key] = [str(x).encode() for x in samples_h5[key]]
-    elif key == "characteristics_ch1":
-        sample_dict[key] = [x.replace(b"\t", b";") for x in samples_h5[key]]
     else:
-        sample_dict[key] = [x for x in samples_h5[key]]
+        sample_dict[key] = [x.replace(b"\t", b";") for x in samples_h5[key]]
 
 with gzip.open(out_samples_file_path, "w") as out_file:
     out_file.write(b"\t".join([x.encode() for x in sample_keys_to_keep]) + b"\n")

@@ -47,8 +47,8 @@ buildDockerImage tab_bench_python
 #buildDockerImage tab_bench_r
 #buildDockerImage tab_bench_rust $currentDir/Rust
 
-#baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
-baseDockerCommand="docker run -i --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
+baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
+#baseDockerCommand="docker run -i --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 #baseDockerCommand="docker run -d --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 pythonDockerCommand="$baseDockerCommand $pythonImage"
 rDockerCommand="$baseDockerCommand $rImage"
@@ -458,40 +458,155 @@ echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\t
 #cat $queryResultFile
 
 ############################################################
+# Test additional features: indexes, binary search,
+# concise format, parallelization, custom compression.
+############################################################
+
+buildResultFile=results/build_f4py.tsv
+echo -e "Iteration\tNumDiscrete\tNumNumeric\tNumRows\tThreads\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $buildResultFile
+
+#for iteration in {1..5}
+for iteration in {1..1}
+do
+    for size in "$small" "$tall" "$wide"
+    #for size in "$small"
+    #for size in "$tall"
+    #for size in "$wide"
+    do
+        #for threads in 1
+        for threads in 16
+        #for threads in 1 4 16
+        do
+            dataFile=data/${size// /_}.tsv
+            outFile=data/${size// /_}.f4
+
+            rm -rf ${outFile}*
+
+            echo -n -e "${iteration}\t${size// /\\t}\t${threads}\t" >> $buildResultFile
+  
+            command="python convert_to_f4.py $dataFile $size $threads $outFile"
+
+            echo $command
+            #$pythonDockerCommand $command
+            $pythonDockerCommand /usr/bin/time --verbose $command &> /tmp/result
+            $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $buildResultFile
+            $pythonDockerCommand python ParseFileSize.py ${outFile}* >> $buildResultFile
+            echo >> $buildResultFile
+#break
+        done
+    done
+done
+
+cat $buildResultFile
+exit
+
+queryResultFile=results/queries_f4py.tsv
+echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $queryResultFile
+
+#for iteration in {1..5}
+#for iteration in {1..1}
+#do
+#    for queryType in simple startsendswith
+#    #for queryType in simple
+#    #for queryType in startsendswith
+#    do
+#        for size in "$small" "$tall" "$wide"
+#        #for size in "$small"
+#        #for size in "$tall"
+#        #for size in "$wide"
+#        do
+#            for columns in firstlast_columns all_columns
+#            #for columns in firstlast_columns
+#            #for columns in all_columns
+#            do
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr_trps.py zstd ${level}" $queryType $columns False fwf2 $queryResultFile
+#            done
+#        done
+#    done
+#done
+
+#echo $queryResultFile
+#cat $queryResultFile
+
+############################################################
 # Real-world data: ARCHS4
 ############################################################
 
 mkdir -p data/archs4
 
 #$pythonDockerCommand wget -O data/archs4/human_tpm_v11.h5 https://s3.amazonaws.com/mssm-seq-matrix/human_tpm_v11.h5
-$pythonDockerCommand python convert_archs4_hdf5_to_tsv.py data/archs4/human_tpm_v11.h5 data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_expr.tsv.gz
+#$pythonDockerCommand python convert_archs4_hdf5_to_tsv.py data/archs4/human_tpm_v11.h5 data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_expr.tsv.gz
 #$pythonDockerCommand python convert_to_fwf2.py data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_sample.fwf2
 #$pythonDockerCommand python convert_to_fwf2.py data/archs4/human_tpm_v11_expr.tsv.gz data/archs4/human_tpm_v11_expr.fwf2
+
+############################################################
+# Real-world data: CADD
+############################################################
+
+mkdir -p data/cadd
+
+#$pythonDockerCommand wget -O data/cadd/whole_genome_SNVs.tsv.gz https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz
+#$pythonDockerCommand wget -O data/cadd/whole_genome_SNVs.tsv.gz.tbi https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz.tbi
+
+#zcat data/whole_genome_SNVs_inclAnno.tsv.gz | head -n 2 | tail -n +2 | cut -c2- | gzip > data/cadd.tsv.gz
+#zcat data/whole_genome_SNVs_inclAnno.tsv.gz | tail -n +3 | gzip >> data/cadd.tsv.gz
+
+# The full-sized CADD file has 12221577961 lines total. We will make some smaller ones for testing.
+
+#zcat data/cadd.tsv.gz | head -n 1001 > /tmp/cadd_head_small.tsv
+#zcat data/cadd.tsv.gz | head -n 10000001 > /tmp/cadd_head_medium.tsv
+
+#sed -r 's/1\t([0-9])/X\t\1/g' /tmp/cadd_head_small.tsv > /tmp/cadd_head_small_X.tsv
+#sed -r 's/1\t([0-9])/X\t\1/g' /tmp/cadd_head_medium.tsv > /tmp/cadd_head_medium_X.tsv
+
+#tail -n +2 /tmp/cadd_head_small_X.tsv > /tmp/cadd_head_small_X2.tsv
+#tail -n +2 /tmp/cadd_head_medium_X.tsv > /tmp/cadd_head_medium_X2.tsv
+
+#cat /tmp/cadd_head_small.tsv /tmp/cadd_head_small_X2.tsv > data/cadd_head_small.tsv
+#cat /tmp/cadd_head_medium.tsv /tmp/cadd_head_medium_X2.tsv > data/cadd_head_medium.tsv
+
+#gzip data/cadd_head_small.tsv
+#gzip data/cadd_head_medium.tsv
+
+##$dockerCommand bash -c "python3 ConvertCADD.py 'data/cadd_head_small.tsv.gz' 'data/cadd_head_small' 32 5 100 Chrom,Pos,Consequence,ConsScore 1 False /tmp/cadd_small ''"
+#$dockerCommand bash -c "python3 ConvertCADD.py 'data/cadd_head_small.tsv.gz' 'data/cadd_head_small' 1 5 100 Chrom,Pos,Consequence,ConsScore 1 True /tmp/cadd_small ''"
+#$dockerCommand bash -c "python3 ConvertCADD.py 'data/cadd_head_small.tsv.gz' 'data/cadd_head_small' 32 5 100 Chrom,Pos,Consequence,ConsScore 1 True /tmp/cadd_small ''"
+##$dockerCommand bash -c "python3 ConvertCADD.py 'data/cadd_head_medium.tsv.gz' 'data/cadd_head_medium' 32 5 100 Chrom,Pos,Consequence,ConsScore 1 False /tmp/cadd_medium ''"
+#$dockerCommand bash -c "python3 ConvertCADD.py 'data/cadd_head_medium.tsv.gz' 'data/cadd_head_medium' 32 5 100 Chrom,Pos,Consequence,ConsScore 1 True /tmp/cadd_medium ''"
+##$dockerCommand bash -c "python3 ConvertCADD.py 'data/cadd_head_medium.tsv.gz' 'data/cadd_head_medium' 32 5 100 Chrom,Pos,Consequence,ConsScore 11 True /tmp/cadd_medium ''"
+
+#mkdir -p /tmp/cadd
+#python3 ConvertCADD.py "data/cadd.tsv.gz" "data/cadd" 28 5 100000 Chrom,Pos,Consequence,ConsScore /tmp/cadd
+# 19814003803 lines according to wc -l in data/cadd.f4
+
+#python3 ConvertTsvToFixedWidthFile2.py data/cadd.tsv.gz data/cadd.fwf2
+#python3 ConvertTsvToFixedWidthFile2.py data/cadd.tsv.gz /tmp/1.fwf2
+
+#rm -f data/whole_genome_SNVs_inclAnno.tsv.gz data/whole_genome_SNVs_inclAnno.tsv.gz.tbi
+
+#python3 F4/Builder.py data/cadd.tsv.gz data/cadd.f4 "\t" 30
+
+# 12,221,577,960 rows in CADD file (excluding header).
+# 134 columns
+
+
 exit
 
-#TODO: Try two levels of compression with fst (and next fastest).
-#      First, compress.
-#      Second, query.
 #TODO: Real-world biology data
-#        Find a suitable file and replace genotype tests with that?
-#        Make sure some columns have discrete values with varying lengths.
-#        Convert it to fwf2, cmpr, trps.
-#          See how well compression works.
-#          - ARCHS4 Version 2 (Ensembl 107), TPM (transcript level, human, 101 GB, 11-16-2021)
-#            https://maayanlab.cloud/archs4/download.html
-#            Show that we can transpose such a large file.
-#          - CADD files
-#            https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/
-#            What query would be biologically relevant?
-#            Show that it is fast here but that compression is poor. Address compression in F4 paper?
-#            Go with the file that doesn't include the annotations?
+#        - ARCHS4 Version 2 (Ensembl 107), TPM (transcript level, human, 101 GB, 11-16-2021)
+#          Show that we can transpose such a large file.
+#        - CADD
 #            Transposing doesn't really make sense for this one.
-#TODO: Use F4 instead? Leaning away from it.
+#            Compare against tabix? We can also compare it in terms of size.
+#              tabix sorted.gff.gz chr1:10,000,000-20,000,000
+#              Try CSI index files https://github.com/enasequence/schema/issues/18
 #      Build a simple web-server container (fastAPI?) to demonstrate remote queries.
 #        Peek
 #        Filter/query
+#TODO: Try two levels of compression with fst (and next fastest).
+#      First, compress.
+#      Second, query.
 #TODO: Clean up scripts.
-#        Remove ct stuff when building fwf2.
 #TODO: Run everything from beginning to end (sensei? miyagi?).
 
 #NOTES:

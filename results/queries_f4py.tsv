@@ -1,0 +1,2 @@
+Iteration	CommandPrefix	QueryType	Columns	NumDiscrete	NumNumeric	NumRows	WallClockSeconds	UserSeconds	SystemSeconds	MaxMemoryUsed_kb	OutputFileSize_kb
+1	python query_f4.py 1	simple	all_columns	10	90	1000	Error	Error	Error	Error	Error

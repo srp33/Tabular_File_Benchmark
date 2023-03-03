@@ -6,4 +6,4 @@ RUN apt-get update \
 RUN python -m pip install --upgrade pip \
  && pip install duckdb==0.5.1 fastnumbers==4.0.1 h5py==3.7.0 lz4==4.0.2 msgpack==1.0.4 numpy==1.23.4 pandas==1.5.1 pyarrow==10.0.0 python-snappy==0.6.1 tables==3.7.0 zstandard==0.19.0
 
-RUN pip install f4==0.2.2
+RUN pip install f4==0.2.4

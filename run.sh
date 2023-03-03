@@ -157,7 +157,7 @@ function queryFile {
 
   echo Running query for ${iteration}, ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}, ${columns}
 
-#  $dockerCommand $command
+  $dockerCommand $command
   $dockerCommand /usr/bin/time --verbose $command &> /tmp/result
   $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
   $pythonDockerCommand python ParseFileSize.py $outFile >> $resultFile
@@ -463,7 +463,7 @@ echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\t
 ############################################################
 
 buildResultFile=results/build_f4py.tsv
-echo -e "Iteration\tNumDiscrete\tNumNumeric\tNumRows\tThreads\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $buildResultFile
+#echo -e "Iteration\tNumDiscrete\tNumNumeric\tNumRows\tThreads\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $buildResultFile
 
 #for iteration in {1..5}
 for iteration in {1..1}
@@ -480,53 +480,58 @@ do
             dataFile=data/${size// /_}.tsv
             outFile=data/${size// /_}.f4
 
-            rm -rf ${outFile}*
+            #rm -rf ${outFile}*
 
-            echo -n -e "${iteration}\t${size// /\\t}\t${threads}\t" >> $buildResultFile
+            #echo -n -e "${iteration}\t${size// /\\t}\t${threads}\t" >> $buildResultFile
   
-            command="python convert_to_f4.py $dataFile $size $threads $outFile"
+            #command="python convert_to_f4.py $dataFile $size $threads $outFile"
 
-            echo $command
-            #$pythonDockerCommand $command
-            $pythonDockerCommand /usr/bin/time --verbose $command &> /tmp/result
-            $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $buildResultFile
-            $pythonDockerCommand python ParseFileSize.py ${outFile}* >> $buildResultFile
-            echo >> $buildResultFile
-#break
+            #echo $command
+            ##$pythonDockerCommand $command
+            #$pythonDockerCommand /usr/bin/time --verbose $command &> /tmp/result
+            #$pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $buildResultFile
+            #$pythonDockerCommand python ParseFileSize.py ${outFile}* >> $buildResultFile
+            #echo >> $buildResultFile
+
+            #TODO: index_columns, compression_type
         done
     done
 done
 
-cat $buildResultFile
-exit
+#cat $buildResultFile
 
 queryResultFile=results/queries_f4py.tsv
 echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $queryResultFile
 
 #for iteration in {1..5}
-#for iteration in {1..1}
-#do
-#    for queryType in simple startsendswith
-#    #for queryType in simple
-#    #for queryType in startsendswith
-#    do
-#        for size in "$small" "$tall" "$wide"
-#        #for size in "$small"
-#        #for size in "$tall"
-#        #for size in "$wide"
-#        do
-#            for columns in firstlast_columns all_columns
-#            #for columns in firstlast_columns
-#            #for columns in all_columns
-#            do
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr_trps.py zstd ${level}" $queryType $columns False fwf2 $queryResultFile
-#            done
-#        done
-#    done
-#done
+for iteration in {1..1}
+do
+    #for queryType in simple startsendswith
+    for queryType in simple
+    #for queryType in startsendswith
+    do
+        #for size in "$small" "$tall" "$wide"
+        for size in "$small"
+        #for size in "$tall"
+        #for size in "$wide"
+        do
+            #for columns in firstlast_columns all_columns
+            #for columns in firstlast_columns
+            for columns in all_columns
+            do
+                for threads in 1
+                #for threads in 1 4 16
+                do
+                    queryFile $iteration $size "${pythonDockerCommand}" "python query_f4.py $threads" $queryType $columns False f4 $queryResultFile
+                done
+            done
+        done
+    done
+done
 
-#echo $queryResultFile
-#cat $queryResultFile
+echo $queryResultFile
+cat $queryResultFile
+exit
 
 ############################################################
 # Real-world data: ARCHS4

@@ -138,9 +138,10 @@ function queryFile {
   columns=$8
   isMaster=$9
   inFileExtension=${10}
-  resultFile=${11}
+  inFileNameSuffix=${11}
+  resultFile=${12}
 
-  dataFile=data/${numDiscrete}_${numNumeric}_${numRows}.${inFileExtension}
+  dataFile=data/${numDiscrete}_${numNumeric}_${numRows}${inFileNameSuffix}.${inFileExtension}
   outFile=/tmp/benchmark_files/${numDiscrete}_${numNumeric}_${numRows}_${queryType}_${columns}
 
   rm -f $outFile
@@ -157,7 +158,7 @@ function queryFile {
 
   echo Running query for ${iteration}, ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}, ${columns}
 
-  $dockerCommand $command
+  #$dockerCommand $command
   $dockerCommand /usr/bin/time --verbose $command &> /tmp/result
   $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $resultFile
   $pythonDockerCommand python ParseFileSize.py $outFile >> $resultFile
@@ -211,39 +212,39 @@ echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\t
 #                    isMaster=True
 #                fi
 #
-#                queryFile $iteration $size "${pythonDockerCommand}" "python line_by_line.py standard_io" $queryType $columns $isMaster tsv $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python line_by_line.py standard_io" $queryType $columns $isMaster tsv "" $queryResultFile
 #
-##                queryFile $iteration $size "${pythonDockerCommand}" "python line_by_line.py memory_map" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${pythonDockerCommand}" "python awk.py awk" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${pythonDockerCommand}" "python awk.py gawk" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${pythonDockerCommand}" "python awk.py nawk" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript base.R" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript readr.R 1_thread,not_lazy" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript readr.R 8_threads,notlazy" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript readr.R 8_threads,lazy" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 1_thread,no_altrep" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 8_threads,no_altrep" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 1_thread,altrep" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 8_threads,altrep" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript fread.R 1_thread" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript fread.R 8_threads" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript ff.R" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript arrow_csv.R" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py c_engine,standard_io" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py c_engine,memory_map" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py python_engine,standard_io" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py python_engine,memory_map" $queryType $columns False tsv $queryResultFile
-##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py pyarrow_engine,standard_io" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python line_by_line.py memory_map" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python awk.py awk" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python awk.py gawk" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python awk.py nawk" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript base.R" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript readr.R 1_thread,not_lazy" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript readr.R 8_threads,notlazy" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript readr.R 8_threads,lazy" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 1_thread,no_altrep" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 8_threads,no_altrep" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 1_thread,altrep" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript vroom.R 8_threads,altrep" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript fread.R 1_thread" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript fread.R 8_threads" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript ff.R" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript arrow_csv.R" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py c_engine,standard_io" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py c_engine,memory_map" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py python_engine,standard_io" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py python_engine,memory_map" $queryType $columns False tsv "" $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_csv.py pyarrow_engine,standard_io" $queryType $columns False tsv "" $queryResultFile
 ##                # INFO: pyarrow does not support the 'memory_map' option.
-##                queryFile $iteration $size "${pythonDockerCommand}" "python duck_db.py" $queryType $columns False tsv $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python duck_db.py" $queryType $columns False tsv "" $queryResultFile
 #
-##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_hdf5.py" $queryType $columns False hdf5 $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript fst.R" $queryType $columns False fst $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript feather.R" $queryType $columns False fthr $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript arrow.R feather2" $queryType $columns False arw $queryResultFile
-##                queryFile $iteration $size "${rDockerCommand}" "Rscript arrow.R parquet" $queryType $columns False prq $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2.py" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2/target/release/main" $queryType $columns False fwf2 $queryResultFile
+##                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_hdf5.py" $queryType $columns False hdf5 "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript fst.R" $queryType $columns False fst "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript feather.R" $queryType $columns False fthr "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript arrow.R feather2" $queryType $columns False arw "" $queryResultFile
+##                queryFile $iteration $size "${rDockerCommand}" "Rscript arrow.R parquet" $queryType $columns False prq "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2.py" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2/target/release/main" $queryType $columns False fwf2 "" $queryResultFile
 ## TODO: Update to python 3.11 when the pip installs will work properly.
 #            done
 #        done
@@ -339,26 +340,26 @@ compressLinesResultFile=results/compress_lines.tsv
 #            for columns in firstlast_columns
 #            #for columns in all_columns
 #            do
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py bz2 1" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py bz2 5" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py bz2 9" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py gz 1" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py gz 5" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py gz 9" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py lzma NA" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py snappy NA" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py zstd 1" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr/target/release/main zstd 1" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py zstd 5" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr/target/release/main zstd 5" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py zstd 9" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr/target/release/main zstd 9" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py zstd 22" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr/target/release/main zstd 22" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py lz4 0" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py lz4 5" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py lz4 10" $queryType $columns False fwf2 $queryResultFile
-#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py lz4 16" $queryType $columns False fwf2 $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py bz2 1" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py bz2 5" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py bz2 9" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py gz 1" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py gz 5" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py gz 9" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py lzma NA" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py snappy NA" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py zstd 1" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr/target/release/main zstd 1" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py zstd 5" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr/target/release/main zstd 5" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py zstd 9" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr/target/release/main zstd 9" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py zstd 22" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr/target/release/main zstd 22" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py lz4 0" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py lz4 5" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py lz4 10" $queryType $columns False fwf2 "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr.py lz4 16" $queryType $columns False fwf2 "" $queryResultFile
 #            done
 #        done
 #    done
@@ -446,8 +447,8 @@ echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\t
 #                for level in 1 5 9 22
 #                #for level in 1
 #                do
-#                    queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr_trps.py zstd ${level}" $queryType $columns False fwf2 $queryResultFile
-#                    queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr_trps/target/release/main zstd ${level}" $queryType $columns False fwf2 $queryResultFile
+#                    queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr_trps.py zstd ${level}" $queryType $columns False fwf2 "" $queryResultFile
+#                    queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr_trps/target/release/main zstd ${level}" $queryType $columns False fwf2 "" $queryResultFile
 #                done
 #            done
 #        done
@@ -463,66 +464,76 @@ echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\t
 ############################################################
 
 buildResultFile=results/build_f4py.tsv
-#echo -e "Iteration\tNumDiscrete\tNumNumeric\tNumRows\tThreads\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $buildResultFile
+#echo -e "Iteration\tNumDiscrete\tNumNumeric\tNumRows\tThreads\tCompressionType\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $buildResultFile
 
-#for iteration in {1..5}
-for iteration in {1..1}
-do
-    for size in "$small" "$tall" "$wide"
-    #for size in "$small"
-    #for size in "$tall"
-    #for size in "$wide"
-    do
-        #for threads in 1
-        for threads in 16
-        #for threads in 1 4 16
-        do
-            dataFile=data/${size// /_}.tsv
-            outFile=data/${size// /_}.f4
-
-            #rm -rf ${outFile}*
-
-            #echo -n -e "${iteration}\t${size// /\\t}\t${threads}\t" >> $buildResultFile
-  
-            #command="python convert_to_f4.py $dataFile $size $threads $outFile"
-
-            #echo $command
-            ##$pythonDockerCommand $command
-            #$pythonDockerCommand /usr/bin/time --verbose $command &> /tmp/result
-            #$pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $buildResultFile
-            #$pythonDockerCommand python ParseFileSize.py ${outFile}* >> $buildResultFile
-            #echo >> $buildResultFile
-
-            #TODO: index_columns, compression_type
-        done
-    done
-done
-
+##for iteration in {1..5}
+#for iteration in {1..1}
+#do
+#    for size in "$small" "$tall" "$wide"
+#    #for size in "$small"
+#    #for size in "$tall"
+#    #for size in "$wide"
+#    do
+#        #for threads in 1
+#        for threads in 16
+#        #for threads in 1 4 16
+#        do
+#            #for compression_type in None
+#            for compression_type in None zstd
+#            do
+#                dataFile=data/${size// /_}.tsv
+#                outFile=data/${size// /_}_${compression_type}.f4
+#
+#                rm -rf ${outFile}*
+#
+#                echo -n -e "${iteration}\t${size// /\\t}\t${threads}\t${compression_type}\t" >> $buildResultFile
+#  
+#                command="python convert_to_f4.py $dataFile $threads ${compression_type} Discrete2,Numeric2 $outFile"
+#
+#                echo $command
+#                #$pythonDockerCommand $command
+#                $pythonDockerCommand /usr/bin/time --verbose $command &> /tmp/result
+#                $pythonDockerCommand python ParseTimeMemoryInfo.py /tmp/result >> $buildResultFile
+#                $pythonDockerCommand python ParseFileSize.py ${outFile}* >> $buildResultFile
+#                echo >> $buildResultFile
+#            done
+#        done
+#    done
+#done
+#
 #cat $buildResultFile
 
 queryResultFile=results/queries_f4py.tsv
 echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $queryResultFile
 
 #for iteration in {1..5}
-for iteration in {1..1}
+for iteration in {1..3}
+#for iteration in {1..1}
 do
-    #for queryType in simple startsendswith
-    for queryType in simple
-    #for queryType in startsendswith
+    #for size in "$small" "$tall" "$wide"
+    #for size in "$small"
+    for size in "$tall"
+    #for size in "$wide"
     do
-        #for size in "$small" "$tall" "$wide"
-        for size in "$small"
-        #for size in "$tall"
-        #for size in "$wide"
+        #for queryType in simple startsendswith
+        for queryType in simple
+        #for queryType in startsendswith
         do
             #for columns in firstlast_columns all_columns
             #for columns in firstlast_columns
             for columns in all_columns
             do
                 for threads in 1
+                #for threads in 4
+                #for threads in 16
                 #for threads in 1 4 16
                 do
-                    queryFile $iteration $size "${pythonDockerCommand}" "python query_f4.py $threads" $queryType $columns False f4 $queryResultFile
+                    for compression_type in None
+                    #for compression_type in zstd
+                    #for compression_type in None zstd
+                    do
+                        queryFile $iteration $size "${pythonDockerCommand}" "python query_f4.py $threads ${compression_type}" $queryType $columns False f4 "_${compression_type}" $queryResultFile
+                    done
                 done
             done
         done

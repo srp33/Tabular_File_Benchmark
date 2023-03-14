@@ -1,2 +1,4 @@
 Iteration	CommandPrefix	QueryType	Columns	NumDiscrete	NumNumeric	NumRows	WallClockSeconds	UserSeconds	SystemSeconds	MaxMemoryUsed_kb	OutputFileSize_kb
-1	python query_f4.py 1	simple	all_columns	10	90	1000	Error	Error	Error	Error	Error
+1	python query_f4.py 1 None	simple	all_columns	100	900	1000000	4.73	4.77	1.81	295668	25895
+2	python query_f4.py 1 None	simple	all_columns	100	900	1000000	3.63	4.65	2.76	295720	25895
+3	python query_f4.py 1 None	simple	all_columns	100	900	1000000	5.76	5.63	1.45	294960	25895

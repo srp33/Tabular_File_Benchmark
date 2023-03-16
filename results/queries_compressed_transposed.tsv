@@ -1,1 +1,9 @@
 Iteration	CommandPrefix	QueryType	Columns	NumDiscrete	NumNumeric	NumRows	WallClockSeconds	UserSeconds	SystemSeconds	MaxMemoryUsed_kb	OutputFileSize_kb
+1	python fwf2_cmpr_trps.py zstd 1	simple	firstlast_columns	100	900	1000000	3.28	2.37	0.26	475568	72
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	simple	firstlast_columns	100	900	1000000	0.41	0.25	0.14	337732	72
+1	python fwf2_cmpr_trps.py zstd 1	simple	all_columns	100	900	1000000	3.53	3.34	0.18	474316	25895
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	simple	all_columns	100	900	1000000	0.63	0.44	0.18	337748	25895
+1	python fwf2_cmpr_trps.py zstd 1	startsendswith	firstlast_columns	100	900	1000000	10.03	4.81	1.16	2890820	1849
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	startsendswith	firstlast_columns	100	900	1000000	2.21	1.64	0.57	2840856	1849
+1	python fwf2_cmpr_trps.py zstd 1	startsendswith	all_columns	100	900	1000000	32.21	30.54	1.66	2989280	673914
+1	/Rust/fwf2_cmpr_trps/target/release/main zstd 1	startsendswith	all_columns	100	900	1000000	8.44	7.42	1.01	2840836	673914

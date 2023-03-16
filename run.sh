@@ -425,27 +425,27 @@ tcResultFile=results/transposed_compressed.tsv
 # version of the data for filtering.
 ############################################################
 
-queryResultFile=results/queries_compressed_transposed.tsv
-echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $queryResultFile
+#queryResultFile=results/queries_compressed_transposed.tsv
+#echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $queryResultFile
 
-#for iteration in {1..5}
+##for iteration in {1..5}
 #for iteration in {1..1}
 #do
 #    for queryType in simple startsendswith
 #    #for queryType in simple
 #    #for queryType in startsendswith
 #    do
-#        for size in "$small" "$tall" "$wide"
+#        #for size in "$small" "$tall" "$wide"
 #        #for size in "$small"
-#        #for size in "$tall"
+#        for size in "$tall"
 #        #for size in "$wide"
 #        do
 #            for columns in firstlast_columns all_columns
 #            #for columns in firstlast_columns
 #            #for columns in all_columns
 #            do
-#                for level in 1 5 9 22
-#                #for level in 1
+#                #for level in 1 5 9 22
+#                for level in 1
 #                do
 #                    queryFile $iteration $size "${pythonDockerCommand}" "python fwf2_cmpr_trps.py zstd ${level}" $queryType $columns False fwf2 "" $queryResultFile
 #                    queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2_cmpr_trps/target/release/main zstd ${level}" $queryType $columns False fwf2 "" $queryResultFile
@@ -454,7 +454,7 @@ echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\t
 #        done
 #    done
 #done
-
+#
 #echo $queryResultFile
 #cat $queryResultFile
 
@@ -503,52 +503,57 @@ buildResultFile=results/build_f4py.tsv
 #
 #cat $buildResultFile
 
-queryResultFile=results/queries_f4py.tsv
-echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $queryResultFile
+#queryResultFile=results/queries_f4py.tsv
+#echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $queryResultFile
 
 #for iteration in {1..5}
-for iteration in {1..3}
+#for iteration in {1..3}
 #for iteration in {1..1}
-do
-    #for size in "$small" "$tall" "$wide"
-    #for size in "$small"
-    for size in "$tall"
-    #for size in "$wide"
-    do
-        #for queryType in simple startsendswith
-        for queryType in simple
-        #for queryType in startsendswith
-        do
-            #for columns in firstlast_columns all_columns
-            #for columns in firstlast_columns
-            for columns in all_columns
-            do
-                for threads in 1
-                #for threads in 4
-                #for threads in 16
-                #for threads in 1 4 16
-                do
-                    for compression_type in None
-                    #for compression_type in zstd
-                    #for compression_type in None zstd
-                    do
-                        queryFile $iteration $size "${pythonDockerCommand}" "python query_f4.py $threads ${compression_type}" $queryType $columns False f4 "_${compression_type}" $queryResultFile
-                    done
-                done
-            done
-        done
-    done
-done
+#do
+#    #for size in "$small" "$tall" "$wide"
+#    #for size in "$small"
+#    for size in "$tall"
+#    #for size in "$wide"
+#    do
+#        #for queryType in simple startsendswith
+#        #for queryType in simple
+#        for queryType in startsendswith
+#        do
+#            #for columns in firstlast_columns all_columns
+#            for columns in firstlast_columns
+#            #for columns in all_columns
+#            do
+#                #for threads in 1
+#                #for threads in 4
+#                #for threads in 16
+#                for threads in 1 4 16
+#                do
+#                    #for compression_type in None
+#                    #for compression_type in zstd
+#                    for compression_type in None zstd
+#                    do
+#                        queryFile $iteration $size "${pythonDockerCommand}" "python query_f4.py $threads ${compression_type}" $queryType $columns False f4 "_${compression_type}" $queryResultFile
+#                    done
+#                done
+#            done
+#        done
+#    done
+#done
 
-echo $queryResultFile
-cat $queryResultFile
-exit
+#echo $queryResultFile
+#cat $queryResultFile
 
 ############################################################
 # Real-world data: ARCHS4
 ############################################################
 
 mkdir -p data/archs4
+
+#TODO:
+#  Parse tsv.gz files and combine them into one. Parse the characteristics and set defaults to NA.
+#  Convert to f4 rather than fwf2.
+#  Run queries. Probably don't need to validate the output. Just check metrics.
+#  Can we use CADD? If so, simplify scripts below to use comment_char.
 
 #$pythonDockerCommand wget -O data/archs4/human_tpm_v11.h5 https://s3.amazonaws.com/mssm-seq-matrix/human_tpm_v11.h5
 #$pythonDockerCommand python convert_archs4_hdf5_to_tsv.py data/archs4/human_tpm_v11.h5 data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_expr.tsv.gz

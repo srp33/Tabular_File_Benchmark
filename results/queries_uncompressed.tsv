@@ -1,1 +1,5 @@
 Iteration	CommandPrefix	QueryType	Columns	NumDiscrete	NumNumeric	NumRows	WallClockSeconds	UserSeconds	SystemSeconds	MaxMemoryUsed_kb	OutputFileSize_kb
+1	python polars_csv.py	simple	firstlast_columns	10	90	1000	0.17	0.16	0.09	46984	1
+1	python polars_csv.py	simple	all_columns	10	90	1000	0.17	0.34	0.15	51584	6
+1	python polars_csv.py	startsendswith	firstlast_columns	10	90	1000	0.15	0.09	0.14	47720	3
+1	python polars_csv.py	startsendswith	all_columns	10	90	1000	0.19	0.46	0.10	52180	78

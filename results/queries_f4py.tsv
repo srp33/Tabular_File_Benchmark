@@ -1,7 +1,7 @@
 Iteration	CommandPrefix	QueryType	Columns	NumDiscrete	NumNumeric	NumRows	WallClockSeconds	UserSeconds	SystemSeconds	MaxMemoryUsed_kb	OutputFileSize_kb
-1	python query_f4.py 1 None	startsendswith	firstlast_columns	100	900	1000000	2.58	3.30	2.88	3696568	1849
-1	python query_f4.py 1 zstd	startsendswith	firstlast_columns	100	900	1000000	3.36	4.08	2.36	2936328	1849
-1	python query_f4.py 4 None	startsendswith	firstlast_columns	100	900	1000000	1.89	5.58	5.73	948740	1849
-1	python query_f4.py 4 zstd	startsendswith	firstlast_columns	100	900	1000000	2.27	7.23	6.05	797744	1849
-1	python query_f4.py 16 None	startsendswith	firstlast_columns	100	900	1000000	1.67	11.32	5.88	268316	1849
-1	python query_f4.py 16 zstd	startsendswith	firstlast_columns	100	900	1000000	1.86	13.45	5.67	259868	1849
+1	python query_f4.py 1 None	startsendswith	all_columns	100	900	1000000	33.45	32.64	4.96	5709236	673914
+1	python query_f4.py 1 zstd	startsendswith	all_columns	100	900	1000000	26.24	25.75	4.47	4956744	673914
+1	python query_f4.py 4 None	startsendswith	all_columns	100	900	1000000	98.0	122.52	7.03	946456	673914
+1	python query_f4.py 4 zstd	startsendswith	all_columns	100	900	1000000	97.59	116.45	6.98	798232	673914
+1	python query_f4.py 16 None	startsendswith	all_columns	100	900	1000000	95.09	138.95	7.96	268860	673914
+1	python query_f4.py 16 zstd	startsendswith	all_columns	100	900	1000000	93.82	131.92	8.92	262320	673914

@@ -4,6 +4,6 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated build-essential libssl-dev time gawk
 
 RUN python -m pip install --upgrade pip \
- && pip install duckdb==0.5.1 fastnumbers==4.0.1 h5py==3.7.0 lz4==4.0.2 msgpack==1.0.4 numpy==1.23.4 pandas==1.5.1 pyarrow==10.0.0 python-snappy==0.6.1 tables==3.7.0 zstandard==0.19.0
+ && pip install duckdb==0.5.1 fastnumbers==4.0.1 h5py==3.7.0 lz4==4.0.2 msgpack==1.0.4 numpy==1.23.4 pandas==1.5.1 polars[all]==0.16.14 pyarrow==10.0.0 python-snappy==0.6.1 tables==3.7.0 zstandard==0.19.0
 
-RUN pip install f4==0.3.3
+RUN pip install f4==0.3.4

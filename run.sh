@@ -198,8 +198,8 @@ do
 #    for queryType in simple
 #    for queryType in startsendswith
     do
-#        for size in "$small" "$tall" "$wide"
-        for size in "$small"
+        for size in "$small" "$tall" "$wide"
+#        for size in "$small"
 #        for size in "$tall"
 #        for size in "$wide"
         do

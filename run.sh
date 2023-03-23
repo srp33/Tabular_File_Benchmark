@@ -171,7 +171,7 @@ function queryFile {
   then
       if [ -f $outFile ]
       then
-          echo Checking output for ${iteration}, ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}, ${columns}
+          echo Checking output for ${iteration}, ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}, ${columns} in ${outFile}
           python CheckOutput.py $outFile $masterFile
       else
           echo No output for ${iteration}, ${numDiscrete}, ${numNumeric}, ${numRows}, ${commandPrefix}, ${queryType}, ${columns}
@@ -192,29 +192,29 @@ queryResultFile=results/queries_uncompressed.tsv
 echo -e "Iteration\tCommandPrefix\tQueryType\tColumns\tNumDiscrete\tNumNumeric\tNumRows\tWallClockSeconds\tUserSeconds\tSystemSeconds\tMaxMemoryUsed_kb\tOutputFileSize_kb" > $queryResultFile
 
 #for iteration in {1..5}
-for iteration in {1..1}
-do
-    for queryType in simple startsendswith
+#for iteration in {1..1}
+#do
+#    for queryType in simple startsendswith
 #    for queryType in simple
 #    for queryType in startsendswith
-    do
-        for size in "$small" "$tall" "$wide"
+#    do
+#        for size in "$small" "$tall" "$wide"
 #        for size in "$small"
 #        for size in "$tall"
 #        for size in "$wide"
-        do
-            for columns in firstlast_columns all_columns
+#        do
+#            for columns in firstlast_columns all_columns
 #            for columns in firstlast_columns
 #            for columns in all_columns
-            do
-                isMaster=False
-                if [[ "$iteration" == "1" ]]
-                then
-                    isMaster=True
-                fi
-
+#            do
+#                isMaster=False
+#                if [[ "$iteration" == "1" ]]
+#                then
+#                    isMaster=True
+#                fi
+#
 #                queryFile $iteration $size "${pythonDockerCommand}" "python line_by_line.py standard_io" $queryType $columns $isMaster tsv "" $queryResultFile
-
+#
 #                queryFile $iteration $size "${pythonDockerCommand}" "python line_by_line.py memory_map" $queryType $columns False tsv "" $queryResultFile
 #                queryFile $iteration $size "${pythonDockerCommand}" "python awk.py awk" $queryType $columns False tsv "" $queryResultFile
 #                queryFile $iteration $size "${pythonDockerCommand}" "python awk.py gawk" $queryType $columns False tsv "" $queryResultFile
@@ -239,21 +239,19 @@ do
 #                # INFO: pyarrow does not support the 'memory_map' option.
 #                queryFile $iteration $size "${pythonDockerCommand}" "python duck_db.py" $queryType $columns False tsv "" $queryResultFile
 #                queryFile $iteration $size "${pythonDockerCommand}" "python pandas_hdf5.py" $queryType $columns False hdf5 "" $queryResultFile
-                queryFile $iteration $size "${pythonDockerCommand}" "python polars_csv.py" $queryType $columns False tsv "" $queryResultFile
+#                queryFile $iteration $size "${pythonDockerCommand}" "python polars_csv.py" $queryType $columns False tsv "" $queryResultFile
 #                queryFile $iteration $size "${rDockerCommand}" "Rscript fst.R" $queryType $columns False fst "" $queryResultFile
 #                queryFile $iteration $size "${rDockerCommand}" "Rscript feather.R" $queryType $columns False fthr "" $queryResultFile
 #                queryFile $iteration $size "${rDockerCommand}" "Rscript arrow.R feather2" $queryType $columns False arw "" $queryResultFile
 #                queryFile $iteration $size "${rDockerCommand}" "Rscript arrow.R parquet" $queryType $columns False prq "" $queryResultFile
 #                queryFile $iteration $size "${pythonDockerCommand}" "python fwf2.py" $queryType $columns False fwf2 "" $queryResultFile
 #                queryFile $iteration $size "${rustDockerCommand}" "/Rust/fwf2/target/release/main" $queryType $columns False fwf2 "" $queryResultFile
-# TODO: Update to python 3.11 when the pip installs will work properly.
-            done
-        done
-    done
-done
+#            done
+#        done
+#    done
+#done
 
-cat $queryResultFile
-exit
+#cat $queryResultFile
 
 ############################################################
 # Build compressed versions of the fixed-width files using
@@ -514,22 +512,23 @@ queryResultFile=results/queries_f4py.tsv
 ##for iteration in {1..3}
 #for iteration in {1..1}
 #do
-#    #for size in "$small" "$tall" "$wide"
+#    for size in "$small" "$tall" "$wide"
 #    #for size in "$small"
-#    for size in "$tall"
+#    #for size in "$tall"
 #    #for size in "$wide"
 #    do
-#        #for queryType in simple startsendswith
+#        for queryType in simple startsendswith
 #        #for queryType in simple
-#        for queryType in startsendswith
+#        #for queryType in startsendswith
 #        do
-#            #for columns in firstlast_columns all_columns
+#            for columns in firstlast_columns all_columns
 #            #for columns in firstlast_columns
-#            for columns in all_columns
+#            #for columns in all_columns
 #            do
 #                #for threads in 1
 #                #for threads in 4
 #                #for threads in 16
+#                #for threads in 1 4
 #                for threads in 1 4 16
 #                do
 #                    #for compression_type in None
@@ -546,7 +545,6 @@ queryResultFile=results/queries_f4py.tsv
 #
 #echo $queryResultFile
 #cat $queryResultFile
-#exit
 
 ############################################################
 # Real-world data: ARCHS4
@@ -558,7 +556,6 @@ mkdir -p data/archs4
 #  Parse tsv.gz files and combine them into one. Parse the characteristics and set defaults to NA.
 #  Convert to f4 rather than fwf2.
 #  Run queries. Probably don't need to validate the output. Just check metrics.
-#  Can we use CADD? If so, simplify scripts below to use comment_char.
 
 #$pythonDockerCommand wget -O data/archs4/human_tpm_v11.h5 https://s3.amazonaws.com/mssm-seq-matrix/human_tpm_v11.h5
 #$pythonDockerCommand python convert_archs4_hdf5_to_tsv.py data/archs4/human_tpm_v11.h5 data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_expr.tsv.gz
@@ -570,6 +567,7 @@ mkdir -p data/archs4
 ############################################################
 
 mkdir -p data/cadd
+#  Can we use CADD? If so, simplify scripts below to use comment_char.
 
 #$pythonDockerCommand wget -O data/cadd/whole_genome_SNVs.tsv.gz https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz
 #$pythonDockerCommand wget -O data/cadd/whole_genome_SNVs.tsv.gz.tbi https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz.tbi

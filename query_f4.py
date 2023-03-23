@@ -2,7 +2,7 @@ import f4
 import operator
 import sys
 
-num_threads = int(sys.argv[1])
+num_parallel = int(sys.argv[1])
 compression_type = None if sys.argv[2] == "None" else sys.argv[2]
 query_type = sys.argv[3]
 in_file_path = sys.argv[4]
@@ -33,4 +33,4 @@ else:
 
     fltr = f4.AndFilter(disc_fltr, num_fltr)
 
-f4.query(in_file_path, fltr, select_columns=col_names_to_keep, out_file_path = out_file_path, num_threads = num_threads)
+f4.query(in_file_path, fltr, select_columns=col_names_to_keep, out_file_path = out_file_path, num_parallel = num_parallel)

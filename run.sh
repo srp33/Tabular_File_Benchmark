@@ -559,6 +559,8 @@ mkdir -p data/archs4
 
 #$pythonDockerCommand wget -O data/archs4/human_tpm_v11.h5 https://s3.amazonaws.com/mssm-seq-matrix/human_tpm_v11.h5
 #$pythonDockerCommand python convert_archs4_hdf5_to_tsv.py data/archs4/human_tpm_v11.h5 data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_expr.tsv.gz
+$pythonDockerCommand python parse_archs4.py data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_expr.tsv.gz data/archs4/archs4_sample.f4
+#rm -f data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_expr.tsv.gz
 #$pythonDockerCommand python convert_to_fwf2.py data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_sample.fwf2
 #$pythonDockerCommand python convert_to_fwf2.py data/archs4/human_tpm_v11_expr.tsv.gz data/archs4/human_tpm_v11_expr.fwf2
 

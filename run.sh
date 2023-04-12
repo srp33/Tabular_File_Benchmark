@@ -47,8 +47,8 @@ buildDockerImage tab_bench_python
 #buildDockerImage tab_bench_r
 #buildDockerImage tab_bench_rust $currentDir/Rust
 
-baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
-#baseDockerCommand="docker run -i --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
+#baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
+baseDockerCommand="docker run -i --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 #baseDockerCommand="docker run -d --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 pythonDockerCommand="$baseDockerCommand $pythonImage"
 rDockerCommand="$baseDockerCommand $rImage"
@@ -559,17 +559,15 @@ mkdir -p data/archs4
 
 #$pythonDockerCommand wget -O data/archs4/human_tpm_v11.h5 https://s3.amazonaws.com/mssm-seq-matrix/human_tpm_v11.h5
 #$pythonDockerCommand python convert_archs4_hdf5_to_tsv.py data/archs4/human_tpm_v11.h5 data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_expr.tsv.gz
-$pythonDockerCommand python parse_archs4.py data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_expr.tsv.gz data/archs4/archs4_sample.f4
-#rm -f data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_expr.tsv.gz
-#$pythonDockerCommand python convert_to_fwf2.py data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_sample.fwf2
-#$pythonDockerCommand python convert_to_fwf2.py data/archs4/human_tpm_v11_expr.tsv.gz data/archs4/human_tpm_v11_expr.fwf2
+#$pythonDockerCommand python parse_archs4.py data/archs4/human_tpm_v11_sample.tsv.gz data/archs4/human_tpm_v11_expr.tsv.gz data/archs4/archs4.f4
+#rm -f data/archs4/archs4_sample.tsv.gz
+#TODO: Write code to query In parse_archs4.py, remove temp files. They are in the data dir. Then change the paths so these are in data/archs4.
 
 ############################################################
 # Real-world data: CADD
 ############################################################
 
 mkdir -p data/cadd
-#  Can we use CADD? If so, simplify scripts below to use comment_char.
 
 #$pythonDockerCommand wget -O data/cadd/whole_genome_SNVs.tsv.gz https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz
 #$pythonDockerCommand wget -O data/cadd/whole_genome_SNVs.tsv.gz.tbi https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz.tbi

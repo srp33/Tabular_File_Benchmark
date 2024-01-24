@@ -20,7 +20,7 @@ for column_name in column_names:
 
 df = pd.read_csv(in_file_path, sep="\t", header=0, dtype=column_type_dict, na_filter=False)
 
-## format="table" is necessary to support selecting specific columns.
+## format="table" is necessary to support projecting specific columns.
 #df.to_hdf(out_file_path, key="df", mode="w", format="fixed", complevel=complevel, dropna=False)
 #PerformanceWarning: table /df/table is exceeding the recommended maximum number of columns (512); be ready to see PyTables asking for *lots* of memory and possibly slow I/O
 #df.to_hdf(out_file_path, key="df", mode="w", format="table", data_columns=True, complevel=complevel, dropna=False)

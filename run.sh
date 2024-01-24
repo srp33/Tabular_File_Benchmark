@@ -43,12 +43,11 @@ function buildDockerImage {
     cd $currentDir
 }
 
-buildDockerImage tab_bench_python
+#buildDockerImage tab_bench_python
 #buildDockerImage tab_bench_r
 #buildDockerImage tab_bench_rust $currentDir/Rust
 
-#baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
-baseDockerCommand="docker run -i --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
+baseDockerCommand="docker run -i -t --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 #baseDockerCommand="docker run -d --rm --user $(id -u):$(id -g) -v $(pwd):/sandbox -v $(pwd)/data:/data -v /tmp:/tmp --workdir=/sandbox"
 pythonDockerCommand="$baseDockerCommand $pythonImage"
 rDockerCommand="$baseDockerCommand $rImage"
@@ -65,11 +64,11 @@ tall="100 900 1000000"
 wide="100000 900000 1000"
 
 ## Small file
-#$pythonDockerCommand python /sandbox/BuildTsvFile.py $small /data/${small// /_}.tsv
+#$pythonDockerCommand python BuildTsvFile.py $small /data/${small// /_}.tsv
 ## Tall, narrow file
-#$pythonDockerCommand python /sandbox/BuildTsvFile.py $tall /data/${tall// /_}.tsv
+#$pythonDockerCommand python BuildTsvFile.py $tall /data/${tall// /_}.tsv
 ## Short, wide file
-#$pythonDockerCommand python /sandbox/BuildTsvFile.py $wide /data/${wide// /_}.tsv
+#$pythonDockerCommand python BuildTsvFile.py $wide /data/${wide// /_}.tsv
 
 #######################################################
 # Convert files to other formats.
@@ -108,11 +107,10 @@ conversionsResultFile=results/conversions.tsv
 #for size in "$tall"
 #for size in "$wide"
 #do
-#  convertTSV $size "${rDockerCommand}" "Rscript convert_to_fst.R" fst $conversionsResultFile
-#  convertTSV $size "${rDockerCommand}" "Rscript convert_to_feather.R" fthr $conversionsResultFile
-#  convertTSV $size "${rDockerCommand}" "Rscript convert_to_arrow.R" arw $conversionsResultFile
 #  convertTSV $size "${rDockerCommand}" "Rscript convert_to_parquet.R" prq $conversionsResultFile
-#  convertTSV $size "${pythonDockerCommand}" "python convert_to_hdf5.py" hdf5 $conversionsResultFile
+#  convertTSV $size "${rDockerCommand}" "Rscript convert_to_arrow.R" arw $conversionsResultFile
+#  convertTSV $size "${rDockerCommand}" "Rscript convert_to_feather.R" fthr $conversionsResultFile
+#  convertTSV $size "${rDockerCommand}" "Rscript convert_to_fst.R" fst $conversionsResultFile
 #  convertTSV $size "${pythonDockerCommand}" "python convert_to_fwf2.py" fwf2 $conversionsResultFile
 #done
 
@@ -569,13 +567,23 @@ mkdir -p data/archs4
 
 mkdir -p data/cadd
 
+#TODO: remove these two lines?
 #$pythonDockerCommand wget -O data/cadd/whole_genome_SNVs.tsv.gz https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz
 #$pythonDockerCommand wget -O data/cadd/whole_genome_SNVs.tsv.gz.tbi https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz.tbi
+#$pythonDockerCommand wget -O data/cadd/whole_genome_SNVs_inclAnno.tsv.gz https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs_inclAnno.tsv.gz
+#$pythonDockerCommand wget -O data/cadd/whole_genome_SNVs_inclAnno.tsv.gz.tbi https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs_inclAnno.tsv.gz.tbi
+
+#$pythonDockerCommand zcat data/cadd/whole_genome_SNVs_inclAnno.tsv.gz | head -n 10000 | gzip > data/cadd/small.tsv.gz
+$pythonDockerCommand python convert_cadd.py data/cadd/whole_genome_SNVs_inclAnno.tsv.gz data/cadd/cadd.f4
+# The full-sized CADD file has 12221577961 lines total.
+
+
+
+#$pythonDockerCommand python convert_cadd.py data/cadd/small.tsv.gz data/cadd/full.tsv.gz
 
 #zcat data/whole_genome_SNVs_inclAnno.tsv.gz | head -n 2 | tail -n +2 | cut -c2- | gzip > data/cadd.tsv.gz
 #zcat data/whole_genome_SNVs_inclAnno.tsv.gz | tail -n +3 | gzip >> data/cadd.tsv.gz
 
-# The full-sized CADD file has 12221577961 lines total. We will make some smaller ones for testing.
 
 #zcat data/cadd.tsv.gz | head -n 1001 > /tmp/cadd_head_small.tsv
 #zcat data/cadd.tsv.gz | head -n 10000001 > /tmp/cadd_head_medium.tsv

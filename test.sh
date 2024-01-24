@@ -42,16 +42,6 @@ function buildTestFiles {
   # This takes about 16 hours to run...
   #Rscript --vanilla ConvertTsvToRFormats.R TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.fthr TestData/${numDiscrete}_${numContinuous}_${numRows}.fst
   #python3 ConvertTsvToHDF5.py TestData/${numDiscrete}_${numContinuous}_${numRows}.tsv TestData/${numDiscrete}_${numContinuous}_${numRows}.hdf5
-
-  #https://www.danielecook.com/speeding-up-reading-and-writing-in-r/
-  #https://data.nozav.org/post/2019-r-data-frame-benchmark/
-  #https://pythonspeed.com/articles/pandas-read-csv-fast/ (shows examples of pyarrow and pyparquet)
-  #https://cran.r-project.org/web/packages/vroom/vignettes/benchmarks.html
-  #fst R package
-  #vroom R package
-  #arrow?
-    # https://arrow.apache.org/docs/python/csv.html
-  #hdf5
 }
 
 mkdir -p TestData/TempResults
@@ -138,13 +128,13 @@ function runQueries {
 
 resultFile=Results2/Query_Results.tsv
 
-if [ ! -f $resultFile ]
-then
+#if [ ! -f $resultFile ]
+#then
   echo -e "Description\tFileType\tNumDiscrete\tNumContinuous\tNumRows\tMemMap\tSeconds" > $resultFile
   runQueries $resultFile 10 90 1000
-  runQueries $resultFile 100 900 1000000
-  runQueries $resultFile 100000 900000 1000
-fi
+#  runQueries $resultFile 100 900 1000000
+#  runQueries $resultFile 100000 900000 1000
+#fi
 exit
 
 ############################################################
